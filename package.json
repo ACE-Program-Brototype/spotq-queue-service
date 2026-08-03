@@ -17,7 +17,8 @@
 		"prisma:studio": "prisma studio",
 		"docker:up": "docker compose up --build",
 		"docker:down": "docker compose down",
-		"docker:logs": "docker compose logs -f"
+		"docker:logs": "docker compose logs -f",
+		"prepare": "husky"
 	},
 	"keywords": [],
 	"author": "",
@@ -62,7 +63,11 @@
 		"prisma": "7.9.1",
 		"supertest": "^7.2.2",
 		"tsx": "^4.23.4",
-		"typescript": "^7.0.2",
-		"vitest": "^4.1.10"
+		"typescript": "^7.0.2"
+	},
+	"lint-staged": {
+		"*.{ts,js,json}": [
+			"biome check --write"
+		]
 	}
 }
