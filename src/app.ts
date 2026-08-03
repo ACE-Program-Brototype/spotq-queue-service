@@ -1,9 +1,9 @@
-import compression from "compression";
-import cors from "cors";
-import express from "express";
-import helmet from "helmet";
+import compression from 'compression';
+import cors from 'cors';
+import express from 'express';
+import helmet from 'helmet';
 
-import { router } from "./presentation/routes/index.js";
+import { router } from './presentation/routes/index.routes.js';
 
 const app = express();
 
@@ -12,6 +12,6 @@ app.use(cors());
 app.use(compression());
 app.use(express.json());
 
-app.use("/", router);
+app.use('/', router);
 
 export default app;
