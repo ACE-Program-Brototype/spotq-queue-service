@@ -4,13 +4,13 @@ on:
   pull_request:
     branches:
       - development
-      - staging
+      - testing
       - main
 
   push:
     branches:
       - development
-      - staging
+      - testing
       - main
 
 jobs:
@@ -30,7 +30,7 @@ jobs:
       - name: Setup PNPM
         uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 11
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
