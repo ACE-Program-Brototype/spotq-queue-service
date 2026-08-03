@@ -10,6 +10,7 @@ const envSchema = z.object({
 	LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']),
 
 	DATABASE_URL: z.string().url(),
+	DIRECT_DATABASE_URL: z.string().url(),
 
 	REDIS_URL: z.string().url(),
 });
