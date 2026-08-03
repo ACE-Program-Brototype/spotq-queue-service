@@ -1,7 +1,18 @@
 import app from './app.js';
+import { config } from './config/index.js';
 
-const PORT = 3000;
-
-app.listen(PORT, () => {
-	console.log(` Queue Service running on port ${PORT}`);
+const server = app.listen(config.server.port, () => {
+	console.log(`${config.service.name} running on port ${config.server.port}`);
 });
+
+const shutdown = () => {
+	console.log('Gracefully shutting down...');
+
+	server.close(() => {
+		process.exit(0);
+	});
+};
+
+process.on('SIGINT', shutdown);
+
+process.on('SIGTERM', shutdown);
