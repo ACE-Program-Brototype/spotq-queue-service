@@ -6,7 +6,7 @@ Built using **TypeScript**, **Express 5**, **Clean Architecture**, and modern ob
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 - **Runtime & Language:** Node.js (v22+), Express 5, TypeScript (v7+)
 - **ORM & Database:** Prisma 7 with PostgreSQL (configured via `@prisma/adapter-pg` driver adapter)
 - **Caching & Pub/Sub:** Redis (using `redis` client)
@@ -19,7 +19,7 @@ Built using **TypeScript**, **Express 5**, **Clean Architecture**, and modern ob
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 The codebase strictly follows **Clean Architecture** patterns:
 - **`src/domain/`**: Represents core business rules, entities, and interfaces (independent of external libraries).
 - **`src/application/`**: Contains use-cases and business workflows coordinating data between controllers and domain objects.
@@ -29,7 +29,7 @@ The codebase strictly follows **Clean Architecture** patterns:
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
 ### 1. Production-Ready Health Monitoring (`GET /health`)
 Exposes the status of the service and its underlying database and caching dependencies:
@@ -69,7 +69,7 @@ Environment credentials (like DB connection proxies and Redis passwords) are kep
 
 ---
 
-## ⚡ Getting Started
+## Getting Started
 
 ### 1. Prerequisites
 - Install **Node.js** (v22+)
@@ -105,7 +105,7 @@ pnpm run prisma:generate
 
 ---
 
-## 🧪 Testing & Validation
+## Testing & Validation
 
 ### Run Unit Tests
 Unit tests use Jest compiled via SWC for speed:
@@ -125,7 +125,7 @@ pnpm run format
 
 ---
 
-## 🐳 Docker Deployment
+## Docker Deployment
 The service includes a multi-stage `Dockerfile` optimized for minimal production image footprint:
 
 - **Build Stage:** Installs dev dependencies, generates the Prisma client binaries, and compiles TypeScript source code.
