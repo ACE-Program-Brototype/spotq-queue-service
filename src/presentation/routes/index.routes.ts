@@ -1,19 +1,23 @@
 import { Router } from 'express';
-import { databaseService } from '../../infrastructure/database/index.js';
+import { PrismaService } from '../../infrastructure/database/index.js';
+import { RedisService } from '../../infrastructure/redis/index.js';
 
 export const router = Router();
 
 router.get('/health', async (_req, res) => {
-	const database = await databaseService.isHealthy();
+	const database = await PrismaService.isHealthy();
+	const redis = await RedisService.health();
 
-	const status = database ? 'UP' : 'DOWN';
+	const isHealthy = database && redis;
+	const status = isHealthy ? 'UP' : 'DOWN';
 
-	res.status(database ? 200 : 503).json({
+	res.status(isHealthy ? 200 : 503).json({
 		status,
 		timestamp: new Date().toISOString(),
 		checks: {
 			application: 'UP',
-			database: status,
+			database: database ? 'UP' : 'DOWN',
+			redis: redis ? 'UP' : 'DOWN',
 		},
 	});
 });

@@ -1,15 +1,16 @@
 import { prisma } from './prisma.js';
 
-export class DatabaseService {
-	async connect(): Promise<void> {
+// biome-ignore lint/complexity/noStaticOnlyClass: service structure uses static class methods
+export class PrismaService {
+	static async connect(): Promise<void> {
 		await prisma.$connect();
 	}
 
-	async disconnect(): Promise<void> {
+	static async disconnect(): Promise<void> {
 		await prisma.$disconnect();
 	}
 
-	async isHealthy(): Promise<boolean> {
+	static async isHealthy(): Promise<boolean> {
 		try {
 			await prisma.$queryRaw`SELECT 1`;
 			return true;
@@ -18,5 +19,3 @@ export class DatabaseService {
 		}
 	}
 }
-
-export const databaseService = new DatabaseService();
