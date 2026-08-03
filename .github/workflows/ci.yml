@@ -1,0 +1,48 @@
+name: Queue Service CI
+
+on:
+  pull_request:
+    branches:
+      - development
+      - staging
+      - main
+
+  push:
+    branches:
+      - development
+      - staging
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Linter
+        run: pnpm lint
+
+      - name: Type Check
+        run: pnpm build
+
+      - name: Run Tests
+        run: pnpm test
+
+      - name: Build Docker Image
+        run: docker build -t queue-service .
