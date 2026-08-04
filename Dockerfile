@@ -16,7 +16,7 @@ COPY . .
 
 RUN pnpm exec prisma generate
 RUN pnpm build
-RUN pnpm prune --prod
+RUN pnpm prune --prod --ignore-scripts
 
 
 # --------------------------
