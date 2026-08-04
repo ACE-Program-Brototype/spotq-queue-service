@@ -17,34 +17,12 @@ services:
       SERVICE_NAME: spotq-queue-service
       LOG_LEVEL: info
 
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/spotq_queue
+      DATABASE_URL: ${DATABASE_URL}
 
       REDIS_URL: redis://redis:6379
 
     depends_on:
-      - postgres
       - redis
-
-    networks:
-      - spotq-network
-
-  postgres:
-    image: postgres:16-alpine
-
-    container_name: postgres
-
-    restart: unless-stopped
-
-    environment:
-      POSTGRES_DB: spotq_queue
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-
-    ports:
-      - "5432:5432"
-
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
 
     networks:
       - spotq-network
@@ -66,7 +44,6 @@ services:
       - spotq-network
 
 volumes:
-  postgres-data:
   redis-data:
 
 networks:
