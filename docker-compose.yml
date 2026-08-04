@@ -19,32 +19,10 @@ services:
 
       DATABASE_URL: ${DATABASE_URL}
 
-      REDIS_URL: redis://redis:6379
-
-    depends_on:
-      - redis
+      REDIS_URL: ${REDIS_URL}
 
     networks:
       - spotq-network
-
-  redis:
-    image: redis:7-alpine
-
-    container_name: redis
-
-    restart: unless-stopped
-
-    ports:
-      - "6379:6379"
-
-    volumes:
-      - redis-data:/data
-
-    networks:
-      - spotq-network
-
-volumes:
-  redis-data:
 
 networks:
   spotq-network:
