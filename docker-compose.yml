@@ -18,7 +18,6 @@ services:
       LOG_LEVEL: info
 
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/spotq_queue
-      DIRECT_DATABASE_URL: postgresql://postgres:postgres@postgres:5432/spotq_queue
 
       REDIS_URL: redis://redis:6379
 

@@ -17,7 +17,7 @@ export const config = {
 
 	database: {
 		url: env.DATABASE_URL,
-		directUrl: env.DIRECT_DATABASE_URL || env.DATABASE_URL,
+		directUrl: env.DATABASE_URL,
 	},
 
 	redis: {
