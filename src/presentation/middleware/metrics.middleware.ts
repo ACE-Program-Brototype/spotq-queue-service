@@ -14,7 +14,7 @@ export function metricsMiddleware(req: Request, res: Response, next: NextFunctio
 		const durationDiff = process.hrtime(startTime);
 		const durationSeconds = durationDiff[0] + durationDiff[1] / 1e9;
 
-		const route = req.route?.path || req.path;
+		const route = req.route?.path || 'unmatched_route';
 		const statusCode = String(res.statusCode);
 		const method = req.method;
 
