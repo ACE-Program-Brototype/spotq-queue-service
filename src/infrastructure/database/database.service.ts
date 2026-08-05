@@ -4,6 +4,8 @@ import { prisma } from './prisma.js';
 export class PrismaService {
 	static async connect(): Promise<void> {
 		await prisma.$connect();
+		// Execute a ping query to validate database connection on startup
+		await prisma.$queryRaw`SELECT 1`;
 	}
 
 	static async disconnect(): Promise<void> {
