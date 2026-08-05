@@ -131,8 +131,50 @@ The service includes a multi-stage `Dockerfile` optimized for minimal production
 - **Build Stage:** Installs dev dependencies, generates the Prisma client binaries, and compiles TypeScript source code.
 - **Production Stage:** Prunes dev dependencies, installs the **Infisical CLI** for secure runtime injections, switches to a non-root `appuser` for security, and configures a Docker healthcheck using `wget` against `/health`.
 
-### Start the Container Cluster
+### Build and Run Standalone Container
 ```bash
-# Spins up Postgres, Redis, and the Queue Service container locally
-docker-compose up -d --build
+# 1. Build the Docker image
+docker build -t queue-service .
+
+# 2. Run the container locally using environment variable injection
+docker run -d --name queue-service -p 3000:3000 --env-file .env queue-service
 ```
+
+---
+
+## Development Guidelines
+
+To maintain code quality and ensure integrations work seamlessly, please follow these guidelines when contributing:
+
+### 1. Branch Naming Convention
+Our CI pipeline enforces strict branch naming validation using a regex checker. All feature, chore, or bug-fix branches must match the pattern:
+`^(feat|fix|chore|refactor|hotfix)/SCRUM-[0-9]+(-.+)?$`
+
+*   **Allowed Prefixes:** `feat/`, `fix/`, `chore/`, `refactor/`, `hotfix/`
+*   **Jira Ticket Key:** Must contain the Jira ticket ID (e.g. `SCRUM-502`)
+*   **Examples:**
+    *   `feat/SCRUM-502-setup-queue-service`
+    *   `fix/SCRUM-102-memory-leak`
+    *   `chore/SCRUM-44-update-dependencies`
+
+### 2. Pull Request (PR) Workflow
+*   **Target Branch:** All PRs should target the `development` branch.
+*   **PR Titles:** Always prefix your Pull Request title with the Jira ticket key so that the GitHub-Jira integration links it automatically (e.g., `SCRUM-502: Setup Queue Service`).
+*   **Review Roles:** 
+    *   Add your peers as **Reviewers** (typically 2 for initial logic checking and 1 for final review/approval before merge).
+    *   Keep yourself as the **Assignee** of the PR (as you are responsible for resolving review feedback and merging).
+
+### 3. Local Commit Validations (Git Hooks)
+This project uses **Husky** and **lint-staged** to enforce code quality locally:
+*   On every commit (`pre-commit`), Husky automatically runs:
+    *   **Biome Formatting & Linting Check** (`biome check --write` on staged TS, JS, and JSON files).
+    *   **Jest Unit Tests** (`pnpm test`).
+*   If formatting checks or tests fail, your commit will be rejected. Resolve the issues before committing again.
+
+### 4. Local Database SSL/TLS Override
+By default, the PostgreSQL connection pool is configured to verify certificates securely (`rejectUnauthorized: true`).
+For local development against databases that use self-signed certificates without custom Certificate Authorities, you can bypass validation locally by setting the override environment variable in your `.env` file:
+```env
+DB_SSL_REJECT_UNAUTHORIZED=false
+```
+*(Never commit this override variable to production environments).*
