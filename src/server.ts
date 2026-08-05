@@ -1,5 +1,5 @@
 import app from './app.js';
-import { config } from './config/index.js';
+import { config } from './infrastructure/config/index.js';
 import { PrismaService } from './infrastructure/database/index.js';
 import { logger } from './infrastructure/logger/index.js';
 import { RedisService } from './infrastructure/redis/index.js';

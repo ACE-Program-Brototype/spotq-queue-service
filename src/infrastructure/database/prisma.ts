@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 import pg from 'pg';
-import { config } from '../../config/index.js';
+import { config } from '../config/index.js';
 
 const dbUrl = new URL(config.database.directUrl);
 
