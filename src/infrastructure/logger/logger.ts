@@ -4,7 +4,7 @@ import { loggerLocalStorage } from './logger-context.js';
 
 export const logger = pino({
 	level: config.service.logLevel || 'info',
-	timestamp: false,
+	timestamp: pino.stdTimeFunctions.isoTime,
 	formatters: {
 		level: (label) => {
 			return { level: label.toUpperCase() };
@@ -14,7 +14,6 @@ export const logger = pino({
 		const store = loggerLocalStorage.getStore();
 		return {
 			serviceName: config.service.name,
-			timestamp: new Date().toISOString(),
 			...(store
 				? {
 						requestId: store.requestId,

@@ -45,4 +45,4 @@ USER appuser
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
   CMD wget --spider -q http://localhost:3000/health || exit 1
 
-CMD ["node", "dist/server.js"]
+CMD ["infisical", "run", "--", "node", "dist/server.js"]
