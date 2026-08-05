@@ -75,6 +75,13 @@ jobs:
 
       - name: Run Tests
         run: pnpm test
+        env:
+          PORT: 3000
+          NODE_ENV: test
+          SERVICE_NAME: spotq-queue-service
+          LOG_LEVEL: info
+          DATABASE_URL: postgres://localhost:5432/test
+          REDIS_URL: redis://localhost:6379
 
       - name: Build Docker Image
         run: docker build -t queue-service .
