@@ -6,8 +6,8 @@ import { redisClient } from '../src/infrastructure/redis/redis.client.js';
 import { RedisService } from '../src/infrastructure/redis/redis.service.js';
 
 describe('Queue Service Integration & Unit Tests', () => {
-	let dbSpy: jest.MockInstance<unknown, unknown[]>;
-	let redisSpy: jest.MockInstance<unknown, unknown[]>;
+	let dbSpy: jest.SpyInstance;
+	let redisSpy: jest.SpyInstance;
 
 	beforeEach(() => {
 		jest.clearAllMocks();
