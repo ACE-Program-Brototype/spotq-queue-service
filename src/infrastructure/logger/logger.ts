@@ -13,8 +13,15 @@ export const logger = pino({
 	mixin() {
 		const store = loggerLocalStorage.getStore();
 		return {
+			serviceName: config.service.name,
 			timestamp: new Date().toISOString(),
-			...(store ? { requestId: store.requestId, correlationId: store.correlationId } : {}),
+			...(store
+				? {
+						requestId: store.requestId,
+						correlationId: store.correlationId,
+						traceId: store.traceId,
+					}
+				: {}),
 		};
 	},
 	serializers: {

@@ -8,11 +8,13 @@ export function loggerMiddleware(req: Request, res: Response, next: NextFunction
 		(req.headers['x-request-id'] as string) ||
 		randomUUID();
 	const requestId = randomUUID();
+	const traceId = correlationId;
 
 	res.setHeader('x-correlation-id', correlationId);
 	res.setHeader('x-request-id', requestId);
+	res.setHeader('x-trace-id', traceId);
 
-	const store = { requestId, correlationId };
+	const store = { requestId, correlationId, traceId };
 
 	loggerLocalStorage.run(store, () => {
 		logger.info({
