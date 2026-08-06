@@ -306,10 +306,16 @@ Format
 pnpm format
 ```
 
-Test
+Test (Local Env)
 
 ```bash
 pnpm test
+```
+
+Test (with Infisical)
+
+```bash
+pnpm test:infisical
 ```
 
 ---

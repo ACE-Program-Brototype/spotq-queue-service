@@ -8,6 +8,7 @@
 		"dev:infisical": "infisical run --env=dev -- pnpm dev",
 		"build": "tsc",
 		"test": "jest",
+		"test:infisical": "infisical run --env=dev -- pnpm test",
 		"start": "node dist/server.js",
 		"lint": "biome check .",
 		"test:watch": "jest --watch",
