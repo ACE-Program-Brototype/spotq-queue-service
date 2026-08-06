@@ -1,8 +1,6 @@
-# 🚶‍♂️ SpotQ Queue Service
+#  SpotQ Queue Service
 
 Queue Service is one of the core backend microservices of the SpotQ platform. It provides the foundational infrastructure required for implementing queue and waitlist-related business features while following the SpotQ engineering standards for scalability, security, observability, and maintainability.
-
-> **Status:** Foundation Completed ✅
 
 ---
 
