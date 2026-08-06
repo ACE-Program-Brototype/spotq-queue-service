@@ -5,6 +5,7 @@
 	"main": "index.js",
 	"scripts": {
 		"dev": "tsx watch src/server.ts",
+		"dev:infisical": "infisical run --env=dev -- pnpm dev",
 		"build": "tsc",
 		"test": "jest",
 		"start": "node dist/server.js",

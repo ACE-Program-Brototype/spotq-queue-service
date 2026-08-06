@@ -210,10 +210,10 @@ pnpm install
 Start development server
 
 ```bash
-infisical run --env=dev -- pnpm dev
+pnpm dev:infisical
 ```
 
-*(Alternatively, run `pnpm dev` to fall back to the local `.env` configuration file).*
+*(Alternatively, run `pnpm dev` to fall back to the local `.env` configuration file, or run `infisical run --env=dev -- pnpm dev` manually).*
 
 Build project
 
@@ -246,7 +246,7 @@ infisical init
 Run application
 
 ```bash
-infisical run -- pnpm dev
+pnpm dev:infisical
 ```
 
 Required secrets
@@ -270,10 +270,16 @@ Install
 pnpm install
 ```
 
-Development
+Development (Local Env)
 
 ```bash
 pnpm dev
+```
+
+Development (Infisical Vault)
+
+```bash
+pnpm dev:infisical
 ```
 
 Build
