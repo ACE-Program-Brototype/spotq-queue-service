@@ -10,6 +10,12 @@ const dbUrl = new URL(config.database.directUrl);
 let ssl: pg.PoolConfig['ssl'];
 
 const caCert = process.env.DATABASE_CA_CERT;
+const initialSslMode = dbUrl.searchParams.get('sslmode');
+const isExplicitNoVerify =
+	initialSslMode === 'no-verify' ||
+	initialSslMode === 'disable' ||
+	process.env.DB_SSL_REJECT_UNAUTHORIZED === 'false';
+
 if (caCert) {
 	let caContent = caCert;
 	// If it doesn't look like a direct PEM string, try to read it as a file path
@@ -24,15 +30,10 @@ if (caCert) {
 		rejectUnauthorized: true,
 		ca: caContent,
 	};
-} else if (config.server.nodeEnv === 'production') {
-	// In production, force secure SSL/TLS validation by default
-	ssl = {
-		rejectUnauthorized: true,
-	};
 } else {
-	// In development/testing, default to rejectUnauthorized: true unless explicitly set to false
+	// Default to secure SSL/TLS validation unless explicitly disabled in connection string or env variable
 	ssl = {
-		rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false',
+		rejectUnauthorized: !isExplicitNoVerify,
 	};
 }
 
