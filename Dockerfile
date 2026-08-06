@@ -38,11 +38,11 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY prisma ./prisma
 
-EXPOSE 3000
+EXPOSE 3004
 
 USER appuser
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-  CMD wget --spider -q http://localhost:3000/health || exit 1
+  CMD wget --spider -q http://localhost:3004/health || exit 1
 
 CMD ["infisical", "run", "--", "node", "dist/server.js"]

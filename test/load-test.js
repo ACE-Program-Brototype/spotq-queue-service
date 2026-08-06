@@ -14,7 +14,7 @@ export const options = {
 };
 
 export default function () {
-	const res = http.get('http://localhost:3000/health');
+	const res = http.get('http://localhost:3004/health');
 	check(res, {
 		'status is 200': (r) => r.status === 200,
 		'response body checks UP': (r) => r.body.includes('"status":"UP"'),

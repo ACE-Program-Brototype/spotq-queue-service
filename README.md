@@ -332,19 +332,19 @@ Run container
 
 ```bash
 # Run container locally with environment file variables
-docker run -d --name queue-service -p 3000:3000 --env-file .env spotq-queue-service
+docker run -d --name queue-service -p 3004:3004 --env-file .env spotq-queue-service
 ```
 
 Application
 
 ```
-http://localhost:3000
+http://localhost:3004
 ```
 
 Metrics
 
 ```
-http://localhost:3000/metrics
+http://localhost:3004/metrics
 ```
 
 ---
