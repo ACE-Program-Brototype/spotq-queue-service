@@ -36,10 +36,17 @@ if (caCert) {
 	};
 }
 
-// If we are enforcing TLS verification, strip sslmode from the URL to prevent pg from disabling validation
-if (ssl?.rejectUnauthorized) {
-	dbUrl.searchParams.delete('sslmode');
+// Synchronize sslmode parameter for both pg.Pool and Prisma engine
+if (ssl) {
+	if (ssl.rejectUnauthorized) {
+		dbUrl.searchParams.set('sslmode', 'require');
+	} else {
+		dbUrl.searchParams.set('sslmode', 'no-verify');
+	}
 }
+
+// Override DATABASE_URL in process.env so that Prisma's internal query engine sees the modified SSL parameters
+process.env.DATABASE_URL = dbUrl.toString();
 
 const pool = new pg.Pool({
 	connectionString: dbUrl.toString(),
