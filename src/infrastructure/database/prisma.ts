@@ -30,10 +30,16 @@ if (caCert) {
 		rejectUnauthorized: true,
 		ca: caContent,
 	};
-} else {
-	// Default to secure SSL/TLS validation unless explicitly disabled in connection string or env variable
+} else if (config.server.nodeEnv === 'production') {
+	// In production, force secure SSL/TLS validation by default
 	ssl = {
 		rejectUnauthorized: !isExplicitNoVerify,
+	};
+} else {
+	// In development/testing, default to rejectUnauthorized: false to allow self-signed connections (e.g. Aiven)
+	const isExplicitReject = process.env.DB_SSL_REJECT_UNAUTHORIZED === 'true';
+	ssl = {
+		rejectUnauthorized: isExplicitReject,
 	};
 }
 
