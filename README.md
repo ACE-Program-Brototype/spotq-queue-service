@@ -1,180 +1,518 @@
-# SpotQ Queue Service
+# 🚶‍♂️ SpotQ Queue Service
 
-The **SpotQ Queue Service** is a high-performance, production-ready backend service designed to manage customer queues, waitlists, real-time queue lifecycles, and queue status tracking. 
+Queue Service is one of the core backend microservices of the SpotQ platform. It provides the foundational infrastructure required for implementing queue and waitlist-related business features while following the SpotQ engineering standards for scalability, security, observability, and maintainability.
 
-Built using **TypeScript**, **Express 5**, **Clean Architecture**, and modern observability practices, this service ensures resilience, low latency, and comprehensive system insights.
-
----
-
-## Technology Stack
-- **Runtime & Language:** Node.js (v22+), Express 5, TypeScript (v7+)
-- **ORM & Database:** Prisma 7 with PostgreSQL (configured via `@prisma/adapter-pg` driver adapter)
-- **Caching & Pub/Sub:** Redis (using `redis` client)
-- **Secret Management:** Infisical CLI (for secure environment variable injections)
-- **Log Management:** Pino Logger (configured with native `AsyncLocalStorage` request-context tracking)
-- **Monitoring & Metrics:** `prom-client` (exposing system, network, and connectivity metrics)
-- **Quality & Formatters:** Biome (for lightning-fast linting and code formatting)
-- **Testing:** Jest with `@swc/jest` compiler (highly optimized for TS7 ESM)
-- **Package Manager:** `pnpm` (v11+)
+> **Status:** Foundation Completed ✅
 
 ---
 
-## System Architecture
-The codebase strictly follows **Clean Architecture** patterns:
-- **`src/domain/`**: Represents core business rules, entities, and interfaces (independent of external libraries).
-- **`src/application/`**: Contains use-cases and business workflows coordinating data between controllers and domain objects.
-- **`src/infrastructure/`**: Details concrete adapters for external systems (Database connection, Redis state, Metrics registry, Pino Logger configurations).
-- **`src/presentation/`**: Manages HTTP entrypoints, Express routes, and middlewares (validation, logger mapping, metrics tracking).
-- **`src/modules/`**: Hosts cohesive feature domains (such as the modular `health` check domain).
+# Table of Contents
+
+- [Overview](#overview)
+- [Technology Stack](#technology-stack)
+- [Project Structure](#project-structure)
+- [Implemented Foundation](#implemented-foundation)
+- [Prerequisites](#prerequisites)
+- [Local Development Setup](#local-development-setup)
+- [Infisical Configuration](#infisical-configuration)
+- [Available Scripts](#available-scripts)
+- [Docker](#docker)
+- [Health Endpoints](#health-endpoints)
+- [Observability](#observability)
+- [Project Architecture](#project-architecture)
+- [Branching Strategy](#branching-strategy)
+- [Coding Standards](#coding-standards)
+- [CI Pipeline](#ci-pipeline)
+- [Development Guidelines](#development-guidelines)
+- [Future Enhancements](#future-enhancements)
 
 ---
 
-## Key Features
+# Overview
 
-### 1. Production-Ready Health Monitoring (`GET /health`)
-Exposes the status of the service and its underlying database and caching dependencies:
-```json
-{
-  "status": "UP",
-  "timestamp": "2026-08-03T21:00:48.143Z",
-  "checks": {
-    "application": "UP",
-    "database": "UP",
-    "redis": "UP"
-  }
-}
+The Queue Service is responsible for managing customer queues, waitlist positioning, wait times, and queue lifecycles within the SpotQ ecosystem.
+
+The current implementation provides only the service foundation and infrastructure.
+
+Implemented:
+
+- Express Application
+- Clean Architecture
+- TypeScript
+- Prisma Configuration
+- PostgreSQL Connection with secure TLS
+- Redis Connection
+- Structured Logging with Trace Correlation
+- Prometheus Metrics
+- Health Checks (dynamic dependency checks)
+- Docker Support
+- Infisical Secret Management
+
+Not yet implemented:
+
+- Queue & Waitlist APIs
+- Business Logic (e.g. queue positioning algorithms)
+- Authentication
+- Authorization
+- Event Publishing
+- gRPC
+- Domain Models
+
+---
+
+# Technology Stack
+
+| Technology | Purpose |
+|------------|----------|
+| Node.js 22 | Runtime |
+| Express.js 5 | HTTP Server |
+| TypeScript 7 | Language |
+| Prisma 7 | ORM |
+| PostgreSQL | Database |
+| Redis | Cache & Event Store |
+| Pino | Structured Logging |
+| Prometheus | Metrics |
+| Biome | Linting & Formatting |
+| pnpm | Package Manager |
+| Docker | Containerization |
+| Infisical | Secrets Management |
+| GitHub Actions | Continuous Integration |
+
+---
+
+# Project Structure
+
+```text
+src/
+│
+├── application/
+│
+├── domain/
+│
+├── infrastructure/
+│   ├── config/
+│   ├── database/
+│   ├── logger/
+│   ├── metrics/
+│   └── redis/
+│
+├── presentation/
+│   ├── middleware/
+│   └── routes/
+│
+├── app.ts
+└── server.ts
 ```
-- **Database Connection Check:** Evaluates raw connection pooling state using Prisma's `SELECT 1`.
-- **Redis Connection Check:** Queries latency status via `PING` -> `PONG`.
-- **HTTP Status Codes:** Returns `200 OK` when all systems are healthy, and `503 Service Unavailable` if any checks return `DOWN`.
-
-### 2. Structured JSON Logging with Trace Correlation
-Every log message is outputted in structured JSON via **Pino** and automatically correlates with the incoming HTTP request context using Node's native **`AsyncLocalStorage`**:
-- **Automatic Headers:** Every response returns `x-request-id` (unique tracking uuid) and `x-correlation-id` (forwarded microservice tracking identifier).
-- **Auto-injected Fields:** Every log statement emitted during the request automatically contains `"requestId"` and `"correlationId"`.
-- **Formatting:** Log levels are standardized to uppercase (e.g. `INFO`, `ERROR`) and timestamps use standardized ISO strings.
-- **Stack Traces:** Errors logged via `logger.error` are automatically serialized to include the error name, message, and structured stack trace.
-
-### 3. Prometheus Observability Metrics (`GET /metrics`)
-Exposes runtime metrics compiled in the standard Prometheus exposition format:
-- **Process Metrics:** Default Node.js system gauges (CPU usage, resident memory bytes, event loop lag percentiles, active handles/requests).
-- **Request Volume (`http_requests_total`):** Counters tracking HTTP status rates, methods, and matched Express routes.
-- **Request Latency (`http_request_duration_seconds`):** Histograms measuring response times.
-- **Dependency State (`database_up` / `redis_up`):** Gauges measuring active connection status (1 for connected, 0 for disconnected) evaluated dynamically during scraper polls.
-
-### 4. Secure Secrets Management (Infisical CLI)
-Environment credentials (like DB connection proxies and Redis passwords) are kept completely out of the codebase and Git history:
-- In production, secrets are fetched dynamically at boot and injected into the Node process using the **Infisical CLI**: `infisical run -- <command>`.
-- In local development, the configuration seamlessly falls back to reading standard `.env` values when Infisical credentials are not present.
 
 ---
 
-## Getting Started
+# Implemented Foundation
 
-### 1. Prerequisites
-- Install **Node.js** (v22+)
-- Install **pnpm** (v11+)
-- Install the **Infisical CLI** (optional for local fallback mode, required for syncing workspace keys)
+## Configuration
 
-### 2. Setup Dependencies & Services
+- Infisical Integration
+- Environment Validation (via Zod schema checks)
+- Application Configuration (placed under `src/infrastructure/config/`)
+
+---
+
+## Database
+
+- Prisma ORM
+- PostgreSQL Connection (with Pg driver adapter)
+- Reusable Prisma Client
+- Database Connection Service
+- Startup connection verification query (`SELECT 1`)
+- Secure SSL/TLS validation with custom certificate authority input capability (`DATABASE_CA_CERT`)
+
+---
+
+## Redis
+
+- Redis Cloud Integration
+- Reusable Redis Client
+- Connection Verification
+- Pino-integrated event logging (connect, ready, reconnecting, errors)
+
+---
+
+## Logging
+
+Structured JSON logging using Pino.
+
+Includes:
+
+- Timestamp (native ISO time)
+- Log Level
+- Service Name (`spotq-queue-service`)
+- Tracing correlation (`requestId`, `correlationId`, `traceId`)
+- Request Logging middleware
+- Response Logging middleware
+- Error Logging and serialization
+
+---
+
+## Metrics
+
+Prometheus-compatible metrics.
+
+Available metrics include:
+
+- HTTP Request Count (labeled by method, route, and status code)
+- HTTP Request Duration (histograms mapping response latency)
+- Database Status (`database_up` status gauge)
+- Redis Status (`redis_up` status gauge)
+- Node.js Runtime Metrics (CPU, memory, process metrics via `prom-client`)
+
+Endpoint:
+
+```text
+GET /metrics
+```
+
+---
+
+# Prerequisites
+
+Install:
+
+- Node.js 22+
+- pnpm (v11+)
+- Docker Desktop
+- Git
+- Infisical CLI
+
+Verify:
+
 ```bash
-# Clone the repository and install packages
+node -v
+pnpm -v
+docker --version
+infisical --version
+```
+
+---
+
+# Local Development Setup
+
+Clone repository
+
+```bash
+git clone <repository-url>
+
+cd spotq-queue-service
+```
+
+Install dependencies
+
+```bash
 pnpm install
-
-# Start the local Prisma Postgres development server
-pnpm exec prisma dev start default
-
-# Start your local Redis instance
-brew services start redis
 ```
 
-### 3. Generate Prisma Client
+Start development server
+
 ```bash
-pnpm run prisma:generate
+infisical run --env=dev -- pnpm dev
 ```
 
-### 4. Running the Application
-- **Local Fallback Mode (Using `.env` values):**
-  ```bash
-  pnpm run dev
-  ```
-- **Infisical Mode (Syncing secrets from workspace):**
-  ```bash
-  infisical run --env=dev -- pnpm run dev
-  ```
+*(Alternatively, run `pnpm dev` to fall back to the local `.env` configuration file).*
+
+Build project
+
+```bash
+pnpm build
+```
+
+Run production build
+
+```bash
+node dist/server.js
+```
 
 ---
 
-## Testing & Validation
+# Infisical Configuration
 
-### Run Unit Tests
-Unit tests use Jest compiled via SWC for speed:
+Login
+
+```bash
+infisical login
+```
+
+Initialize
+
+```bash
+infisical init
+```
+
+Run application
+
+```bash
+infisical run -- pnpm dev
+```
+
+Required secrets
+
+| Variable | Description |
+|-----------|-------------|
+| PORT | Application Port |
+| NODE_ENV | Run Environment |
+| SERVICE_NAME | Name of microservice |
+| LOG_LEVEL | Logging granularity level |
+| DATABASE_URL | PostgreSQL connection string URL |
+| REDIS_URL | Redis URL |
+
+---
+
+# Available Scripts
+
+Install
+
+```bash
+pnpm install
+```
+
+Development
+
+```bash
+pnpm dev
+```
+
+Build
+
+```bash
+pnpm build
+```
+
+Start
+
+```bash
+pnpm start
+```
+
+Lint
+
+```bash
+pnpm lint
+```
+
+Format
+
+```bash
+pnpm format
+```
+
+Test
+
 ```bash
 pnpm test
 ```
 
-### Formatting and Linting Checks
-Biome handles styling and static checks. To audit the codebase:
+---
+
+# Docker
+
+Build image
+
 ```bash
-pnpm run lint
+docker build -t spotq-queue-service .
 ```
-To automatically apply Biome's formatting fixes:
+
+Run container
+
 ```bash
-pnpm run format
+# Run container locally with environment file variables
+docker run -d --name queue-service -p 3000:3000 --env-file .env spotq-queue-service
+```
+
+Application
+
+```
+http://localhost:3000
+```
+
+Metrics
+
+```
+http://localhost:3000/metrics
 ```
 
 ---
 
-## Docker Deployment
-The service includes a multi-stage `Dockerfile` optimized for minimal production image footprint:
+# Observability
 
-- **Build Stage:** Installs dev dependencies, generates the Prisma client binaries, and compiles TypeScript source code.
-- **Production Stage:** Prunes dev dependencies, installs the **Infisical CLI** for secure runtime injections, switches to a non-root `appuser` for security, and configures a Docker healthcheck using `wget` against `/health`.
+## Logging
 
-### Build and Run Standalone Container
-```bash
-# 1. Build the Docker image
-docker build -t queue-service .
+Structured logs are written to stdout.
 
-# 2. Run the container locally using environment variable injection
-docker run -d --name queue-service -p 3000:3000 --env-file .env queue-service
+Example
+
+```json
+{"level":"INFO","time":"2026-08-05T19:04:58.653Z","pid":72748,"hostname":"Ajexs-MacBook-Air.local","serviceName":"spotq-queue-service","requestId":"59913a69-8bac-45bd-a8b2-5d8e751ce9ea","correlationId":"0b33d0ea-8355-4789-a5f6-d7bb9850cb76","traceId":"0b33d0ea-8355-4789-a5f6-d7bb9850cb76","msg":"Incoming request","method":"GET","url":"/health","ip":"::ffff:127.0.0.1"}
 ```
 
 ---
 
-## Development Guidelines
+## Metrics
 
-To maintain code quality and ensure integrations work seamlessly, please follow these guidelines when contributing:
+Prometheus endpoint
 
-### 1. Branch Naming Convention
-Our CI pipeline enforces strict branch naming validation using a regex checker. All feature, chore, or bug-fix branches must match the pattern:
+```text
+GET /metrics
+```
+
+Collected metrics
+
+- HTTP Requests
+- Request Duration
+- Event Loop Metrics
+- Process Metrics
+- Dependency health status (`database_up` / `redis_up`)
+
+---
+
+# Project Architecture
+
+This project follows **Clean Architecture**.
+
+```text
+Presentation
+        │
+        ▼
+Application
+        │
+        ▼
+Domain
+        │
+        ▼
+Infrastructure
+```
+
+Responsibilities
+
+Presentation
+
+- HTTP Layer
+- Middleware (logger tracing, metrics counting, error handlers)
+- Routes
+
+Application
+
+- Business Use Cases
+
+Domain
+
+- Entities
+- Business Rules
+
+Infrastructure
+
+- Database configuration & adapter clients
+- Redis client
+- Observability and metrics registries
+- Config loading and schema validation
+
+---
+
+# Branching Strategy
+
+Permanent branches
+
+```
+main
+staging
+development
+```
+
+Working branches (must follow ticket key matching convention)
+
+```
+feat/<feature>
+fix/<issue>
+refactor/<module>
+docs/<topic>
+chore/<task>
+hotfix/<issue>
+```
+
+Branch Name Rule: All working branches must include a JIRA ticket key matching:
 `^(feat|fix|chore|refactor|hotfix)/SCRUM-[0-9]+(-.+)?$`
 
-*   **Allowed Prefixes:** `feat/`, `fix/`, `chore/`, `refactor/`, `hotfix/`
-*   **Jira Ticket Key:** Must contain the Jira ticket ID (e.g. `SCRUM-502`)
-*   **Examples:**
-    *   `feat/SCRUM-502-setup-queue-service`
-    *   `fix/SCRUM-102-memory-leak`
-    *   `chore/SCRUM-44-update-dependencies`
+---
 
-### 2. Pull Request (PR) Workflow
-*   **Target Branch:** All PRs should target the `development` branch.
-*   **PR Titles:** Always prefix your Pull Request title with the Jira ticket key so that the GitHub-Jira integration links it automatically (e.g., `SCRUM-502: Setup Queue Service`).
-*   **Review Roles:** 
-    *   Add your peers as **Reviewers** (typically 2 for initial logic checking and 1 for final review/approval before merge).
-    *   Keep yourself as the **Assignee** of the PR (as you are responsible for resolving review feedback and merging).
+# Coding Standards
 
-### 3. Local Commit Validations (Git Hooks)
-This project uses **Husky** and **lint-staged** to enforce code quality locally:
-*   On every commit (`pre-commit`), Husky automatically runs:
-    *   **Biome Formatting & Linting Check** (`biome check --write` on staged TS, JS, and JSON files).
-    *   **Jest Unit Tests** (`pnpm test`).
-*   If formatting checks or tests fail, your commit will be rejected. Resolve the issues before committing again.
+Follow:
 
-### 4. Local Database SSL/TLS Override
-By default, the PostgreSQL connection pool is configured to verify certificates securely (`rejectUnauthorized: true`).
-For local development against databases that use self-signed certificates without custom Certificate Authorities, you can bypass validation locally by setting the override environment variable in your `.env` file:
-```env
-DB_SSL_REJECT_UNAUTHORIZED=false
+- Clean Architecture
+- SOLID Principles
+- TypeScript Strict Mode
+- Biome Formatting and check validation
+- Structured Logging with tracing IDs
+- Prometheus Metrics (avoid high cardinality routes using `'unmatched_route'`)
+- Conventional Git Commits
+
+---
+
+# CI Pipeline
+
+GitHub Actions executes:
+
+- Validate Branch Name naming rules
+- Install Dependencies
+- Generate Prisma Client
+- Run Linter (Biome)
+- Type Check (`tsc` compilation check)
+- Execute Tests (with mock test env variables)
+- Build Docker Image
+
+Triggered on
+
+- Pull Request (targeting development, staging, or main)
+- Push to development, staging, or main
+
+---
+
+# Development Guidelines
+
+Before creating a Pull Request
+
+Run
+
+```bash
+pnpm lint
 ```
-*(Never commit this override variable to production environments).*
+
+```bash
+pnpm test
+```
+
+```bash
+pnpm build
+```
+
+Verify
+
+- Application Endpoint (`/health` returns `200 UP` when dependencies are healthy)
+- Metrics Endpoint (`/metrics`)
+
+Ensure Docker builds successfully.
+
+---
+
+# Future Enhancements
+
+Upcoming implementations include
+
+- Waitlist Position API
+- Queue Status Lifecycle
+- Customer Notification alerts
+- Unit and Integration tests for business use cases
+- Kubernetes Deployment charts
+- OpenTelemetry Distributed Tracing
+
+---
+
+# License
+
+This project is part of the **SpotQ Platform** and follows the internal engineering standards defined by the SpotQ Backend Architecture.
