@@ -1,13 +1,14 @@
 import type { PrismaClient } from '@prisma/client';
 import type { RedisClientType } from 'redis';
+import { HEALTH_STATUS, type HealthStatus } from '../../shared/constants/index.js';
 
 export interface HealthCheckResult {
-	status: 'UP' | 'DOWN';
+	status: HealthStatus;
 	timestamp: string;
 	checks: {
-		application: 'UP';
-		database: 'UP' | 'DOWN';
-		redis: 'UP' | 'DOWN';
+		application: HealthStatus;
+		database: HealthStatus;
+		redis: HealthStatus;
 	};
 }
 
@@ -24,15 +25,15 @@ export class HealthService {
 		const [dbHealthy, redisHealthy] = await Promise.all([this.checkDatabase(), this.checkRedis()]);
 
 		const isHealthy = dbHealthy && redisHealthy;
-		const status = isHealthy ? 'UP' : 'DOWN';
+		const status = isHealthy ? HEALTH_STATUS.UP : HEALTH_STATUS.DOWN;
 
 		return {
 			status,
 			timestamp: new Date().toISOString(),
 			checks: {
-				application: 'UP',
-				database: dbHealthy ? 'UP' : 'DOWN',
-				redis: redisHealthy ? 'UP' : 'DOWN',
+				application: HEALTH_STATUS.UP,
+				database: dbHealthy ? HEALTH_STATUS.UP : HEALTH_STATUS.DOWN,
+				redis: redisHealthy ? HEALTH_STATUS.UP : HEALTH_STATUS.DOWN,
 			},
 		};
 	}

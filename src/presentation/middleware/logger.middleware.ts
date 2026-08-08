@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { NextFunction, Request, Response } from 'express';
 import { logger, loggerLocalStorage } from '../../infrastructure/logger/index.js';
+import { MESSAGES } from '../../shared/constants/index.js';
 
 export function loggerMiddleware(req: Request, res: Response, next: NextFunction): void {
 	const correlationId =
@@ -18,7 +19,7 @@ export function loggerMiddleware(req: Request, res: Response, next: NextFunction
 
 	loggerLocalStorage.run(store, () => {
 		logger.info({
-			msg: 'Incoming request',
+			msg: MESSAGES.INCOMING_REQUEST,
 			method: req.method,
 			url: req.url,
 			ip: req.ip,
@@ -33,7 +34,7 @@ export function loggerMiddleware(req: Request, res: Response, next: NextFunction
 		res.on('finish', () => {
 			const duration = Date.now() - startTime;
 			logger.info({
-				msg: 'Request completed',
+				msg: MESSAGES.REQUEST_COMPLETED,
 				method: req.method,
 				url: req.url,
 				statusCode: res.statusCode,

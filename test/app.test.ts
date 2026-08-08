@@ -4,6 +4,7 @@ import { PrismaService } from '../src/infrastructure/database/database.service.j
 import { prisma } from '../src/infrastructure/database/prisma.js';
 import { redisClient } from '../src/infrastructure/redis/redis.client.js';
 import { RedisService } from '../src/infrastructure/redis/redis.service.js';
+import { HEALTH_STATUS, HTTP_STATUS, MESSAGES } from '../src/shared/constants/index.js';
 
 describe('Queue Service Integration & Unit Tests', () => {
 	let dbSpy: jest.SpyInstance;
@@ -28,14 +29,14 @@ describe('Queue Service Integration & Unit Tests', () => {
 
 			const res = await request(app).get('/health');
 
-			expect(res.status).toBe(200);
+			expect(res.status).toBe(HTTP_STATUS.OK);
 			expect(res.body).toEqual(
 				expect.objectContaining({
-					status: 'UP',
+					status: HEALTH_STATUS.UP,
 					checks: expect.objectContaining({
-						application: 'UP',
-						database: 'UP',
-						redis: 'UP',
+						application: HEALTH_STATUS.UP,
+						database: HEALTH_STATUS.UP,
+						redis: HEALTH_STATUS.UP,
 					}),
 				}),
 			);
@@ -49,14 +50,14 @@ describe('Queue Service Integration & Unit Tests', () => {
 
 			const res = await request(app).get('/health');
 
-			expect(res.status).toBe(503);
+			expect(res.status).toBe(HTTP_STATUS.SERVICE_UNAVAILABLE);
 			expect(res.body).toEqual(
 				expect.objectContaining({
-					status: 'DOWN',
+					status: HEALTH_STATUS.DOWN,
 					checks: expect.objectContaining({
-						application: 'UP',
-						database: 'DOWN',
-						redis: 'UP',
+						application: HEALTH_STATUS.UP,
+						database: HEALTH_STATUS.DOWN,
+						redis: HEALTH_STATUS.UP,
 					}),
 				}),
 			);
@@ -68,14 +69,14 @@ describe('Queue Service Integration & Unit Tests', () => {
 
 			const res = await request(app).get('/health');
 
-			expect(res.status).toBe(503);
+			expect(res.status).toBe(HTTP_STATUS.SERVICE_UNAVAILABLE);
 			expect(res.body).toEqual(
 				expect.objectContaining({
-					status: 'DOWN',
+					status: HEALTH_STATUS.DOWN,
 					checks: expect.objectContaining({
-						application: 'UP',
-						database: 'UP',
-						redis: 'DOWN',
+						application: HEALTH_STATUS.UP,
+						database: HEALTH_STATUS.UP,
+						redis: HEALTH_STATUS.DOWN,
 					}),
 				}),
 			);
@@ -86,10 +87,10 @@ describe('Queue Service Integration & Unit Tests', () => {
 		it('should return 404 not found for invalid routes', async () => {
 			const res = await request(app).get('/invalid-route-xyz');
 
-			expect(res.status).toBe(404);
+			expect(res.status).toBe(HTTP_STATUS.NOT_FOUND);
 			expect(res.body).toEqual(
 				expect.objectContaining({
-					error: 'Not Found',
+					error: MESSAGES.NOT_FOUND,
 					message: 'Cannot GET /invalid-route-xyz',
 				}),
 			);

@@ -1,0 +1,24 @@
+export const MESSAGES = {
+	NOT_FOUND: 'Not Found',
+	INTERNAL_SERVER_ERROR: 'Internal Server Error',
+	UNEXPECTED_ERROR: 'An unexpected error occurred',
+	UNHANDLED_ERROR: 'Unhandled error occurred',
+	INCOMING_REQUEST: 'Incoming request',
+	REQUEST_COMPLETED: 'Request completed',
+	REDIS_CONNECTING: 'Connecting to Redis...',
+	REDIS_CONNECTED: 'Redis connected',
+	REDIS_READY: 'Redis ready to accept commands',
+	REDIS_RECONNECTING: 'Redis reconnecting...',
+	REDIS_DISCONNECTING: 'Disconnecting Redis client...',
+	REDIS_DISCONNECTED: 'Redis disconnected',
+	DATABASE_DISCONNECTING: 'Disconnecting database client...',
+	DATABASE_DISCONNECTED: 'Database client disconnected',
+	SHUTDOWN_SIGINT: 'Received SIGINT. Gracefully shutting down...',
+	SHUTDOWN_SIGTERM: 'Received SIGTERM. Gracefully shutting down...',
+	SHUTDOWN_IN_PROGRESS: 'Received shutdown signal but shutdown is already in progress...',
+	SHUTDOWN_TIMEOUT: 'Graceful shutdown timed out. Forcing exit.',
+	HTTP_SERVER_CLOSED: 'HTTP server closed successfully',
+	SERVER_BOOTSTRAP_FAILED: 'Failed to bootstrap server',
+} as const;
+
+export type Message = (typeof MESSAGES)[keyof typeof MESSAGES];

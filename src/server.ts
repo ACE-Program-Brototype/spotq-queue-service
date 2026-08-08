@@ -3,6 +3,7 @@ import { config } from './infrastructure/config/index.js';
 import { PrismaService } from './infrastructure/database/index.js';
 import { logger } from './infrastructure/logger/index.js';
 import { RedisService } from './infrastructure/redis/index.js';
+import { MESSAGES } from './shared/constants/index.js';
 
 async function bootstrap() {
 	await PrismaService.connect();
@@ -24,7 +25,7 @@ async function bootstrap() {
 
 		// Set a safety timeout of 10 seconds to force-exit if connections hang
 		const forceExitTimeout = setTimeout(async () => {
-			logger.error('Graceful shutdown timed out. Forcing shutdown...');
+			logger.error(MESSAGES.SHUTDOWN_TIMEOUT);
 			try {
 				await PrismaService.disconnect();
 				await RedisService.disconnect();
@@ -39,22 +40,22 @@ async function bootstrap() {
 			if (err) {
 				logger.error(err, 'Error during HTTP server close');
 			} else {
-				logger.info('HTTP server closed successfully');
+				logger.info(MESSAGES.HTTP_SERVER_CLOSED);
 			}
 
 			// Disconnect from database and cache *after* HTTP server finishes processing current requests
 			try {
-				logger.info('Disconnecting database client...');
+				logger.info(MESSAGES.DATABASE_DISCONNECTING);
 				await PrismaService.disconnect();
-				logger.info('Database client disconnected');
+				logger.info(MESSAGES.DATABASE_DISCONNECTED);
 			} catch (dbErr) {
 				logger.error(dbErr, 'Error disconnecting database client');
 			}
 
 			try {
-				logger.info('Disconnecting Redis client...');
+				logger.info(MESSAGES.REDIS_DISCONNECTING);
 				await RedisService.disconnect();
-				logger.info('Redis client disconnected');
+				logger.info(MESSAGES.REDIS_DISCONNECTED);
 			} catch (redisErr) {
 				logger.error(redisErr, 'Error disconnecting Redis client');
 			}
@@ -73,6 +74,6 @@ async function bootstrap() {
 }
 
 bootstrap().catch((error) => {
-	logger.error(error, 'Failed to bootstrap server');
+	logger.error(error, MESSAGES.SERVER_BOOTSTRAP_FAILED);
 	process.exit(1);
 });
