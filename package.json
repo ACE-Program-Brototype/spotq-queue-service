@@ -17,6 +17,7 @@
 		"prisma:generate": "prisma generate",
 		"prisma:migrate": "prisma migrate dev",
 		"prisma:studio": "prisma studio",
+		"perf:test": "k6 run ./test/load-test.js",
 		"prepare": "husky"
 	},
 	"keywords": [],
