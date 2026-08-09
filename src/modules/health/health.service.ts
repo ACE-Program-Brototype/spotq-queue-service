@@ -1,28 +1,20 @@
-import type { PrismaClient } from '@prisma/client';
-import { HEALTH_STATUS, type HealthStatus } from '@shared/constants/index.js';
-import type { RedisClientType } from 'redis';
+import type { HealthCheckResult, IHealthCheckable, IHealthService } from '@domain/index.ts';
+import { HEALTH_STATUS } from '@shared/constants/index.ts';
 
-export interface HealthCheckResult {
-	status: HealthStatus;
-	timestamp: string;
-	checks: {
-		application: HealthStatus;
-		database: HealthStatus;
-		redis: HealthStatus;
-	};
-}
+export class HealthService implements IHealthService {
+	private readonly databaseService: IHealthCheckable;
+	private readonly redisService: IHealthCheckable;
 
-export class HealthService {
-	private readonly prisma: PrismaClient;
-	private readonly redisClient: RedisClientType;
-
-	constructor(prisma: PrismaClient, redisClient: RedisClientType) {
-		this.prisma = prisma;
-		this.redisClient = redisClient;
+	constructor(databaseService: IHealthCheckable, redisService: IHealthCheckable) {
+		this.databaseService = databaseService;
+		this.redisService = redisService;
 	}
 
 	async check(): Promise<HealthCheckResult> {
-		const [dbHealthy, redisHealthy] = await Promise.all([this.checkDatabase(), this.checkRedis()]);
+		const [dbHealthy, redisHealthy] = await Promise.all([
+			this.databaseService.isHealthy(),
+			this.redisService.isHealthy(),
+		]);
 
 		const isHealthy = dbHealthy && redisHealthy;
 		const status = isHealthy ? HEALTH_STATUS.UP : HEALTH_STATUS.DOWN;
@@ -36,23 +28,5 @@ export class HealthService {
 				redis: redisHealthy ? HEALTH_STATUS.UP : HEALTH_STATUS.DOWN,
 			},
 		};
-	}
-
-	private async checkDatabase(): Promise<boolean> {
-		try {
-			await this.prisma.$queryRaw`SELECT 1`;
-			return true;
-		} catch {
-			return false;
-		}
-	}
-
-	private async checkRedis(): Promise<boolean> {
-		try {
-			const response = await this.redisClient.ping();
-			return response === 'PONG';
-		} catch {
-			return false;
-		}
 	}
 }

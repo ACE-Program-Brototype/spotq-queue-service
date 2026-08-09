@@ -1,6 +1,6 @@
-import { config } from '@infrastructure/config/index.js';
-import { logger } from '@infrastructure/logger/index.js';
-import { MESSAGES } from '@shared/constants/index.js';
+import { config } from '@infrastructure/config/index.ts';
+import { logger } from '@infrastructure/logger/index.ts';
+import { MESSAGES } from '@shared/constants/index.ts';
 import { createClient } from 'redis';
 
 const isTls = config.redis.url.startsWith('rediss://');

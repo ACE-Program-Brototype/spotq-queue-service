@@ -1,4 +1,4 @@
-export { errorMiddleware } from './error.middleware.js';
-export { loggerMiddleware } from './logger.middleware.js';
-export { metricsMiddleware } from './metrics.middleware.js';
-export { notFoundMiddleware } from './not-found.middleware.js';
+export { errorMiddleware } from './error.middleware.ts';
+export { loggerMiddleware } from './logger.middleware.ts';
+export { metricsMiddleware } from './metrics.middleware.ts';
+export { notFoundMiddleware } from './not-found.middleware.ts';

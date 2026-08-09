@@ -1,5 +1,5 @@
-import { logger } from '@infrastructure/logger/index.js';
-import { HTTP_STATUS, MESSAGES } from '@shared/constants/index.js';
+import { logger } from '@infrastructure/logger/index.ts';
+import { HTTP_STATUS, MESSAGES } from '@shared/constants/index.ts';
 import type { NextFunction, Request, Response } from 'express';
 
 export function errorMiddleware(
@@ -11,7 +11,7 @@ export function errorMiddleware(
 	logger.error({ err, method: req.method, url: req.url }, MESSAGES.UNHANDLED_ERROR);
 
 	const statusCode =
-		res.statusCode === HTTP_STATUS.OK || res.statusCode === 304
+		res.statusCode === HTTP_STATUS.OK || res.statusCode === HTTP_STATUS.NOT_MODIFIED
 			? HTTP_STATUS.INTERNAL_SERVER_ERROR
 			: res.statusCode;
 

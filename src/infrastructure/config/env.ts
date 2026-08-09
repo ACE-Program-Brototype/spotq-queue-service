@@ -1,26 +1,22 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import { validateEnv } from './validate-env.ts';
 
-import { validateEnv } from './validate-env.js';
+dotenv.config();
 
-const env = validateEnv();
+const validatedEnv = validateEnv();
 
 export const config = {
-	server: {
-		port: env.PORT,
-		nodeEnv: env.NODE_ENV,
-	},
-
-	service: {
-		name: env.SERVICE_NAME,
-		logLevel: env.LOG_LEVEL,
-	},
-
+	nodeEnv: validatedEnv.NODE_ENV,
+	port: validatedEnv.PORT,
+	serviceName: validatedEnv.SERVICE_NAME,
+	logLevel: validatedEnv.LOG_LEVEL,
 	database: {
-		url: env.DATABASE_URL,
-		directUrl: env.DATABASE_URL,
+		url: validatedEnv.DATABASE_URL,
+		caCert: validatedEnv.DATABASE_CA_CERT,
 	},
-
 	redis: {
-		url: env.REDIS_URL,
+		url: validatedEnv.REDIS_URL,
 	},
 } as const;
+
+export type Config = typeof config;

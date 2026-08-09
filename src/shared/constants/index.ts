@@ -1,3 +1,3 @@
-export * from './health.constants.js';
-export * from './http.constants.js';
-export * from './message.constants.js';
+export * from './health.constants.ts';
+export * from './http.constants.ts';
+export * from './message.constants.ts';

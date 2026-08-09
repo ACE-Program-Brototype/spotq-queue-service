@@ -1,13 +1,13 @@
+import { databaseService } from '@infrastructure/database/index.ts';
+import { redisService } from '@infrastructure/redis/index.ts';
 import { Router } from 'express';
-import { prisma } from '../../infrastructure/database/index.js';
-import { redisClient } from '../../infrastructure/redis/index.js';
-import { HealthController } from './health.controller.js';
-import { HealthService } from './health.service.js';
+import { HealthController } from './health.controller.ts';
+import { HealthService } from './health.service.ts';
 
 const router = Router();
-const healthService = new HealthService(prisma, redisClient);
+const healthService = new HealthService(databaseService, redisService);
 const healthController = new HealthController(healthService);
 
 router.get('/health', healthController.check);
 
-export { router as healthRouter };
+export { healthController, healthService, router as healthRouter };

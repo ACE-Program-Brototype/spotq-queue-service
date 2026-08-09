@@ -1,23 +1,31 @@
-import { prisma } from './prisma.js';
+import type { IHealthCheckable } from '@domain/index.ts';
+import type { PrismaClient } from '@prisma/client';
+import { prisma } from './prisma.ts';
 
-// biome-ignore lint/complexity/noStaticOnlyClass: service structure uses static class methods
-export class PrismaService {
-	static async connect(): Promise<void> {
-		await prisma.$connect();
-		// Execute a ping query to validate database connection on startup
-		await prisma.$queryRaw`SELECT 1`;
+export class DatabaseService implements IHealthCheckable {
+	private readonly client: PrismaClient;
+
+	constructor(client: PrismaClient = prisma) {
+		this.client = client;
 	}
 
-	static async disconnect(): Promise<void> {
-		await prisma.$disconnect();
+	async connect(): Promise<void> {
+		await this.client.$connect();
 	}
 
-	static async isHealthy(): Promise<boolean> {
+	async disconnect(): Promise<void> {
+		await this.client.$disconnect();
+	}
+
+	async isHealthy(): Promise<boolean> {
 		try {
-			await prisma.$queryRaw`SELECT 1`;
+			await this.client.$queryRaw`SELECT 1`;
 			return true;
 		} catch {
 			return false;
 		}
 	}
 }
+
+export const databaseService = new DatabaseService(prisma);
+export const PrismaService = databaseService;

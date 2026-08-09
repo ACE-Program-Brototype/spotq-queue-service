@@ -1,8 +1,10 @@
 import { Router } from 'express';
-import { healthRouter } from '../../modules/health/index.js';
-import { metricsRouter } from './metrics.routes.js';
+import { healthRouter } from '../../modules/health/index.ts';
+import { metricsRouter } from './metrics.routes.ts';
 
-export const router = Router();
+const router = Router();
 
 router.use('/', healthRouter);
 router.use('/', metricsRouter);
+
+export { router };

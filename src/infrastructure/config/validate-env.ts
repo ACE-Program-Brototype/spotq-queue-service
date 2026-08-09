@@ -1,17 +1,13 @@
 import { z } from 'zod';
 
 const envSchema = z.object({
-	NODE_ENV: z.enum(['development', 'testing', 'production', 'test']),
-
-	PORT: z.coerce.number().positive(),
-
-	SERVICE_NAME: z.string().min(1),
-
-	LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']),
-
-	DATABASE_URL: z.string().url(),
-
-	REDIS_URL: z.string().url(),
+	NODE_ENV: z.enum(['development', 'testing', 'production', 'test']).default('development'),
+	PORT: z.coerce.number().positive().default(3004),
+	SERVICE_NAME: z.string().min(1).default('spotq-queue-service'),
+	LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
+	DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
+	DATABASE_CA_CERT: z.string().optional(),
+	REDIS_URL: z.string().min(1, 'REDIS_URL is required'),
 });
 
 export const validateEnv = () => {

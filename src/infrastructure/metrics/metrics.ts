@@ -1,29 +1,25 @@
 import client from 'prom-client';
-import { prisma } from '../database/index.js';
-import { redisClient } from '../redis/index.js';
+import { prisma } from '../database/index.ts';
+import { redisClient } from '../redis/index.ts';
 
-// Enable default metrics collection (includes CPU, Memory, Event Loop Lag, etc.)
-client.collectDefaultMetrics();
+client.collectDefaultMetrics({ prefix: 'spotq_queue_' });
 
-// HTTP request count metric
-export const httpRequestCounter = new client.Counter({
-	name: 'http_requests_total',
-	help: 'Total number of HTTP requests processed',
-	labelNames: ['method', 'route', 'status_code'],
-});
-
-// HTTP request duration metric
 export const httpRequestDuration = new client.Histogram({
-	name: 'http_request_duration_seconds',
-	help: 'Latency of HTTP requests in seconds',
+	name: 'spotq_queue_http_request_duration_seconds',
+	help: 'Duration of HTTP requests in seconds',
 	labelNames: ['method', 'route', 'status_code'],
-	buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10],
+	buckets: [0.01, 0.05, 0.1, 0.3, 0.5, 1, 1.5, 2, 5],
 });
 
-// Postgres status metric (updated dynamically on scrape)
-export const databaseUpGauge = new client.Gauge({
-	name: 'database_up',
-	help: 'Postgres database connection status (1 = UP, 0 = DOWN)',
+export const httpRequestCounter = new client.Counter({
+	name: 'spotq_queue_http_requests_total',
+	help: 'Total number of HTTP requests',
+	labelNames: ['method', 'route', 'status_code'],
+});
+
+export const dbConnectionGauge = new client.Gauge({
+	name: 'spotq_queue_db_connection_status',
+	help: 'Database connection status (1 for connected, 0 for disconnected)',
 	async collect() {
 		try {
 			await prisma.$queryRaw`SELECT 1`;
@@ -34,16 +30,17 @@ export const databaseUpGauge = new client.Gauge({
 	},
 });
 
-// Redis status metric (updated dynamically on scrape)
-export const redisUpGauge = new client.Gauge({
-	name: 'redis_up',
-	help: 'Redis connection status (1 = UP, 0 = DOWN)',
+export const redisConnectionGauge = new client.Gauge({
+	name: 'spotq_queue_redis_connection_status',
+	help: 'Redis connection status (1 for connected, 0 for disconnected)',
 	async collect() {
 		try {
-			const response = await redisClient.ping();
-			this.set(response === 'PONG' ? 1 : 0);
+			const res = await redisClient.ping();
+			this.set(res === 'PONG' ? 1 : 0);
 		} catch {
 			this.set(0);
 		}
 	},
 });
+
+export { client as prometheusClient };

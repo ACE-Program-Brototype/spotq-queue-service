@@ -1,4 +1,4 @@
-import { HTTP_STATUS } from '@shared/constants/index.js';
+import { HTTP_STATUS } from '@shared/constants/index.ts';
 import { Router } from 'express';
 import client from 'prom-client';
 

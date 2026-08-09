@@ -1,6 +1,7 @@
 export {
-	databaseUpGauge,
+	dbConnectionGauge,
 	httpRequestCounter,
 	httpRequestDuration,
-	redisUpGauge,
-} from './metrics.js';
+	prometheusClient,
+	redisConnectionGauge,
+} from './metrics.ts';

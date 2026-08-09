@@ -1,79 +1,71 @@
-import { config } from '@infrastructure/config/index.js';
-import { PrismaService } from '@infrastructure/database/index.js';
-import { logger } from '@infrastructure/logger/index.js';
-import { RedisService } from '@infrastructure/redis/index.js';
-import { MESSAGES } from '@shared/constants/index.js';
-import app from './app.js';
+import { config } from '@infrastructure/config/index.ts';
+import { databaseService } from '@infrastructure/database/index.ts';
+import { logger } from '@infrastructure/logger/index.ts';
+import { redisService } from '@infrastructure/redis/index.ts';
+import { MESSAGES } from '@shared/constants/index.ts';
+import app from './app.ts';
 
 async function bootstrap() {
-	await PrismaService.connect();
-	await RedisService.connect();
+	await databaseService.connect();
+	await redisService.connect();
 
-	const server = app.listen(config.server.port, () => {
-		logger.info(`${config.service.name} running on port ${config.server.port}`);
+	const server = app.listen(config.port, () => {
+		logger.info(
+			{
+				port: config.port,
+				nodeEnv: config.nodeEnv,
+				serviceName: config.serviceName,
+			},
+			`Queue Service running on port ${config.port}`,
+		);
 	});
 
 	let isShuttingDown = false;
 
-	const shutdown = async (signal: string) => {
+	const handleShutdown = async (signal: string) => {
 		if (isShuttingDown) {
-			logger.warn(`Received ${signal} but shutdown is already in progress...`);
+			logger.warn(MESSAGES.SHUTDOWN_IN_PROGRESS);
 			return;
 		}
-		isShuttingDown = true;
-		logger.info(`Received ${signal}. Gracefully shutting down...`);
 
-		// Set a safety timeout of 10 seconds to force-exit if connections hang
-		const forceExitTimeout = setTimeout(async () => {
+		isShuttingDown = true;
+		logger.info(signal === 'SIGINT' ? MESSAGES.SHUTDOWN_SIGINT : MESSAGES.SHUTDOWN_SIGTERM);
+
+		const forceExitTimeout = setTimeout(() => {
 			logger.error(MESSAGES.SHUTDOWN_TIMEOUT);
-			try {
-				await PrismaService.disconnect();
-				await RedisService.disconnect();
-			} catch (err) {
-				logger.error(err, 'Error disconnecting external services on forced shutdown');
-			}
 			process.exit(1);
 		}, 10000);
 
-		// Stop accepting new connections
-		server.close(async (err) => {
-			if (err) {
-				logger.error(err, 'Error during HTTP server close');
-			} else {
-				logger.info(MESSAGES.HTTP_SERVER_CLOSED);
-			}
+		try {
+			await new Promise<void>((resolve, reject) => {
+				server.close((err) => {
+					if (err) {
+						reject(err);
+					} else {
+						logger.info(MESSAGES.HTTP_SERVER_CLOSED);
+						resolve();
+					}
+				});
+			});
 
-			// Disconnect from database and cache *after* HTTP server finishes processing current requests
-			try {
-				logger.info(MESSAGES.DATABASE_DISCONNECTING);
-				await PrismaService.disconnect();
-				logger.info(MESSAGES.DATABASE_DISCONNECTED);
-			} catch (dbErr) {
-				logger.error(dbErr, 'Error disconnecting database client');
-			}
-
-			try {
-				logger.info(MESSAGES.REDIS_DISCONNECTING);
-				await RedisService.disconnect();
-				logger.info(MESSAGES.REDIS_DISCONNECTED);
-			} catch (redisErr) {
-				logger.error(redisErr, 'Error disconnecting Redis client');
-			}
+			await redisService.disconnect();
+			await databaseService.disconnect();
 
 			clearTimeout(forceExitTimeout);
-			logger.info('Graceful shutdown completed');
+			logger.info('Clean graceful shutdown completed.');
 			process.exit(0);
-		});
-
-		// Drop idle Keep-Alive connections so the server can shut down immediately without hanging on inactive clients
-		server.closeIdleConnections();
+		} catch (error) {
+			clearTimeout(forceExitTimeout);
+			logger.error({ err: error }, 'Error during graceful shutdown');
+			process.exit(1);
+		}
 	};
 
-	process.on('SIGINT', () => shutdown('SIGINT'));
-	process.on('SIGTERM', () => shutdown('SIGTERM'));
+	process.on('SIGTERM', () => handleShutdown('SIGTERM'));
+	process.on('SIGINT', () => handleShutdown('SIGINT'));
 }
 
 bootstrap().catch((error) => {
-	logger.error(error, MESSAGES.SERVER_BOOTSTRAP_FAILED);
+	logger.fatal({ err: error }, MESSAGES.SERVER_BOOTSTRAP_FAILED);
 	process.exit(1);
 });

@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
-import { logger, loggerLocalStorage } from '@infrastructure/logger/index.js';
-import { MESSAGES } from '@shared/constants/index.js';
+import { logger, loggerLocalStorage } from '@infrastructure/logger/index.ts';
+import { MESSAGES } from '@shared/constants/index.ts';
 import type { NextFunction, Request, Response } from 'express';
 
 export function loggerMiddleware(req: Request, res: Response, next: NextFunction): void {

@@ -2,67 +2,69 @@ import fs from 'node:fs';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 import pg from 'pg';
-import { config } from '../config/index.js';
+import { config } from '../config/index.ts';
 
-const dbUrl = new URL(config.database.directUrl);
-
-// Setup secure SSL/TLS configuration
-let ssl: pg.PoolConfig['ssl'];
-
-const caCert = process.env.DATABASE_CA_CERT;
-const initialSslMode = dbUrl.searchParams.get('sslmode');
-const isExplicitNoVerify =
-	initialSslMode === 'no-verify' ||
-	initialSslMode === 'disable' ||
-	process.env.DB_SSL_REJECT_UNAUTHORIZED === 'false';
+const caCert = config.database.caCert;
+let sslConfig: pg.ConnectionConfig['ssl'] | undefined;
 
 if (caCert) {
-	let caContent = caCert;
-	// If it doesn't look like a direct PEM string, try to read it as a file path
-	if (!caCert.includes('-----BEGIN CERTIFICATE-----')) {
-		try {
-			caContent = fs.readFileSync(caCert, 'utf8');
-		} catch (error) {
-			console.error(`Failed to read database CA cert from path: ${caCert}`, error);
-		}
+	try {
+		const certContent = fs.readFileSync(caCert, 'utf-8');
+		sslConfig = {
+			ca: certContent,
+			rejectUnauthorized: true,
+		};
+	} catch (error) {
+		console.error(`Failed to read database CA cert from path: ${caCert}`, error);
+		sslConfig = {
+			rejectUnauthorized: false,
+		};
 	}
-	ssl = {
-		rejectUnauthorized: true,
-		ca: caContent,
-	};
-} else if (config.server.nodeEnv === 'production') {
-	// In production, force secure SSL/TLS validation by default
-	ssl = {
-		rejectUnauthorized: !isExplicitNoVerify,
-	};
 } else {
-	// In development/testing, default to rejectUnauthorized: false to allow self-signed connections (e.g. Aiven)
-	const isExplicitReject = process.env.DB_SSL_REJECT_UNAUTHORIZED === 'true';
-	ssl = {
-		rejectUnauthorized: isExplicitReject,
-	};
-}
+	const dbUrl = config.database.url || '';
+	const isLocalhost = dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1');
+	const isAivenOrCloud =
+		dbUrl.includes('aivencloud.com') ||
+		dbUrl.includes('render.com') ||
+		dbUrl.includes('neon.tech') ||
+		dbUrl.includes('aws.com');
+	const hasSslNoVerify = dbUrl.includes('sslmode=no-verify');
+	const hasSslRequire = dbUrl.includes('sslmode=require') || dbUrl.includes('sslmode=prefer');
 
-// Synchronize sslmode parameter for both pg.Pool and Prisma engine
-if (ssl) {
-	if (ssl.rejectUnauthorized) {
-		dbUrl.searchParams.set('sslmode', 'require');
-	} else {
-		dbUrl.searchParams.set('sslmode', 'no-verify');
+	if (hasSslNoVerify || isAivenOrCloud || (!isLocalhost && hasSslRequire)) {
+		sslConfig = {
+			rejectUnauthorized: false,
+		};
 	}
 }
 
-// Override DATABASE_URL in process.env so that Prisma's internal query engine sees the modified SSL parameters
-process.env.DATABASE_URL = dbUrl.toString();
+let connectionString = config.database.url;
+if (
+	connectionString &&
+	(connectionString.includes('aivencloud.com') || connectionString.includes('sslmode=no-verify'))
+) {
+	try {
+		const parsedUrl = new URL(connectionString);
+		parsedUrl.searchParams.delete('sslmode');
+		parsedUrl.searchParams.delete('sslrootcert');
+		parsedUrl.searchParams.set('sslmode', 'no-verify');
+		connectionString = parsedUrl.toString();
+		process.env.DATABASE_URL = connectionString;
+	} catch {
+		// fallback to original if parsing fails
+	}
+}
 
 const pool = new pg.Pool({
-	connectionString: dbUrl.toString(),
-	ssl,
+	connectionString,
+	ssl: sslConfig,
+	max: 10,
+	idleTimeoutMillis: 30000,
 });
 
 const adapter = new PrismaPg(pool);
 
 export const prisma = new PrismaClient({
 	adapter,
-	log: ['warn', 'error'],
+	log: config.nodeEnv === 'development' ? ['query', 'error', 'warn'] : ['error'],
 });

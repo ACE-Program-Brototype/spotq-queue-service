@@ -1,2 +1,2 @@
-export { redisClient } from './redis.client.js';
-export { RedisService } from './redis.service.js';
+export { redisClient } from './redis.client.ts';
+export { RedisService, redisService } from './redis.service.ts';
