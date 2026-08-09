@@ -1,5 +1,5 @@
+import { HEALTH_STATUS, HTTP_STATUS } from '@shared/constants/index.js';
 import type { Request, Response } from 'express';
-import { HEALTH_STATUS, HTTP_STATUS } from '../../shared/constants/index.js';
 import type { HealthService } from './health.service.js';
 
 export class HealthController {

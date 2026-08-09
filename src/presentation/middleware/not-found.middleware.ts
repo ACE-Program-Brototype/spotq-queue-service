@@ -1,5 +1,5 @@
+import { HTTP_STATUS, MESSAGES } from '@shared/constants/index.js';
 import type { NextFunction, Request, Response } from 'express';
-import { HTTP_STATUS, MESSAGES } from '../../shared/constants/index.js';
 
 export function notFoundMiddleware(req: Request, res: Response, _next: NextFunction): void {
 	res.status(HTTP_STATUS.NOT_FOUND).json({

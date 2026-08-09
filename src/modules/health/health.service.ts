@@ -1,6 +1,6 @@
 import type { PrismaClient } from '@prisma/client';
+import { HEALTH_STATUS, type HealthStatus } from '@shared/constants/index.js';
 import type { RedisClientType } from 'redis';
-import { HEALTH_STATUS, type HealthStatus } from '../../shared/constants/index.js';
 
 export interface HealthCheckResult {
 	status: HealthStatus;

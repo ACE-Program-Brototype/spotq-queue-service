@@ -1,6 +1,6 @@
+import { HTTP_STATUS } from '@shared/constants/index.js';
 import { Router } from 'express';
 import client from 'prom-client';
-import { HTTP_STATUS } from '../../shared/constants/index.js';
 
 const router = Router();
 

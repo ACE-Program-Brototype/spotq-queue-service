@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
+import { logger, loggerLocalStorage } from '@infrastructure/logger/index.js';
+import { MESSAGES } from '@shared/constants/index.js';
 import type { NextFunction, Request, Response } from 'express';
-import { logger, loggerLocalStorage } from '../../infrastructure/logger/index.js';
-import { MESSAGES } from '../../shared/constants/index.js';
 
 export function loggerMiddleware(req: Request, res: Response, next: NextFunction): void {
 	const correlationId =

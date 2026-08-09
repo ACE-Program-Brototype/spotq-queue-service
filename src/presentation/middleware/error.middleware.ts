@@ -1,6 +1,6 @@
+import { logger } from '@infrastructure/logger/index.js';
+import { HTTP_STATUS, MESSAGES } from '@shared/constants/index.js';
 import type { NextFunction, Request, Response } from 'express';
-import { logger } from '../../infrastructure/logger/index.js';
-import { HTTP_STATUS, MESSAGES } from '../../shared/constants/index.js';
 
 export function errorMiddleware(
 	err: Error,

@@ -1,14 +1,14 @@
-import compression from 'compression';
-import cors from 'cors';
-import express from 'express';
-import helmet from 'helmet';
 import {
 	errorMiddleware,
 	loggerMiddleware,
 	metricsMiddleware,
 	notFoundMiddleware,
-} from './presentation/middleware/index.js';
-import { router } from './presentation/routes/index.routes.js';
+} from '@presentation/middleware/index.js';
+import { router } from '@presentation/routes/index.routes.js';
+import compression from 'compression';
+import cors from 'cors';
+import express from 'express';
+import helmet from 'helmet';
 
 const app = express();
 

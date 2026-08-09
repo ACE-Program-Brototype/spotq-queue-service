@@ -1,6 +1,5 @@
+import { MESSAGES } from '@shared/constants/index.js';
 import { createClient } from 'redis';
-
-import { MESSAGES } from '../../shared/constants/index.js';
 import { config } from '../config/index.js';
 import { logger } from '../logger/index.js';
 
