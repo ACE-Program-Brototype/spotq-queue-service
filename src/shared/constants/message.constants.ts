@@ -9,6 +9,8 @@ export const MESSAGES = {
 	REDIS_CONNECTED: 'Redis connected',
 	REDIS_READY: 'Redis ready to accept commands',
 	REDIS_RECONNECTING: 'Redis reconnecting...',
+	REDIS_RECONNECT_FAILED: 'Redis reconnect failed',
+	REDIS_ERROR: 'Redis error occurred',
 	REDIS_DISCONNECTING: 'Disconnecting Redis client...',
 	REDIS_DISCONNECTED: 'Redis disconnected',
 	DATABASE_DISCONNECTING: 'Disconnecting database client...',

@@ -33,7 +33,7 @@ RUN apk add --no-cache bash curl && \
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 COPY package.json ./
-COPY .infisical.jso[n] ./
+COPY .infisical.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY prisma ./prisma

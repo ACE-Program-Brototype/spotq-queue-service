@@ -1,7 +1,7 @@
+import { config } from '@infrastructure/config/index.js';
+import { logger } from '@infrastructure/logger/index.js';
 import { MESSAGES } from '@shared/constants/index.js';
 import { createClient } from 'redis';
-import { config } from '../config/index.js';
-import { logger } from '../logger/index.js';
 
 const isTls = config.redis.url.startsWith('rediss://');
 
@@ -11,7 +11,7 @@ export const redisClient = createClient({
 		tls: isTls ? true : undefined,
 		reconnectStrategy(retries) {
 			if (retries > 10) {
-				return new Error('Redis reconnect failed');
+				return new Error(MESSAGES.REDIS_RECONNECT_FAILED);
 			}
 
 			return Math.min(retries * 500, 5000);
@@ -28,9 +28,9 @@ redisClient.on('ready', () => {
 });
 
 redisClient.on('reconnecting', () => {
-	logger.info(MESSAGES.REDIS_RECONNECTING);
+	logger.warn(MESSAGES.REDIS_RECONNECTING);
 });
 
 redisClient.on('error', (error) => {
-	logger.error(error, 'Redis Error');
+	logger.error({ err: error }, MESSAGES.REDIS_ERROR);
 });
