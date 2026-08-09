@@ -1,3 +1,14 @@
+jest.mock('ioredis', () => {
+	return jest.fn().mockImplementation(() => {
+		return {
+			on: jest.fn(),
+			ping: jest.fn().mockResolvedValue('PONG'),
+			quit: jest.fn().mockResolvedValue(undefined),
+			close: jest.fn().mockResolvedValue(undefined),
+		};
+	});
+});
+
 import { databaseService, prisma } from '@infrastructure/database/index.ts';
 import { bullmqQueueService } from '@infrastructure/queue/index.ts';
 import { redisClient, redisService } from '@infrastructure/redis/index.ts';
@@ -116,9 +127,18 @@ describe('Queue Service Integration & Unit Tests', () => {
 			expect(healthy).toBe(false);
 		});
 
-		it('bullmqQueueService.isHealthy should return boolean status', async () => {
-			const isHealthy = typeof (await bullmqQueueService.isHealthy()) === 'boolean';
-			expect(isHealthy).toBe(true);
+		it('bullmqQueueService.isHealthy should return true when ping succeeds', async () => {
+			jest.spyOn(bullmqQueueService['connection'], 'ping').mockResolvedValue('PONG');
+			const healthy = await bullmqQueueService.isHealthy();
+			expect(healthy).toBe(true);
+		});
+
+		it('bullmqQueueService.isHealthy should return false when ping fails', async () => {
+			jest
+				.spyOn(bullmqQueueService['connection'], 'ping')
+				.mockRejectedValue(new Error('Redis error'));
+			const healthy = await bullmqQueueService.isHealthy();
+			expect(healthy).toBe(false);
 		});
 	});
 });
