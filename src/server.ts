@@ -52,11 +52,11 @@ async function bootstrap() {
 			await databaseService.disconnect();
 
 			clearTimeout(forceExitTimeout);
-			logger.info('Clean graceful shutdown completed.');
+			logger.info(MESSAGES.SHUTDOWN_COMPLETED);
 			process.exit(0);
 		} catch (error) {
 			clearTimeout(forceExitTimeout);
-			logger.error({ err: error }, 'Error during graceful shutdown');
+			logger.error({ err: error }, MESSAGES.SHUTDOWN_ERROR);
 			process.exit(1);
 		}
 	};

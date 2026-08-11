@@ -19,6 +19,8 @@ export const MESSAGES = {
 	SHUTDOWN_SIGTERM: 'Received SIGTERM. Gracefully shutting down...',
 	SHUTDOWN_IN_PROGRESS: 'Received shutdown signal but shutdown is already in progress...',
 	SHUTDOWN_TIMEOUT: 'Graceful shutdown timed out. Forcing exit.',
+	SHUTDOWN_COMPLETED: 'Clean graceful shutdown completed.',
+	SHUTDOWN_ERROR: 'Error during graceful shutdown',
 	HTTP_SERVER_CLOSED: 'HTTP server closed successfully',
 	SERVER_BOOTSTRAP_FAILED: 'Failed to bootstrap server',
 } as const;
