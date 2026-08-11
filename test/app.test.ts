@@ -95,10 +95,12 @@ describe('Queue Service Integration & Unit Tests', () => {
 			expect(res.status).toBe(HTTP_STATUS.NOT_FOUND);
 			expect(res.body).toEqual(
 				expect.objectContaining({
+					success: false,
 					error: MESSAGES.NOT_FOUND,
 					message: 'Cannot GET /invalid-route-xyz',
 				}),
 			);
+			expect(res.body).toHaveProperty('timestamp');
 		});
 	});
 
@@ -128,6 +130,7 @@ describe('Queue Service Integration & Unit Tests', () => {
 		});
 
 		it('bullmqQueueService.isHealthy should return true when ping succeeds', async () => {
+			// biome-ignore lint/complexity/useLiteralKeys: access private connection
 			jest.spyOn(bullmqQueueService['connection'], 'ping').mockResolvedValue('PONG');
 			const healthy = await bullmqQueueService.isHealthy();
 			expect(healthy).toBe(true);
@@ -135,6 +138,7 @@ describe('Queue Service Integration & Unit Tests', () => {
 
 		it('bullmqQueueService.isHealthy should return false when ping fails', async () => {
 			jest
+				// biome-ignore lint/complexity/useLiteralKeys: access private connection
 				.spyOn(bullmqQueueService['connection'], 'ping')
 				.mockRejectedValue(new Error('Redis error'));
 			const healthy = await bullmqQueueService.isHealthy();

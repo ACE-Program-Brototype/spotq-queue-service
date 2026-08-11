@@ -1,5 +1,5 @@
 import { logger } from '@infrastructure/logger/index.ts';
-import { HTTP_STATUS, MESSAGES } from '@shared/constants/index.ts';
+import { ErrorResponse, HTTP_STATUS, MESSAGES } from '@shared/index.ts';
 import type { NextFunction, Request, Response } from 'express';
 
 export function errorMiddleware(
@@ -15,8 +15,7 @@ export function errorMiddleware(
 			? HTTP_STATUS.INTERNAL_SERVER_ERROR
 			: res.statusCode;
 
-	res.status(statusCode).json({
-		error: MESSAGES.INTERNAL_SERVER_ERROR,
-		message: process.env.NODE_ENV === 'production' ? MESSAGES.UNEXPECTED_ERROR : err.message,
-	});
+	const message = process.env.NODE_ENV === 'production' ? MESSAGES.UNEXPECTED_ERROR : err.message;
+
+	res.status(statusCode).json(new ErrorResponse(MESSAGES.INTERNAL_SERVER_ERROR, message));
 }
