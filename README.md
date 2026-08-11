@@ -30,20 +30,21 @@ Queue Service is one of the core backend microservices of the SpotQ platform. It
 
 The Queue Service is responsible for managing customer queues, waitlist positioning, wait times, and queue lifecycles within the SpotQ ecosystem.
 
-The current implementation provides only the service foundation and infrastructure.
+The current implementation provides the production-ready service foundation, dependency inversion setup, and core infrastructure interfaces.
 
-Implemented:
+Implemented Foundation:
 
 - Express Application
-- Clean Architecture
-- TypeScript
-- Prisma Configuration
-- PostgreSQL Connection with secure TLS
-- Redis Connection
-- Structured Logging with Trace Correlation
-- Prometheus Metrics
-- Health Checks (dynamic dependency checks)
-- Docker Support
+- Strict Clean Architecture & Domain-Driven Design (DDD) interfaces
+- TypeScript (v7+)
+- Prisma Configuration & PostgreSQL Connection with secure TLS
+- Redis Cloud Integration
+- BullMQ Job Queue Service (`IQueueService` & `BullMQQueueService`)
+- Structured JSON Logging with native AsyncLocalStorage Trace Correlation
+- Prometheus Observability Metrics (`GET /metrics`)
+- Unified Success/Error API Response Wrappers (`ApiResponse`, `SuccessResponse`, `ErrorResponse`)
+- Health & Readiness Checks (dynamic dependency monitoring via `IHealthCheckable`)
+- Multi-stage Docker Containerization & Healthchecks
 - Infisical Secret Management
 
 Not yet implemented:
@@ -55,6 +56,7 @@ Not yet implemented:
 - Event Publishing
 - gRPC
 - Domain Models
+
 
 ---
 
@@ -83,23 +85,33 @@ Not yet implemented:
 ```text
 src/
 │
-├── application/
+├── domain/                         # Enterprise business rules & contracts
+│   └── interfaces/
+│       ├── health.interface.ts     # IHealthCheckable, IHealthService
+│       └── queue.interface.ts      # IQueueService, QueueJob
 │
-├── domain/
+├── infrastructure/                 # Data access, framework adapters & concrete services
+│   ├── config/                     # Environment configuration & Zod validation
+│   ├── database/                   # Database service implementing IHealthCheckable
+│   ├── logger/                     # Pino structured logger with AsyncLocalStorage
+│   ├── metrics/                    # prom-client metrics setup
+│   ├── redis/                      # Redis client service implementing IHealthCheckable
+│   └── queue/                      # BullMQ service implementing IQueueService
 │
-├── infrastructure/
-│   ├── config/
-│   ├── database/
-│   ├── logger/
-│   ├── metrics/
-│   └── redis/
+├── presentation/                   # HTTP routers & Express controllers/middlewares
+│   ├── middleware/                 # Error, logging, metrics, and not-found middlewares
+│   └── routes/                     # Central routes configuration
 │
-├── presentation/
-│   ├── middleware/
-│   └── routes/
+├── modules/
+│   └── health/                     # Domain modules (routes, controller, service)
 │
-├── app.ts
-└── server.ts
+├── shared/
+│   ├── constants/                  # HTTP status & message constants
+│   └── utils/
+│       └── response.ts             # Standard SuccessResponse / ErrorResponse
+│
+├── app.ts                          # Express app configuration
+└── server.ts                       # Server bootstrap & graceful lifecycle manager
 ```
 
 ---
@@ -316,6 +328,12 @@ Test (with Infisical)
 
 ```bash
 pnpm test:infisical
+```
+
+Load Test (using k6)
+
+```bash
+pnpm perf:test
 ```
 
 ---
