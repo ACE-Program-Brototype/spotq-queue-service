@@ -12,7 +12,7 @@ jest.mock('ioredis', () => {
 import { databaseService, prisma } from '@infrastructure/database/index.ts';
 import { bullmqQueueService } from '@infrastructure/queue/index.ts';
 import { redisClient, redisService } from '@infrastructure/redis/index.ts';
-import { HEALTH_STATUS, HTTP_STATUS, MESSAGES } from '@shared/constants/index.ts';
+import { HEALTH_STATUS, HTTP_STATUS, MESSAGES, ROUTES } from '@shared/index.ts';
 import request from 'supertest';
 import app from '../src/app.ts';
 
@@ -34,7 +34,7 @@ describe('Queue Service Integration & Unit Tests', () => {
 			jest.spyOn(databaseService, 'isHealthy').mockResolvedValue(true);
 			jest.spyOn(redisService, 'isHealthy').mockResolvedValue(true);
 
-			const res = await request(app).get('/health');
+			const res = await request(app).get(ROUTES.HEALTH);
 
 			expect(res.status).toBe(HTTP_STATUS.OK);
 			expect(res.body).toEqual(
@@ -53,7 +53,7 @@ describe('Queue Service Integration & Unit Tests', () => {
 			jest.spyOn(databaseService, 'isHealthy').mockResolvedValue(false);
 			jest.spyOn(redisService, 'isHealthy').mockResolvedValue(true);
 
-			const res = await request(app).get('/health');
+			const res = await request(app).get(ROUTES.HEALTH);
 
 			expect(res.status).toBe(HTTP_STATUS.SERVICE_UNAVAILABLE);
 			expect(res.body).toEqual(
@@ -72,7 +72,7 @@ describe('Queue Service Integration & Unit Tests', () => {
 			jest.spyOn(databaseService, 'isHealthy').mockResolvedValue(true);
 			jest.spyOn(redisService, 'isHealthy').mockResolvedValue(false);
 
-			const res = await request(app).get('/health');
+			const res = await request(app).get(ROUTES.HEALTH);
 
 			expect(res.status).toBe(HTTP_STATUS.SERVICE_UNAVAILABLE);
 			expect(res.body).toEqual(

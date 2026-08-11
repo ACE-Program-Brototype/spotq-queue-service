@@ -1,10 +1,10 @@
-import { HTTP_STATUS } from '@shared/constants/index.ts';
+import { HTTP_STATUS, ROUTES } from '@shared/index.ts';
 import { Router } from 'express';
 import client from 'prom-client';
 
 const router = Router();
 
-router.get('/metrics', async (_req, res) => {
+router.get(ROUTES.METRICS, async (_req, res) => {
 	try {
 		res.set('Content-Type', client.register.contentType);
 		res.end(await client.register.metrics());
