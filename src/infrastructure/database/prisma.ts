@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import { logger } from '@infrastructure/logger/index.ts';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 import pg from 'pg';
@@ -15,7 +16,7 @@ if (caCert) {
 			rejectUnauthorized: true,
 		};
 	} catch (error) {
-		console.error(`Failed to read database CA cert from path: ${caCert}`, error);
+		logger.error({ err: error }, `Failed to read database CA cert from path: ${caCert}`);
 		sslConfig = {
 			rejectUnauthorized: false,
 		};
