@@ -1,0 +1,17 @@
+node_modules
+dist
+coverage
+
+.git
+.gitignore
+
+.env
+.env.*
+
+.vscode
+
+Dockerfile
+docker-compose.yml
+
+README.md
+pnpm-debug.log

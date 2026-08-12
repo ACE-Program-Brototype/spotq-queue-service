@@ -1,0 +1,87 @@
+name: Queue Service CI
+
+on:
+  pull_request:
+    branches:
+      - development
+      - staging
+      - main
+
+  push:
+    branches:
+      - development
+      - staging
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate Branch Name
+        run: |
+          BRANCH_NAME=""
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BRANCH_NAME="${{ github.head_ref }}"
+          else
+            BRANCH_NAME="${{ github.ref_name }}"
+          fi
+          
+          echo "Checking branch name: $BRANCH_NAME"
+          
+          # Allow main, staging, development
+          if [[ "$BRANCH_NAME" =~ ^(main|staging|development)$ ]]; then
+            echo "Branch name '$BRANCH_NAME' is an environment branch. Allowed."
+            exit 0
+          fi
+          
+          # Enforce ticket key SCRUM-XXXX pattern for feature branches
+          # Supported prefixes: feat/, fix/, chore/, refactor/, hotfix/
+          REGEX="^(feat|fix|chore|refactor|hotfix)/SCRUM-[0-9]+(-.+)?$"
+          if [[ "$BRANCH_NAME" =~ $REGEX ]]; then
+            echo "Branch name '$BRANCH_NAME' matches the naming convention. Allowed."
+          else
+            echo "::error::Branch name '$BRANCH_NAME' does not match the required naming convention."
+            echo "::error::Please rename your branch to follow: <prefix>/SCRUM-<ticket_number>-<description>"
+            echo "::error::Example: feat/SCRUM-502-setup-queue-service"
+            exit 1
+          fi
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Generate Prisma Client
+        run: pnpm exec prisma generate
+
+      - name: Run Linter
+        run: pnpm lint
+
+      - name: Type Check
+        run: pnpm build
+
+      - name: Run Tests
+        run: pnpm test
+        env:
+          PORT: 3000
+          NODE_ENV: test
+          SERVICE_NAME: spotq-queue-service
+          LOG_LEVEL: info
+          DATABASE_URL: postgres://localhost:5432/test
+          REDIS_URL: redis://localhost:6379
+
+      - name: Build Docker Image
+        run: docker build -t queue-service .
