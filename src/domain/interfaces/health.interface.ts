@@ -7,11 +7,7 @@ export interface IHealthCheckable {
 export interface HealthCheckResult {
 	status: HealthStatus;
 	timestamp: string;
-	checks: {
-		application: HealthStatus;
-		database: HealthStatus;
-		redis: HealthStatus;
-	};
+	checks: Record<string, HealthStatus>;
 }
 
 export interface IHealthService {
