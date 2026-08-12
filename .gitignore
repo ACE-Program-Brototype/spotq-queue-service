@@ -27,3 +27,4 @@ pnpm-lock.yaml.old
 # AI Agent & IDE Customizations
 .agents/
 .windsurf/
+.claude/
