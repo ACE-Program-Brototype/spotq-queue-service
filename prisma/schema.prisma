@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x", "linux-musl"]
@@ -10,4 +5,76 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+enum QueueStatus {
+  WAITING
+  RINGING
+  ACCEPTED
+  SEATED
+  SKIPPED
+  CANCELLED
+  NO_SHOW
+}
+
+enum RegistrationType {
+  ONLINE
+  WALK_IN
+}
+
+model QueueEntry {
+  id                         String           @id @default(uuid()) @db.Uuid
+  restaurantId               String           @map("restaurant_id") @db.Uuid
+  userId                     String?          @map("user_id") @db.Uuid
+  guestName                  String           @map("guest_name")
+  phone                      String           @map("phone")
+  queueNumber                String           @map("queue_number")
+  partySize                  Int              @map("party_size")
+  registrationType           RegistrationType @map("registration_type")
+  position                   Int?             @map("position")
+  estimatedWaitMinutes       Int?             @map("estimated_wait_minutes")
+  estimatedWaitMinutesAtJoin Int?             @map("estimated_wait_minutes_at_join")
+  status                     QueueStatus      @default(WAITING) @map("status")
+  ringCount                  Int              @default(0) @map("ring_count")
+  joinedAt                   DateTime         @default(now()) @map("joined_at") @db.Timestamptz(3)
+  seatedAt                   DateTime?        @map("seated_at") @db.Timestamptz(3)
+  createdAt                  DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                  DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  tableAssignments TableAssignment[]
+  statusHistory    QueueStatusHistory[]
+
+  @@index([restaurantId, status, joinedAt])
+  @@index([restaurantId, joinedAt])
+  @@index([userId, status])
+  @@map("queue_entries")
+}
+
+model TableAssignment {
+  id           String    @id @default(uuid()) @db.Uuid
+  queueEntryId String    @map("queue_entry_id") @db.Uuid
+  tableId      String    @map("table_id") @db.Uuid
+  assignedBy   String    @map("assigned_by")
+  assignedAt   DateTime  @default(now()) @map("assigned_at") @db.Timestamptz(3)
+  releasedAt   DateTime? @map("released_at") @db.Timestamptz(3)
+
+  queueEntry QueueEntry @relation(fields: [queueEntryId], references: [id], onDelete: Cascade)
+
+  @@index([queueEntryId, assignedAt])
+  @@index([tableId])
+  @@map("table_assignments")
+}
+
+model QueueStatusHistory {
+  id             String       @id @default(uuid()) @db.Uuid
+  queueEntryId   String       @map("queue_entry_id") @db.Uuid
+  previousStatus QueueStatus? @map("previous_status")
+  currentStatus  QueueStatus  @map("current_status")
+  changedBy      String?      @map("changed_by")
+  changedAt      DateTime     @default(now()) @map("changed_at") @db.Timestamptz(3)
+
+  queueEntry QueueEntry @relation(fields: [queueEntryId], references: [id], onDelete: Cascade)
+
+  @@index([queueEntryId, changedAt])
+  @@map("queue_status_history")
 }

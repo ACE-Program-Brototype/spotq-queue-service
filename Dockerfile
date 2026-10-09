@@ -9,7 +9,9 @@ RUN corepack enable
 
 COPY package.json pnpm-lock.yaml ./
 
-RUN pnpm config set registry https://registry.npmmirror.com
+RUN pnpm config set registry https://registry.npmmirror.com && \
+    pnpm config set fetch-timeout 300000 && \
+    pnpm config set fetch-retries 5
 RUN pnpm install --frozen-lockfile --ignore-scripts
 
 COPY . .
@@ -27,8 +29,9 @@ FROM node:22-alpine
 WORKDIR /app
 
 RUN apk add --no-cache bash curl && \
-    curl -1sLf 'https://dl.cloudsmith.io/public/infisical/infisical-cli/setup.alpine.sh' | bash && \
-    apk add infisical
+    curl -1sLf 'https://artifacts-cli.infisical.com/setup.apk.sh' | sh && \
+    apk update && \
+    apk add --no-cache infisical
 
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
