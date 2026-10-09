@@ -36,8 +36,6 @@ model QueueEntry {
   estimatedWaitMinutesAtJoin Int?             @map("estimated_wait_minutes_at_join")
   status                     QueueStatus      @default(WAITING) @map("status")
   ringCount                  Int              @default(0) @map("ring_count")
-  lastRingAt                 DateTime?        @map("last_ring_at") @db.Timestamptz(3)
-  responseDeadline           DateTime?        @map("response_deadline") @db.Timestamptz(3)
   joinedAt                   DateTime         @default(now()) @map("joined_at") @db.Timestamptz(3)
   seatedAt                   DateTime?        @map("seated_at") @db.Timestamptz(3)
   createdAt                  DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)

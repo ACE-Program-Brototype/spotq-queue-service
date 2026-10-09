@@ -63,8 +63,6 @@ describe('PrismaQueueEntryRepository Unit Tests', () => {
 				estimatedWaitMinutesAtJoin: 20,
 				status: 'WAITING',
 				ringCount: 0,
-				lastRingAt: null,
-				responseDeadline: null,
 				joinedAt: new Date(),
 				seatedAt: null,
 				createdAt: new Date(),
@@ -146,8 +144,6 @@ describe('PrismaQueueEntryRepository Unit Tests', () => {
 				estimatedWaitMinutesAtJoin: 35,
 				status: 'WAITING',
 				ringCount: 0,
-				lastRingAt: null,
-				responseDeadline: null,
 				joinedAt: new Date(),
 				seatedAt: null,
 				createdAt: new Date(),
@@ -189,18 +185,13 @@ describe('PrismaQueueEntryRepository Unit Tests', () => {
 	});
 
 	describe('Lifecycle Status Transitions', () => {
-		it('should transition from WAITING to RINGING and increment ringCount and set responseDeadline', async () => {
-			const now = new Date();
-			const deadline = new Date(now.getTime() + 10 * 60 * 1000);
-
+		it('should transition from WAITING to RINGING and increment ringCount', async () => {
 			mockPrisma.queueEntry.findUniqueOrThrow
 				.mockResolvedValueOnce({ status: 'WAITING', ringCount: 0 })
 				.mockResolvedValueOnce({
 					id: 'entry-uuid-1',
 					status: 'RINGING',
 					ringCount: 1,
-					lastRingAt: now,
-					responseDeadline: deadline,
 					tableAssignments: [],
 					statusHistory: [
 						{ previousStatus: null, currentStatus: 'WAITING' },
@@ -214,8 +205,6 @@ describe('PrismaQueueEntryRepository Unit Tests', () => {
 			const result = await repository.updateStatus({
 				id: 'entry-uuid-1',
 				status: 'RINGING',
-				lastRingAt: now,
-				responseDeadline: deadline,
 				incrementRingCount: true,
 				changedBy: 'staff-456',
 			});
@@ -224,8 +213,6 @@ describe('PrismaQueueEntryRepository Unit Tests', () => {
 				where: { id: 'entry-uuid-1' },
 				data: {
 					status: 'RINGING',
-					lastRingAt: now,
-					responseDeadline: deadline,
 					ringCount: { increment: 1 },
 				},
 			});

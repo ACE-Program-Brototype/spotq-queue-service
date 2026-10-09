@@ -109,20 +109,12 @@ export class PrismaQueueEntryRepository implements IQueueEntryRepository {
 
 			const updateData: {
 				status: QueueStatus;
-				lastRingAt?: Date | null;
-				responseDeadline?: Date | null;
 				seatedAt?: Date | null;
 				ringCount?: { increment: number };
 			} = {
 				status: params.status,
 			};
 
-			if (params.lastRingAt !== undefined) {
-				updateData.lastRingAt = params.lastRingAt;
-			}
-			if (params.responseDeadline !== undefined) {
-				updateData.responseDeadline = params.responseDeadline;
-			}
 			if (params.seatedAt !== undefined) {
 				updateData.seatedAt = params.seatedAt;
 			}

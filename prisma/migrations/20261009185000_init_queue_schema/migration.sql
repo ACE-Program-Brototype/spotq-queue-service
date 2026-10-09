@@ -19,8 +19,6 @@ CREATE TABLE "queue_entries" (
     "estimated_wait_minutes_at_join" INTEGER,
     "status" "QueueStatus" NOT NULL DEFAULT 'WAITING',
     "ring_count" INTEGER NOT NULL DEFAULT 0,
-    "last_ring_at" TIMESTAMPTZ(3),
-    "response_deadline" TIMESTAMPTZ(3),
     "joined_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "seated_at" TIMESTAMPTZ(3),
     "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

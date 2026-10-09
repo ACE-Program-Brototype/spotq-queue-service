@@ -24,8 +24,6 @@ export interface UpdateQueueStatusParams {
 	id: string;
 	status: QueueStatus;
 	changedBy?: string | null;
-	lastRingAt?: Date | null;
-	responseDeadline?: Date | null;
 	seatedAt?: Date | null;
 	incrementRingCount?: boolean;
 }
