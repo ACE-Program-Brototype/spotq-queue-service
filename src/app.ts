@@ -3,9 +3,10 @@ import {
 	loggerMiddleware,
 	metricsMiddleware,
 	notFoundMiddleware,
-} from '@presentation/middleware/index.ts';
-import { router } from '@presentation/routes/index.routes.ts';
+} from '@presentation/http/middleware/index.ts';
+import { router } from '@presentation/http/routes/index.routes.ts';
 import { ROUTES } from '@shared/index.ts';
+
 import express from 'express';
 
 const app = express();

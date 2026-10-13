@@ -1,7 +1,10 @@
+import http from 'node:http';
 import { config } from '@infrastructure/config/index.ts';
 import { databaseService } from '@infrastructure/database/index.ts';
 import { logger } from '@infrastructure/logger/index.ts';
+import { bullmqQueueService } from '@infrastructure/queue/index.ts';
 import { redisService } from '@infrastructure/redis/index.ts';
+import { initSocketServer } from '@infrastructure/websocket/index.ts';
 import { MESSAGES } from '@shared/constants/index.ts';
 import app from './app.ts';
 
@@ -9,12 +12,16 @@ async function bootstrap() {
 	await databaseService.connect();
 	await redisService.connect();
 
-	const server = app.listen(config.port, () => {
+	const server = http.createServer(app);
+	const { close: closeSocketServer } = await initSocketServer(server);
+
+	server.listen(config.port, () => {
 		logger.info(
 			{
 				port: config.port,
 				nodeEnv: config.nodeEnv,
 				serviceName: config.serviceName,
+				wsPath: config.websocket.path,
 			},
 			`Queue Service running on port ${config.port}`,
 		);
@@ -37,6 +44,8 @@ async function bootstrap() {
 		}, 10000);
 
 		try {
+			await closeSocketServer();
+
 			await new Promise<void>((resolve, reject) => {
 				server.close((err) => {
 					if (err) {
@@ -48,6 +57,7 @@ async function bootstrap() {
 				});
 			});
 
+			await bullmqQueueService.close();
 			await redisService.disconnect();
 			await databaseService.disconnect();
 

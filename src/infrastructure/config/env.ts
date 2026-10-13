@@ -17,6 +17,19 @@ export const config = {
 	redis: {
 		url: validatedEnv.REDIS_URL,
 	},
+	websocket: {
+		get path() {
+			return process.env.WS_PATH || validatedEnv.WS_PATH;
+		},
+		get corsOrigin() {
+			return process.env.CORS_ORIGIN || validatedEnv.CORS_ORIGIN;
+		},
+		get useRedisAdapter() {
+			return process.env.WS_USE_REDIS_ADAPTER !== undefined
+				? process.env.WS_USE_REDIS_ADAPTER === 'true'
+				: validatedEnv.WS_USE_REDIS_ADAPTER;
+		},
+	},
 } as const;
 
 export type Config = typeof config;
