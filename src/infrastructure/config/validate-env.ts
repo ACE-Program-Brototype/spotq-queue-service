@@ -1,19 +1,13 @@
 import { z } from 'zod';
 
-const isTestEnv = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
-
 const envSchema = z.object({
 	NODE_ENV: z.enum(['development', 'testing', 'production', 'test']).default('development'),
 	PORT: z.coerce.number().positive().default(3004),
 	SERVICE_NAME: z.string().min(1).default('spotq-queue-service'),
 	LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
-	DATABASE_URL: isTestEnv
-		? z.string().default('postgresql://postgres:postgres@localhost:5432/spotq_test')
-		: z.string().min(1, 'DATABASE_URL is required'),
+	DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
 	DATABASE_CA_CERT: z.string().optional(),
-	REDIS_URL: isTestEnv
-		? z.string().default('redis://localhost:6379')
-		: z.string().min(1, 'REDIS_URL is required'),
+	REDIS_URL: z.string().min(1, 'REDIS_URL is required'),
 	CORS_ORIGIN: z.string().default('*'),
 	WS_PATH: z.string().default('/ws'),
 	WS_USE_REDIS_ADAPTER: z
