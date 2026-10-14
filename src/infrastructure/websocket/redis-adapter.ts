@@ -1,10 +1,14 @@
-import type { RedisAdapterInstances } from '@application/ports/services/redis-adapter.port.ts';
 import { config } from '@infrastructure/config/index.ts';
 import { logger } from '@infrastructure/logger/index.ts';
 import { createAdapter } from '@socket.io/redis-adapter';
 import IORedis from 'ioredis';
 
-export type { RedisAdapterInstances };
+export interface RedisAdapterInstances {
+	pubClient: IORedis;
+	subClient: IORedis;
+	adapter: ReturnType<typeof createAdapter>;
+	close: () => Promise<void>;
+}
 
 export function createRedisAdapter(
 	connectionUrl: string = config.redis.url,

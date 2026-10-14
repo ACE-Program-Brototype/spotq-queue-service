@@ -1,11 +1,10 @@
 import type http from 'node:http';
-import type { RedisAdapterInstances } from '@application/ports/services/redis-adapter.port.ts';
 import type { IWebSocketBroadcaster } from '@application/ports/services/websocket-broadcaster.port.ts';
 import { config } from '@infrastructure/config/index.ts';
 import { logger } from '@infrastructure/logger/index.ts';
 import { registerConnectionHandlers, socketAuthMiddleware } from '@presentation/websocket/index.ts';
 import { Server, type ServerOptions } from 'socket.io';
-import { createRedisAdapter } from './redis-adapter.ts';
+import { createRedisAdapter, type RedisAdapterInstances } from './redis-adapter.ts';
 import { SocketBroadcaster } from './socket-broadcaster.ts';
 
 export interface WebSocketServiceOptions {
