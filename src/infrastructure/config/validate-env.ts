@@ -8,6 +8,15 @@ const envSchema = z.object({
 	DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
 	DATABASE_CA_CERT: z.string().optional(),
 	REDIS_URL: z.string().min(1, 'REDIS_URL is required'),
+	CORS_ORIGIN: z.string().default('*'),
+	WS_PATH: z.string().default('/ws'),
+	WS_USE_REDIS_ADAPTER: z
+		.preprocess((val) => {
+			if (typeof val === 'string') return val.toLowerCase() === 'true';
+			if (typeof val === 'boolean') return val;
+			return false;
+		}, z.boolean())
+		.default(false),
 });
 
 export const validateEnv = () => {

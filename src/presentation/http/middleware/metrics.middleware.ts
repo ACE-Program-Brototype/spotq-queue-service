@@ -1,5 +1,5 @@
+import { httpRequestCounter, httpRequestDuration } from '@infrastructure/metrics/index.ts';
 import type { NextFunction, Request, Response } from 'express';
-import { httpRequestCounter, httpRequestDuration } from '../../infrastructure/metrics/index.ts';
 
 export function metricsMiddleware(req: Request, res: Response, next: NextFunction): void {
 	const end = httpRequestDuration.startTimer();
