@@ -1,29 +1,51 @@
 import { logger } from '@infrastructure/logger/index.ts';
 import {
+	ADMIN_ROLE,
+	createRoomErrorResponse,
+	createRoomSuccessResponse,
 	isAuthorizedRestaurantMember,
 	RESTAURANT_OWNER_ROLE,
+	type RoomAckResponse,
 	STAFF_ROLES,
 	WEBSOCKET_ROOMS,
 	WS_CLIENT_EVENTS,
 	WS_ERROR_MESSAGES,
+	WS_LOG_MESSAGES,
 	WS_SERVER_EVENTS,
 } from '@shared/constants/websocket.constants.ts';
 import type { Socket } from 'socket.io';
 
-export interface RoomAckResponse {
-	success: boolean;
-	room?: string;
-	error?: string;
+export type { RoomAckResponse };
+
+function emitSuccess(
+	socket: Socket,
+	event: string,
+	room: string,
+	callback?: (res: RoomAckResponse) => void,
+): void {
+	const response = createRoomSuccessResponse(room);
+	socket.emit(event, response);
+	callback?.(response);
+}
+
+function emitError(
+	socket: Socket,
+	error: string,
+	callback?: (res: RoomAckResponse) => void,
+	emitToSocket = true,
+): void {
+	const response = createRoomErrorResponse(error);
+	if (emitToSocket) {
+		socket.emit(WS_SERVER_EVENTS.ERROR, response);
+	}
+	callback?.(response);
 }
 
 export function registerRoomHandlers(socket: Socket): void {
 	const user = socket.data.user;
 
 	if (!user) {
-		logger.warn(
-			{ socketId: socket.id },
-			'Attempted to register room handlers without authenticated user',
-		);
+		logger.warn({ socketId: socket.id }, WS_LOG_MESSAGES.UNAUTHENTICATED_HANDLER_REGISTRATION);
 		return;
 	}
 
@@ -33,9 +55,7 @@ export function registerRoomHandlers(socket: Socket): void {
 			const restaurantId = data?.restaurantId;
 
 			if (!restaurantId || typeof restaurantId !== 'string') {
-				const response = { success: false, error: WS_ERROR_MESSAGES.RESTAURANT_ID_REQUIRED };
-				socket.emit(WS_SERVER_EVENTS.ERROR, response);
-				callback?.(response);
+				emitError(socket, WS_ERROR_MESSAGES.RESTAURANT_ID_REQUIRED, callback);
 				return;
 			}
 
@@ -49,24 +69,17 @@ export function registerRoomHandlers(socket: Socket): void {
 						userRestaurantId: user.restaurantId,
 						targetRestaurantId: restaurantId,
 					},
-					'Unauthorized attempt to join restaurant room',
+					WS_LOG_MESSAGES.UNAUTHORIZED_RESTAURANT_JOIN,
 				);
-				const response = {
-					success: false,
-					error: WS_ERROR_MESSAGES.UNAUTHORIZED_RESTAURANT,
-				};
-				socket.emit(WS_SERVER_EVENTS.ERROR, response);
-				callback?.(response);
+				emitError(socket, WS_ERROR_MESSAGES.UNAUTHORIZED_RESTAURANT, callback);
 				return;
 			}
 
 			const room = WEBSOCKET_ROOMS.restaurant(restaurantId);
 			socket.join(room);
-			logger.info({ userId: user.userId, room }, 'Socket joined restaurant room');
+			logger.info({ userId: user.userId, room }, WS_LOG_MESSAGES.SOCKET_JOINED_RESTAURANT);
 
-			const response = { success: true, room };
-			socket.emit(WS_SERVER_EVENTS.ROOM_JOINED, response);
-			callback?.(response);
+			emitSuccess(socket, WS_SERVER_EVENTS.ROOM_JOINED, room, callback);
 		},
 	);
 
@@ -75,18 +88,15 @@ export function registerRoomHandlers(socket: Socket): void {
 		(data: { restaurantId?: string } | undefined, callback?: (res: RoomAckResponse) => void) => {
 			const restaurantId = data?.restaurantId;
 			if (!restaurantId || typeof restaurantId !== 'string') {
-				const response = { success: false, error: WS_ERROR_MESSAGES.RESTAURANT_ID_REQUIRED };
-				callback?.(response);
+				emitError(socket, WS_ERROR_MESSAGES.RESTAURANT_ID_REQUIRED, callback, false);
 				return;
 			}
 
 			const room = WEBSOCKET_ROOMS.restaurant(restaurantId);
 			socket.leave(room);
-			logger.info({ userId: user.userId, room }, 'Socket left restaurant room');
+			logger.info({ userId: user.userId, room }, WS_LOG_MESSAGES.SOCKET_LEFT_RESTAURANT);
 
-			const response = { success: true, room };
-			socket.emit(WS_SERVER_EVENTS.ROOM_LEFT, response);
-			callback?.(response);
+			emitSuccess(socket, WS_SERVER_EVENTS.ROOM_LEFT, room, callback);
 		},
 	);
 
@@ -96,9 +106,7 @@ export function registerRoomHandlers(socket: Socket): void {
 			const ticketId = data?.ticketId;
 
 			if (!ticketId || typeof ticketId !== 'string') {
-				const response = { success: false, error: WS_ERROR_MESSAGES.TICKET_ID_REQUIRED };
-				socket.emit(WS_SERVER_EVENTS.ERROR, response);
-				callback?.(response);
+				emitError(socket, WS_ERROR_MESSAGES.TICKET_ID_REQUIRED, callback);
 				return;
 			}
 
@@ -106,7 +114,7 @@ export function registerRoomHandlers(socket: Socket): void {
 			const isRestaurantOwner = user.role === RESTAURANT_OWNER_ROLE;
 			const isAuthorizedMember = isStaff || isRestaurantOwner;
 			const isTicketOwner = user.ticketId === ticketId || user.userId === ticketId;
-			const isAuthorized = user.role === 'ADMIN' || isAuthorizedMember || isTicketOwner;
+			const isAuthorized = user.role === ADMIN_ROLE || isAuthorizedMember || isTicketOwner;
 
 			if (!isAuthorized) {
 				logger.warn(
@@ -115,24 +123,17 @@ export function registerRoomHandlers(socket: Socket): void {
 						userTicketId: user.ticketId,
 						targetTicketId: ticketId,
 					},
-					'Unauthorized attempt to join ticket room',
+					WS_LOG_MESSAGES.UNAUTHORIZED_TICKET_JOIN,
 				);
-				const response = {
-					success: false,
-					error: WS_ERROR_MESSAGES.UNAUTHORIZED_TICKET,
-				};
-				socket.emit(WS_SERVER_EVENTS.ERROR, response);
-				callback?.(response);
+				emitError(socket, WS_ERROR_MESSAGES.UNAUTHORIZED_TICKET, callback);
 				return;
 			}
 
 			const room = WEBSOCKET_ROOMS.ticket(ticketId);
 			socket.join(room);
-			logger.info({ userId: user.userId, room }, 'Socket joined ticket room');
+			logger.info({ userId: user.userId, room }, WS_LOG_MESSAGES.SOCKET_JOINED_TICKET);
 
-			const response = { success: true, room };
-			socket.emit(WS_SERVER_EVENTS.ROOM_JOINED, response);
-			callback?.(response);
+			emitSuccess(socket, WS_SERVER_EVENTS.ROOM_JOINED, room, callback);
 		},
 	);
 
@@ -141,18 +142,15 @@ export function registerRoomHandlers(socket: Socket): void {
 		(data: { ticketId?: string } | undefined, callback?: (res: RoomAckResponse) => void) => {
 			const ticketId = data?.ticketId;
 			if (!ticketId || typeof ticketId !== 'string') {
-				const response = { success: false, error: WS_ERROR_MESSAGES.TICKET_ID_REQUIRED };
-				callback?.(response);
+				emitError(socket, WS_ERROR_MESSAGES.TICKET_ID_REQUIRED, callback, false);
 				return;
 			}
 
 			const room = WEBSOCKET_ROOMS.ticket(ticketId);
 			socket.leave(room);
-			logger.info({ userId: user.userId, room }, 'Socket left ticket room');
+			logger.info({ userId: user.userId, room }, WS_LOG_MESSAGES.SOCKET_LEFT_TICKET);
 
-			const response = { success: true, room };
-			socket.emit(WS_SERVER_EVENTS.ROOM_LEFT, response);
-			callback?.(response);
+			emitSuccess(socket, WS_SERVER_EVENTS.ROOM_LEFT, room, callback);
 		},
 	);
 
@@ -162,13 +160,11 @@ export function registerRoomHandlers(socket: Socket): void {
 			const queueId = data?.queueId;
 
 			if (!queueId || typeof queueId !== 'string') {
-				const response = { success: false, error: WS_ERROR_MESSAGES.QUEUE_ID_REQUIRED };
-				socket.emit(WS_SERVER_EVENTS.ERROR, response);
-				callback?.(response);
+				emitError(socket, WS_ERROR_MESSAGES.QUEUE_ID_REQUIRED, callback);
 				return;
 			}
 
-			const isAdmin = user.role === 'ADMIN';
+			const isAdmin = user.role === ADMIN_ROLE;
 			const isCustomer = user.role === 'CUSTOMER';
 			const isAuthorizedMember = isAuthorizedRestaurantMember(user, queueId);
 			const isAuthorized = isAdmin || isCustomer || isAuthorizedMember;
@@ -180,24 +176,17 @@ export function registerRoomHandlers(socket: Socket): void {
 						userRestaurantId: user.restaurantId,
 						targetQueueId: queueId,
 					},
-					'Unauthorized attempt to join queue room',
+					WS_LOG_MESSAGES.UNAUTHORIZED_QUEUE_JOIN,
 				);
-				const response = {
-					success: false,
-					error: WS_ERROR_MESSAGES.UNAUTHORIZED_QUEUE,
-				};
-				socket.emit(WS_SERVER_EVENTS.ERROR, response);
-				callback?.(response);
+				emitError(socket, WS_ERROR_MESSAGES.UNAUTHORIZED_QUEUE, callback);
 				return;
 			}
 
 			const room = WEBSOCKET_ROOMS.queue(queueId);
 			socket.join(room);
-			logger.info({ userId: user.userId, room }, 'Socket joined queue room');
+			logger.info({ userId: user.userId, room }, WS_LOG_MESSAGES.SOCKET_JOINED_QUEUE);
 
-			const response = { success: true, room };
-			socket.emit(WS_SERVER_EVENTS.ROOM_JOINED, response);
-			callback?.(response);
+			emitSuccess(socket, WS_SERVER_EVENTS.ROOM_JOINED, room, callback);
 		},
 	);
 
@@ -206,18 +195,15 @@ export function registerRoomHandlers(socket: Socket): void {
 		(data: { queueId?: string } | undefined, callback?: (res: RoomAckResponse) => void) => {
 			const queueId = data?.queueId;
 			if (!queueId || typeof queueId !== 'string') {
-				const response = { success: false, error: WS_ERROR_MESSAGES.QUEUE_ID_REQUIRED };
-				callback?.(response);
+				emitError(socket, WS_ERROR_MESSAGES.QUEUE_ID_REQUIRED, callback, false);
 				return;
 			}
 
 			const room = WEBSOCKET_ROOMS.queue(queueId);
 			socket.leave(room);
-			logger.info({ userId: user.userId, room }, 'Socket left queue room');
+			logger.info({ userId: user.userId, room }, WS_LOG_MESSAGES.SOCKET_LEFT_QUEUE);
 
-			const response = { success: true, room };
-			socket.emit(WS_SERVER_EVENTS.ROOM_LEFT, response);
-			callback?.(response);
+			emitSuccess(socket, WS_SERVER_EVENTS.ROOM_LEFT, room, callback);
 		},
 	);
 }

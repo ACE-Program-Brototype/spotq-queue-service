@@ -70,3 +70,48 @@ export function isAuthorizedRestaurantMember(
 	const isRestaurantOwner = user.role === RESTAURANT_OWNER_ROLE;
 	return (isStaff || isRestaurantOwner) && user.restaurantId === requestedRestaurantId;
 }
+
+export const WS_LOG_MESSAGES = {
+	UNAUTHENTICATED_HANDLER_REGISTRATION:
+		'Attempted to register room handlers without authenticated user',
+	UNAUTHORIZED_RESTAURANT_JOIN: 'Unauthorized attempt to join restaurant room',
+	UNAUTHORIZED_TICKET_JOIN: 'Unauthorized attempt to join ticket room',
+	UNAUTHORIZED_QUEUE_JOIN: 'Unauthorized attempt to join queue room',
+	SOCKET_JOINED_RESTAURANT: 'Socket joined restaurant room',
+	SOCKET_LEFT_RESTAURANT: 'Socket left restaurant room',
+	SOCKET_JOINED_TICKET: 'Socket joined ticket room',
+	SOCKET_LEFT_TICKET: 'Socket left ticket room',
+	SOCKET_JOINED_QUEUE: 'Socket joined queue room',
+	SOCKET_LEFT_QUEUE: 'Socket left queue room',
+	SOCKET_CONNECTED_NO_AUTH: 'Socket connected without authenticated user data',
+	CLIENT_CONNECTED: 'Client connected to WebSocket server',
+	CLIENT_DISCONNECTED: 'Client disconnected from WebSocket server',
+	MISSING_GATEWAY_IDENTITY:
+		'WebSocket connection rejected: Missing authenticated user identity from API Gateway',
+	GATEWAY_AUTHENTICATED: 'WebSocket authenticated via API Gateway headers',
+} as const;
+
+export interface RoomAckResponse<T = unknown> {
+	success: boolean;
+	room?: string;
+	error?: string;
+	data?: T;
+}
+
+export function createRoomSuccessResponse<T = unknown>(
+	room?: string,
+	data?: T,
+): RoomAckResponse<T> {
+	return {
+		success: true,
+		...(room !== undefined && { room }),
+		...(data !== undefined && { data }),
+	};
+}
+
+export function createRoomErrorResponse(error: string): RoomAckResponse {
+	return {
+		success: false,
+		error,
+	};
+}
