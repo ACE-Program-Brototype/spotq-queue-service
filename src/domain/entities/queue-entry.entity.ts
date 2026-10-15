@@ -1,0 +1,160 @@
+import { QueueStatus, RegistrationType } from '../enums/queue.enums.ts';
+
+/**
+ * Immutable properties representing a QueueEntry record in the domain model.
+ */
+export interface QueueEntryProps {
+	id: string;
+	restaurantId: string;
+	userId?: string | null;
+	guestName: string;
+	phone: string;
+	queueNumber: string;
+	partySize: number;
+	registrationType: RegistrationType;
+	position: number | null;
+	estimatedWaitMinutes: number | null;
+	estimatedWaitMinutesAtJoin: number | null;
+	status: QueueStatus;
+	ringCount: number;
+	joinedAt: Date;
+	seatedAt?: Date | null;
+	createdAt: Date;
+	updatedAt: Date;
+}
+
+/**
+ * Parameters required to create a new walk-in queue entry.
+ */
+export interface CreateWalkInQueueEntryProps {
+	id?: string;
+	restaurantId: string;
+	guestName: string;
+	phone: string;
+	queueNumber: string;
+	partySize: number;
+	position: number;
+	estimatedWaitMinutes: number;
+}
+
+/**
+ * QueueEntry Domain Entity.
+ *
+ * Encapsulates the state and lifecycle of a party waiting in a restaurant queue.
+ * Supports both online and walk-in registrations while enforcing registrationType invariants.
+ */
+export class QueueEntry {
+	private constructor(private readonly props: QueueEntryProps) {}
+
+	/**
+	 * Factory method to instantiate a new walk-in queue entry.
+	 * Sets registrationType to WALK_IN and initializes status to WAITING.
+	 *
+	 * @param props - Walk-in initialization properties
+	 * @returns New QueueEntry instance
+	 */
+	public static createWalkIn(props: CreateWalkInQueueEntryProps): QueueEntry {
+		const now = new Date();
+		return new QueueEntry({
+			id: props.id ?? crypto.randomUUID(),
+			restaurantId: props.restaurantId,
+			userId: null,
+			guestName: props.guestName.trim(),
+			phone: props.phone.trim(),
+			queueNumber: props.queueNumber,
+			partySize: props.partySize,
+			registrationType: RegistrationType.WALK_IN,
+			position: props.position,
+			estimatedWaitMinutes: props.estimatedWaitMinutes,
+			estimatedWaitMinutesAtJoin: props.estimatedWaitMinutes,
+			status: QueueStatus.WAITING,
+			ringCount: 0,
+			joinedAt: now,
+			seatedAt: null,
+			createdAt: now,
+			updatedAt: now,
+		});
+	}
+
+	/**
+	 * Reconstitutes an existing QueueEntry from persistent storage.
+	 *
+	 * @param props - Stored entity properties
+	 * @returns QueueEntry instance
+	 */
+	public static reconstitute(props: QueueEntryProps): QueueEntry {
+		return new QueueEntry(props);
+	}
+
+	public get id(): string {
+		return this.props.id;
+	}
+
+	public get restaurantId(): string {
+		return this.props.restaurantId;
+	}
+
+	public get userId(): string | null | undefined {
+		return this.props.userId;
+	}
+
+	public get guestName(): string {
+		return this.props.guestName;
+	}
+
+	public get phone(): string {
+		return this.props.phone;
+	}
+
+	public get queueNumber(): string {
+		return this.props.queueNumber;
+	}
+
+	public get partySize(): number {
+		return this.props.partySize;
+	}
+
+	public get registrationType(): RegistrationType {
+		return this.props.registrationType;
+	}
+
+	public get position(): number | null {
+		return this.props.position;
+	}
+
+	public get estimatedWaitMinutes(): number | null {
+		return this.props.estimatedWaitMinutes;
+	}
+
+	public get estimatedWaitMinutesAtJoin(): number | null {
+		return this.props.estimatedWaitMinutesAtJoin;
+	}
+
+	public get status(): QueueStatus {
+		return this.props.status;
+	}
+
+	public get ringCount(): number {
+		return this.props.ringCount;
+	}
+
+	public get joinedAt(): Date {
+		return this.props.joinedAt;
+	}
+
+	public get seatedAt(): Date | null | undefined {
+		return this.props.seatedAt;
+	}
+
+	public get createdAt(): Date {
+		return this.props.createdAt;
+	}
+
+	public get updatedAt(): Date {
+		return this.props.updatedAt;
+	}
+
+	public toJSON(): QueueEntryProps {
+		return { ...this.props };
+	}
+}

@@ -1,3 +1,6 @@
+/**
+ * General application and lifecycle messages.
+ */
 export const MESSAGES = {
 	NOT_FOUND: 'Not Found',
 	INTERNAL_SERVER_ERROR: 'Internal Server Error',
@@ -23,6 +26,52 @@ export const MESSAGES = {
 	SHUTDOWN_ERROR: 'Error during graceful shutdown',
 	HTTP_SERVER_CLOSED: 'HTTP server closed successfully',
 	SERVER_BOOTSTRAP_FAILED: 'Failed to bootstrap server',
+} as const;
+
+/**
+ * Domain-specific queue messages for walk-in and online queue operations.
+ */
+export const QUEUE_MESSAGES = {
+	WALK_IN_REGISTER_SUCCESS: 'Walk-in guest registered to queue successfully',
+	TABLES_AVAILABLE:
+		'Tables are currently available. Seat the guest directly without joining the queue.',
+	RESTAURANT_NOT_ACCEPTING: 'Restaurant is currently closed or not accepting queue registrations.',
+	ACTIVE_ENTRY_EXISTS:
+		'A guest with this phone number is already waiting in this restaurant queue.',
+	ENTRY_NOT_FOUND: 'Queue entry was not found.',
+	INVALID_PARTY_SIZE: 'Party size must be an integer between 1 and 20.',
+	VALIDATION_FAILED: 'Validation failed',
+	INVALID_PARAMETERS: 'Invalid request parameters',
+	RESTAURANT_BLOCKED:
+		'Restaurant is currently blocked by administration. Queue operations are disabled.',
+	SUBSCRIPTION_REQUIRED:
+		'Restaurant requires an active QUEUE_PRO subscription to access queue services.',
+	RESTAURANT_NOT_FOUND: 'Restaurant was not found.',
+} as const;
+
+/**
+ * Staff and role-based access control authentication messages.
+ */
+export const AUTH_MESSAGES = {
+	CREDENTIALS_REQUIRED: 'Authentication required: Missing staff identity credentials',
+	FORBIDDEN_STAFF_ONLY: 'Forbidden: Only authorized STAFF or ADMIN can manage the restaurant queue',
+	UNAUTHORIZED_RESTAURANT_ACCESS:
+		'Staff member does not have permission to manage this restaurant queue',
+} as const;
+
+/**
+ * Unified messages dictionary matching spotq ecosystem conventions.
+ */
+export const messages = {
+	SUCCESS: 'Success',
+	GATEWAY_UNAUTHORIZED: 'Unauthorized request from gateway',
+	STAFF_FORBIDDEN: 'Forbidden: Staff access required',
+	FORBIDDEN: 'Forbidden request',
+	RESTAURANT_ACCESS_FORBIDDEN: 'Forbidden: You do not have access to this restaurant',
+	UNAUTHORIZED: 'Unauthorized access',
+	...MESSAGES,
+	...QUEUE_MESSAGES,
+	...AUTH_MESSAGES,
 } as const;
 
 export type Message = (typeof MESSAGES)[keyof typeof MESSAGES];

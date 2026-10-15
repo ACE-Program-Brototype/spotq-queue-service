@@ -17,6 +17,11 @@ export const config = {
 	redis: {
 		url: validatedEnv.REDIS_URL,
 	},
+	services: {
+		restaurantServiceUrl: validatedEnv.RESTAURANT_SERVICE_URL,
+		etaServiceUrl: validatedEnv.ETA_SERVICE_URL,
+		mockTableCheck: validatedEnv.MOCK_TABLE_CHECK,
+	},
 	websocket: {
 		get path() {
 			return process.env.WS_PATH || validatedEnv.WS_PATH;

@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import http from 'node:http';
 import { config } from '@infrastructure/config/index.ts';
 import { databaseService } from '@infrastructure/database/index.ts';

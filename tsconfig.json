@@ -5,14 +5,19 @@
 		"moduleResolution": "bundler",
 		"allowImportingTsExtensions": true,
 		"noEmit": true,
-		"types": ["node", "jest"],
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true,
+		"types": ["node", "jest", "reflect-metadata"],
 		"paths": {
 			"@domain/*": ["./src/domain/*"],
 			"@application/*": ["./src/application/*"],
 			"@infrastructure/*": ["./src/infrastructure/*"],
 			"@presentation/*": ["./src/presentation/*"],
+			"@di/*": ["./src/di/*"],
 			"@modules/*": ["./src/modules/*"],
-			"@shared/*": ["./src/shared/*"]
+			"@shared/*": ["./src/shared/*"],
+			"@types/*": ["./src/types/*"],
+			"@/*": ["./src/*"]
 		},
 		"strict": true,
 		"esModuleInterop": true,
