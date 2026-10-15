@@ -11,6 +11,7 @@ export interface QueueEntryProps {
 	phone: string;
 	queueNumber: string;
 	partySize: number;
+	specialNotes?: string | null;
 	registrationType: RegistrationType;
 	position: number | null;
 	estimatedWaitMinutes: number | null;
@@ -24,6 +25,23 @@ export interface QueueEntryProps {
 }
 
 /**
+ * Parameters required to create a new queue entry (walk-in or online).
+ */
+export interface CreateQueueEntryProps {
+	id?: string;
+	restaurantId: string;
+	userId?: string | null;
+	guestName: string;
+	phone: string;
+	queueNumber: string;
+	partySize: number;
+	specialNotes?: string | null;
+	registrationType?: RegistrationType;
+	position: number;
+	estimatedWaitMinutes: number;
+}
+
+/**
  * Parameters required to create a new walk-in queue entry.
  */
 export interface CreateWalkInQueueEntryProps {
@@ -33,6 +51,7 @@ export interface CreateWalkInQueueEntryProps {
 	phone: string;
 	queueNumber: string;
 	partySize: number;
+	specialNotes?: string | null;
 	position: number;
 	estimatedWaitMinutes: number;
 }
@@ -47,23 +66,23 @@ export class QueueEntry {
 	private constructor(private readonly props: QueueEntryProps) {}
 
 	/**
-	 * Factory method to instantiate a new walk-in queue entry.
-	 * Sets registrationType to WALK_IN and initializes status to WAITING.
+	 * Factory method to instantiate a new queue entry (online or walk-in).
 	 *
-	 * @param props - Walk-in initialization properties
+	 * @param props - Queue initialization properties
 	 * @returns New QueueEntry instance
 	 */
-	public static createWalkIn(props: CreateWalkInQueueEntryProps): QueueEntry {
+	public static create(props: CreateQueueEntryProps): QueueEntry {
 		const now = new Date();
 		return new QueueEntry({
 			id: props.id ?? crypto.randomUUID(),
 			restaurantId: props.restaurantId,
-			userId: null,
+			userId: props.userId ?? null,
 			guestName: props.guestName.trim(),
 			phone: props.phone.trim(),
 			queueNumber: props.queueNumber,
 			partySize: props.partySize,
-			registrationType: RegistrationType.WALK_IN,
+			specialNotes: props.specialNotes?.trim() || null,
+			registrationType: props.registrationType ?? RegistrationType.WALK_IN,
 			position: props.position,
 			estimatedWaitMinutes: props.estimatedWaitMinutes,
 			estimatedWaitMinutesAtJoin: props.estimatedWaitMinutes,
@@ -73,6 +92,19 @@ export class QueueEntry {
 			seatedAt: null,
 			createdAt: now,
 			updatedAt: now,
+		});
+	}
+
+	/**
+	 * Factory method to instantiate a new walk-in queue entry.
+	 *
+	 * @param props - Walk-in initialization properties
+	 * @returns New QueueEntry instance
+	 */
+	public static createWalkIn(props: CreateWalkInQueueEntryProps): QueueEntry {
+		return QueueEntry.create({
+			...props,
+			registrationType: RegistrationType.WALK_IN,
 		});
 	}
 
@@ -112,6 +144,10 @@ export class QueueEntry {
 
 	public get partySize(): number {
 		return this.props.partySize;
+	}
+
+	public get specialNotes(): string | null | undefined {
+		return this.props.specialNotes;
 	}
 
 	public get registrationType(): RegistrationType {

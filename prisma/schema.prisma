@@ -30,6 +30,7 @@ model QueueEntry {
   phone                      String           @map("phone")
   queueNumber                String           @map("queue_number")
   partySize                  Int              @map("party_size")
+  specialNotes               String?          @map("special_notes")
   registrationType           RegistrationType @map("registration_type")
   position                   Int?             @map("position")
   estimatedWaitMinutes       Int?             @map("estimated_wait_minutes")

@@ -1,16 +1,13 @@
 import type { IEtaService } from '@application/ports/services/eta-service.port.ts';
 import { config } from '@infrastructure/config/index.ts';
 import { logger } from '@infrastructure/logger/index.ts';
-import { injectable, unmanaged } from 'inversify';
+import { injectable } from 'inversify';
 
 @injectable()
 export class MlEtaServiceClient implements IEtaService {
 	private readonly baseUrl: string;
 
-	constructor(
-		@unmanaged()
-		baseUrl: string = config.services.etaServiceUrl,
-	) {
+	constructor(baseUrl: string = config.services.etaServiceUrl) {
 		this.baseUrl = baseUrl.replace(/\/$/, '');
 	}
 

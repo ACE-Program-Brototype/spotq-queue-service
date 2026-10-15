@@ -22,6 +22,10 @@ export const config = {
 		etaServiceUrl: validatedEnv.ETA_SERVICE_URL,
 		mockTableCheck: validatedEnv.MOCK_TABLE_CHECK,
 	},
+	s2s: {
+		serviceName: validatedEnv.SERVICE_NAME,
+		privateKey: validatedEnv.S2S_PRIVATE_KEY,
+	},
 	websocket: {
 		get path() {
 			return process.env.WS_PATH || validatedEnv.WS_PATH;

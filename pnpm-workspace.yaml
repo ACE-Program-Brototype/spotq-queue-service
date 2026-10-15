@@ -6,3 +6,5 @@ allowBuilds:
   msgpackr-extract: true
   prisma: true
   unrs-resolver: true
+minimumReleaseAgeExclude:
+  - '@spotq-org/s2s-core@1.0.0'

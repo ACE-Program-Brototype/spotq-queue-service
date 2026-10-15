@@ -109,3 +109,16 @@ export class RestaurantNotFoundError extends DomainError {
 		);
 	}
 }
+
+/**
+ * Thrown when an external upstream dependency (e.g., restaurant service) is unreachable or fails.
+ */
+export class UpstreamServiceUnavailableError extends DomainError {
+	constructor(
+		message: string = 'Upstream service is currently unavailable. Please try again later.',
+		statusCode: number = HTTP_STATUS.SERVICE_UNAVAILABLE,
+		details?: unknown,
+	) {
+		super(message, 'UPSTREAM_SERVICE_UNAVAILABLE', statusCode, details);
+	}
+}

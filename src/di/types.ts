@@ -26,10 +26,10 @@ export const TYPES = {
 		WebSocketBroadcaster: Symbol.for('WebSocketBroadcaster'),
 	},
 	UseCases: {
-		RegisterWalkInUseCase: Symbol.for('RegisterWalkInUseCase'),
+		RegisterQueueUseCase: Symbol.for('RegisterQueueUseCase'),
 	},
 	Controller: {
-		WalkInController: Symbol.for('WalkInController'),
+		StaffQueueController: Symbol.for('StaffQueueController'),
 	},
 
 	// Top-level aliases for direct access convenience
@@ -40,8 +40,8 @@ export const TYPES = {
 	EtaService: Symbol.for('EtaService'),
 	QueueCacheService: Symbol.for('QueueCacheService'),
 	WebSocketBroadcaster: Symbol.for('WebSocketBroadcaster'),
-	RegisterWalkInUseCase: Symbol.for('RegisterWalkInUseCase'),
-	WalkInController: Symbol.for('WalkInController'),
+	RegisterQueueUseCase: Symbol.for('RegisterQueueUseCase'),
+	StaffQueueController: Symbol.for('StaffQueueController'),
 } as const;
 
 export type ServiceTypes = typeof TYPES;

@@ -1,4 +1,4 @@
-import { walkInController } from '@di/controllers.resolutions.ts';
+import { staffQueueController } from '@di/controllers.resolutions.ts';
 import {
 	staffAuthMiddleware,
 	validateBody,
@@ -23,7 +23,7 @@ staffQueueRouter.post(
 	staffAuthMiddleware,
 	validateParams(registerWalkInParamsSchema),
 	validateBody(registerWalkInBodySchema),
-	walkInController.registerWalkIn,
+	staffQueueController.registerWalkIn,
 );
 
 export { staffQueueRouter };

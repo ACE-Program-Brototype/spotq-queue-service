@@ -6,7 +6,7 @@ import type { IQueueCacheService } from '../src/application/ports/cache/queue-ca
 import type { IEtaService } from '../src/application/ports/services/eta-service.port.ts';
 import type { IRestaurantServiceClient } from '../src/application/ports/services/restaurant-service.port.ts';
 import type { IWebSocketBroadcaster } from '../src/application/ports/services/websocket-broadcaster.port.ts';
-import { RegisterWalkInUseCase } from '../src/application/use-cases/register-walk-in.use-case.ts';
+import { RegisterQueueUseCase } from '../src/application/use-cases/register-queue.use-case.ts';
 import {
 	ActiveQueueEntryExistsError,
 	QueueEntry,
@@ -17,13 +17,13 @@ import {
 } from '../src/domain/index.ts';
 import type { IQueueRepository } from '../src/domain/repositories/queue.repository.interface.ts';
 
-describe('RegisterWalkInUseCase Unit Tests', () => {
+describe('RegisterQueueUseCase Unit Tests', () => {
 	let mockQueueRepository: jest.Mocked<IQueueRepository>;
 	let mockRestaurantServiceClient: jest.Mocked<IRestaurantServiceClient>;
 	let mockEtaService: jest.Mocked<IEtaService>;
 	let mockQueueCacheService: jest.Mocked<IQueueCacheService>;
 	let mockWebSocketBroadcaster: jest.Mocked<IWebSocketBroadcaster>;
-	let useCase: RegisterWalkInUseCase;
+	let useCase: RegisterQueueUseCase;
 
 	const defaultInput = {
 		restaurantId: 'rest-1234',
@@ -89,7 +89,7 @@ describe('RegisterWalkInUseCase Unit Tests', () => {
 			sendToTicket: jest.fn(),
 		};
 
-		useCase = new RegisterWalkInUseCase(
+		useCase = new RegisterQueueUseCase(
 			mockQueueRepository,
 			mockRestaurantServiceClient,
 			mockEtaService,
@@ -236,6 +236,7 @@ describe('RegisterWalkInUseCase Unit Tests', () => {
 					guestName: 'David Miller',
 					guestPhone: '+15559876543',
 					partySize: 4,
+					specialNotes: 'Prefers booth seating',
 					registrationType: 'WALK_IN',
 					position: 6,
 					estimatedWaitMinutes: 25,
@@ -248,15 +249,39 @@ describe('RegisterWalkInUseCase Unit Tests', () => {
 		expect(result).toEqual({
 			queueEntryId: createdEntry.id,
 			restaurantId: 'rest-1234',
+			userId: null,
 			guestName: 'David Miller',
 			guestPhone: '+15559876543',
 			partySize: 4,
+			specialNotes: 'Prefers booth seating',
 			registrationType: 'WALK_IN',
 			position: 6,
 			estimatedWaitMinutes: 25,
 			status: 'WAITING',
 			joinedAt: expect.any(String),
 		});
+	});
+
+	it('should support online customer registration with prefix Q- and userId', async () => {
+		const onlineInput = {
+			restaurantId: 'rest-1234',
+			userId: 'user-777',
+			guestName: 'Sarah Connor',
+			guestPhone: '+15551234567',
+			partySize: 2,
+			registrationType: 'ONLINE' as const,
+		};
+
+		const result = await useCase.execute(onlineInput);
+
+		expect(result.position).toBe(6);
+		expect(result.registrationType).toBe('ONLINE');
+		expect(result.userId).toBe('user-777');
+		expect(mockQueueRepository.createWithHistory).toHaveBeenCalledTimes(1);
+		const createdEntry = mockQueueRepository.createWithHistory.mock.calls[0][0];
+		expect(createdEntry.queueNumber).toBe('Q-013');
+		expect(createdEntry.userId).toBe('user-777');
+		expect(createdEntry.registrationType).toBe('ONLINE');
 	});
 });
 
@@ -310,6 +335,22 @@ describe('POST /staff/restaurants/:restaurantId/queue/walk-in HTTP Tests', () =>
 		expect(res.body.success).toBe(false);
 	});
 
+	it('should return 403 Forbidden if non-admin staff has missing x-restaurant-id', async () => {
+		const res = await request(app)
+			.post(endpoint)
+			.set('x-user-id', 'staff-1')
+			.set('x-user-role', 'STAFF')
+			.send({
+				guestName: 'David Miller',
+				guestPhone: '+15559876543',
+				partySize: 2,
+			});
+
+		expect(res.status).toBe(403);
+		expect(res.body.success).toBe(false);
+		expect(res.body.error).toBe('FORBIDDEN');
+	});
+
 	it('should return 400 Bad Request if partySize is out of range', async () => {
 		const res = await request(app)
 			.post(endpoint)
@@ -351,20 +392,20 @@ import { MlEtaServiceClient } from '../src/infrastructure/external/ml-eta-servic
 import { RestaurantServiceClient } from '../src/infrastructure/external/restaurant-service.client.ts';
 import { RedisQueueCacheService } from '../src/infrastructure/redis/redis-queue-cache.service.ts';
 import { SocketBroadcaster } from '../src/infrastructure/websocket/socket-broadcaster.ts';
-import { WalkInController } from '../src/presentation/http/controllers/walk-in.controller.ts';
+import { StaffQueueController } from '../src/presentation/http/controllers/staff-queue.controller.ts';
 
 describe('Inversify DI Container Resolution Tests', () => {
-	it('should successfully resolve WalkInController from container', () => {
-		const controller = container.get<WalkInController>(TYPES.Controller.WalkInController);
+	it('should successfully resolve StaffQueueController from container', () => {
+		const controller = container.get<StaffQueueController>(TYPES.Controller.StaffQueueController);
 		expect(controller).toBeDefined();
-		expect(controller).toBeInstanceOf(WalkInController);
+		expect(controller).toBeInstanceOf(StaffQueueController);
 		expect(typeof controller.registerWalkIn).toBe('function');
 	});
 
-	it('should successfully resolve RegisterWalkInUseCase from container', () => {
-		const useCase = container.get<RegisterWalkInUseCase>(TYPES.UseCases.RegisterWalkInUseCase);
+	it('should successfully resolve RegisterQueueUseCase from container', () => {
+		const useCase = container.get<RegisterQueueUseCase>(TYPES.UseCases.RegisterQueueUseCase);
 		expect(useCase).toBeDefined();
-		expect(useCase).toBeInstanceOf(RegisterWalkInUseCase);
+		expect(useCase).toBeInstanceOf(RegisterQueueUseCase);
 		expect(typeof useCase.execute).toBe('function');
 	});
 
@@ -396,5 +437,138 @@ describe('Inversify DI Container Resolution Tests', () => {
 		const broadcaster = container.get<IWebSocketBroadcaster>(TYPES.Services.WebSocketBroadcaster);
 		expect(broadcaster).toBeDefined();
 		expect(broadcaster).toBeInstanceOf(SocketBroadcaster);
+	});
+});
+
+import axios from 'axios';
+import { RestaurantNotFoundError, UpstreamServiceUnavailableError } from '../src/domain/index.ts';
+
+describe('RestaurantServiceClient Unit Tests', () => {
+	afterEach(() => {
+		jest.restoreAllMocks();
+	});
+
+	it('should return simulated mock data when useMock is true', async () => {
+		const client = new RestaurantServiceClient('http://localhost:5002', true);
+		const spy = jest.spyOn(axios, 'get');
+
+		const status = await client.getRestaurantStatus('rest-mock');
+		expect(status.isBlocked).toBe(false);
+		expect(status.subscriptionPlanCode).toBe('QUEUE_PRO');
+		expect(spy).not.toHaveBeenCalled();
+
+		const availability = await client.checkAvailability('rest-mock', 4);
+		expect(availability.isOpen).toBe(true);
+		expect(availability.isTableAvailable).toBe(false);
+		expect(spy).not.toHaveBeenCalled();
+	});
+
+	it('should return data when remote response has success: true', async () => {
+		const client = new RestaurantServiceClient('http://localhost:5002', false);
+		jest.spyOn(axios, 'get').mockResolvedValueOnce({
+			data: {
+				success: true,
+				data: {
+					restaurantId: 'rest-1',
+					restaurantName: 'Bistro',
+					verificationStatus: 'ACTIVE',
+					isBlocked: false,
+					blockReason: null,
+					isSubscriptionActive: true,
+					subscriptionPlanCode: 'QUEUE_PRO',
+					subscriptionEndsAt: '2026-12-31T23:59:59.999Z',
+					canAccessQueueService: true,
+				},
+			},
+		});
+
+		const status = await client.getRestaurantStatus('rest-1');
+		expect(status.restaurantName).toBe('Bistro');
+		expect(status.canAccessQueueService).toBe(true);
+	});
+
+	it('should throw UpstreamServiceUnavailableError when response has success: false', async () => {
+		const client = new RestaurantServiceClient('http://localhost:5002', false);
+		jest.spyOn(axios, 'get').mockResolvedValueOnce({
+			data: {
+				success: false,
+				message: 'Restaurant account is suspended',
+			},
+		});
+
+		await expect(client.getRestaurantStatus('rest-1')).rejects.toThrow(
+			UpstreamServiceUnavailableError,
+		);
+	});
+
+	it('should throw RestaurantNotFoundError when upstream returns 404', async () => {
+		const client = new RestaurantServiceClient('http://localhost:5002', false);
+		const notFoundError = new Error('Not Found') as Error & {
+			isAxiosError: boolean;
+			response: unknown;
+		};
+		notFoundError.isAxiosError = true;
+		notFoundError.response = { status: 404, data: { message: 'Restaurant not found' } };
+		jest.spyOn(axios, 'get').mockRejectedValueOnce(notFoundError);
+
+		await expect(client.getRestaurantStatus('rest-missing')).rejects.toThrow(
+			RestaurantNotFoundError,
+		);
+	});
+
+	it('should throw UpstreamServiceUnavailableError on upstream network failure', async () => {
+		const client = new RestaurantServiceClient('http://localhost:5002', false);
+		const netError = new Error('ECONNREFUSED') as Error & { isAxiosError: boolean };
+		netError.isAxiosError = true;
+		jest.spyOn(axios, 'get').mockRejectedValueOnce(netError);
+
+		await expect(client.getRestaurantStatus('rest-1')).rejects.toThrow(
+			UpstreamServiceUnavailableError,
+		);
+	});
+
+	it('should attach S2S JWT and X-Caller-Service headers when privateKey is configured', async () => {
+		const crypto = await import('node:crypto');
+		const { privateKey } = crypto.generateKeyPairSync('rsa', {
+			modulusLength: 2048,
+			publicKeyEncoding: { type: 'spki', format: 'pem' },
+			privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+		});
+
+		const client = new RestaurantServiceClient(
+			'http://localhost:5002',
+			false,
+			'queue-service',
+			privateKey,
+		);
+
+		const spy = jest.spyOn(axios, 'get').mockResolvedValueOnce({
+			data: {
+				success: true,
+				data: {
+					restaurantId: 'rest-s2s',
+					restaurantName: 'S2S Bistro',
+					verificationStatus: 'ACTIVE',
+					isBlocked: false,
+					blockReason: null,
+					isSubscriptionActive: true,
+					subscriptionPlanCode: 'QUEUE_PRO',
+					subscriptionEndsAt: '2026-12-31T23:59:59.999Z',
+					canAccessQueueService: true,
+				},
+			},
+		});
+
+		await client.getRestaurantStatus('rest-s2s');
+
+		expect(spy).toHaveBeenCalledWith(
+			'http://localhost:5002/api/internal/v1/restaurants/rest-s2s/validation',
+			expect.objectContaining({
+				headers: expect.objectContaining({
+					'x-caller-service': 'queue-service',
+					Authorization: expect.stringMatching(/^Bearer eyJ/),
+				}),
+			}),
+		);
 	});
 });
