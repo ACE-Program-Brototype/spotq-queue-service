@@ -22,6 +22,7 @@ export const WS_CLIENT_EVENTS = {
 } as const;
 
 export const WS_SERVER_EVENTS = {
+	QUEUE_ENTRY_CREATED: 'QUEUE_ENTRY_CREATED',
 	QUEUE_JOINED: 'queue:joined',
 	QUEUE_POSITION_UPDATED: 'queue:position-updated',
 	QUEUE_UPDATED: 'queue:updated',
