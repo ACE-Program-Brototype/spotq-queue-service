@@ -18,6 +18,7 @@ export const config = {
 		url: validatedEnv.REDIS_URL,
 	},
 	services: {
+		restaurantServiceName: validatedEnv.RESTAURANT_SERVICE,
 		restaurantServiceUrl: validatedEnv.RESTAURANT_SERVICE_URL,
 		etaServiceUrl: validatedEnv.ETA_SERVICE_URL,
 		mockTableCheck: validatedEnv.MOCK_TABLE_CHECK,

@@ -11,6 +11,7 @@ import {
 import { config } from '@infrastructure/config/index.ts';
 import { logger } from '@infrastructure/logger/index.ts';
 import { HTTP_STATUS } from '@shared/constants/http.constants.ts';
+import { RESTAURANT_SERVICE_ROUTES } from '@shared/constants/routes.constants.ts';
 import { generateToken, type TokenIssuerConfig } from '@spotq-org/s2s-core';
 import axios from 'axios';
 import { injectable } from 'inversify';
@@ -38,6 +39,7 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 	private readonly useMock: boolean;
 	private readonly s2sServiceName: string;
 	private readonly s2sPrivateKey?: string;
+	private readonly targetServiceName: string;
 	private static readonly REQUEST_TIMEOUT_MS = 2000;
 
 	constructor(
@@ -45,11 +47,13 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 		useMock: boolean = config.services.mockTableCheck,
 		s2sServiceName: string = config.s2s.serviceName,
 		s2sPrivateKey: string | undefined = config.s2s.privateKey,
+		targetServiceName: string = config.services.restaurantServiceName,
 	) {
 		this.baseUrl = baseUrl.replace(/\/$/, '');
 		this.useMock = useMock;
 		this.s2sServiceName = s2sServiceName;
 		this.s2sPrivateKey = s2sPrivateKey;
+		this.targetServiceName = targetServiceName;
 	}
 
 	/**
@@ -67,10 +71,13 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 					serviceName: this.s2sServiceName,
 					privateKey: this.s2sPrivateKey,
 				};
-				const token = generateToken('restaurant-service', issuerConfig);
+				const token = generateToken(this.targetServiceName, issuerConfig);
 				headers.Authorization = `Bearer ${token}`;
 			} catch (error) {
-				logger.error({ err: error }, 'Failed to generate S2S token for restaurant-service');
+				logger.error(
+					{ err: error, targetService: this.targetServiceName },
+					'Failed to generate S2S token for restaurant-service',
+				);
 			}
 		}
 
@@ -84,26 +91,8 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 	 * @returns Promise resolving to RestaurantStatusResult
 	 */
 	async getRestaurantStatus(restaurantId: string): Promise<RestaurantStatusResult> {
-		if (this.useMock) {
-			logger.info(
-				{ restaurantId },
-				'[MOCK] Simulating restaurant status check: active QUEUE_PRO subscription (isBlocked=false)',
-			);
-			return {
-				restaurantId,
-				restaurantName: 'Mock Restaurant',
-				verificationStatus: 'ACTIVE',
-				isBlocked: false,
-				blockReason: null,
-				isSubscriptionActive: true,
-				subscriptionPlanCode: 'QUEUE_PRO',
-				subscriptionEndsAt: new Date(Date.now() + 86400000 * 365).toISOString(),
-				canAccessQueueService: true,
-			};
-		}
-
 		try {
-			const url = `${this.baseUrl}/api/internal/v1/restaurants/${encodeURIComponent(restaurantId)}/validation`;
+			const url = `${this.baseUrl}${RESTAURANT_SERVICE_ROUTES.VALIDATION(restaurantId)}`;
 			const response = await axios.get<ApiResponseEnvelope<RestaurantStatusResult>>(url, {
 				timeout: RestaurantServiceClient.REQUEST_TIMEOUT_MS,
 				headers: this.getInternalHeaders(),
@@ -181,7 +170,7 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 		}
 
 		try {
-			const url = `${this.baseUrl}/api/internal/v1/restaurants/${encodeURIComponent(restaurantId)}/tables/availability`;
+			const url = `${this.baseUrl}${RESTAURANT_SERVICE_ROUTES.TABLE_AVAILABILITY(restaurantId)}`;
 			const response = await axios.get<ApiResponseEnvelope<TableAvailabilityResult>>(url, {
 				params: { partySize },
 				timeout: RestaurantServiceClient.REQUEST_TIMEOUT_MS,
@@ -234,5 +223,3 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 		}
 	}
 }
-
-export const restaurantServiceClient = new RestaurantServiceClient();

@@ -10,6 +10,7 @@ const envSchema = z.object({
 	DATABASE_CA_CERT: z.string().optional(),
 	REDIS_URL: z.string().min(1, 'REDIS_URL is required'),
 	RESTAURANT_SERVICE_URL: z.string().default('http://spotq-restaurant-service:3001'),
+	RESTAURANT_SERVICE: z.string().default('restaurant-service'),
 	ETA_SERVICE_URL: z.string().default('http://spotq-ml-eta-service:8000'),
 	S2S_PRIVATE_KEY: z.string().optional(),
 	MOCK_TABLE_CHECK: z

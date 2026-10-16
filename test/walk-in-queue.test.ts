@@ -466,14 +466,9 @@ describe('RestaurantServiceClient Unit Tests', () => {
 		jest.restoreAllMocks();
 	});
 
-	it('should return simulated mock data when useMock is true', async () => {
+	it('should return simulated table availability when useMock is true', async () => {
 		const client = new RestaurantServiceClient('http://localhost:5002', true);
 		const spy = jest.spyOn(axios, 'get');
-
-		const status = await client.getRestaurantStatus('rest-mock');
-		expect(status.isBlocked).toBe(false);
-		expect(status.subscriptionPlanCode).toBe('QUEUE_PRO');
-		expect(spy).not.toHaveBeenCalled();
 
 		const availability = await client.checkAvailability('rest-mock', 4);
 		expect(availability.isOpen).toBe(true);
