@@ -4,9 +4,8 @@ import type {
 } from '@application/ports/cache/queue-cache.port.ts';
 import { TYPES } from '@di/types.ts';
 import { logger } from '@infrastructure/logger/index.ts';
-import { inject, injectable, optional } from 'inversify';
+import { inject, injectable } from 'inversify';
 import type { RedisClientType } from 'redis';
-import { redisClient } from './redis.client.ts';
 
 @injectable()
 export class RedisQueueCacheService implements IQueueCacheService {
@@ -15,8 +14,7 @@ export class RedisQueueCacheService implements IQueueCacheService {
 
 	constructor(
 		@inject(TYPES.Redis.Client)
-		@optional()
-		private readonly client: RedisClientType = redisClient,
+		private readonly client: RedisClientType,
 	) {}
 
 	private getKey(queueEntryId: string): string {
@@ -71,5 +69,3 @@ export class RedisQueueCacheService implements IQueueCacheService {
 		}
 	}
 }
-
-export const redisQueueCacheService = new RedisQueueCacheService();

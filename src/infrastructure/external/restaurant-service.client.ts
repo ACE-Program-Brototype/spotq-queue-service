@@ -140,7 +140,9 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 						? error.response.status
 						: HTTP_STATUS.SERVICE_UNAVAILABLE;
 
-				throw new UpstreamServiceUnavailableError(upstreamMessage, statusCode);
+				throw new UpstreamServiceUnavailableError(upstreamMessage, {
+					upstreamStatusCode: statusCode,
+				});
 			}
 
 			logger.error(
@@ -217,7 +219,9 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 						? error.response.status
 						: HTTP_STATUS.SERVICE_UNAVAILABLE;
 
-				throw new UpstreamServiceUnavailableError(upstreamMessage, statusCode);
+				throw new UpstreamServiceUnavailableError(upstreamMessage, {
+					upstreamStatusCode: statusCode,
+				});
 			}
 
 			logger.error(

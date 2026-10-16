@@ -1,8 +1,7 @@
 import { TYPES } from '@di/types.ts';
 import { type IQueueRepository, type QueueEntry, QueueStatus } from '@domain/index.ts';
-import { prisma } from '@infrastructure/database/prisma.ts';
 import type { Prisma, PrismaClient, QueueEntry as PrismaQueueEntry } from '@prisma/client';
-import { inject, injectable, optional } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { QueueEntryMapper } from '../mappers/queue-entry.mapper.ts';
 import { PrismaBaseRepository } from './prisma-base.repository.ts';
 
@@ -19,8 +18,7 @@ export class PrismaQueueRepository
 {
 	constructor(
 		@inject(TYPES.Database.PrismaClient)
-		@optional()
-		private readonly prismaClient: PrismaClient = prisma,
+		private readonly prismaClient: PrismaClient,
 	) {
 		super(prismaClient.queueEntry as unknown as Prisma.QueueEntryDelegate, QueueEntryMapper);
 	}
@@ -170,5 +168,3 @@ export class PrismaQueueRepository
 		});
 	}
 }
-
-export const queueRepository = new PrismaQueueRepository();

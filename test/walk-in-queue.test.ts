@@ -289,7 +289,8 @@ import request from 'supertest';
 import app from '../src/app.ts';
 
 describe('POST /staff/restaurants/:restaurantId/queue/walk-in HTTP Tests', () => {
-	const endpoint = '/staff/restaurants/rest-1234/queue/walk-in';
+	const validRestaurantId = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+	const endpoint = `/staff/restaurants/${validRestaurantId}/queue/walk-in`;
 
 	it('should return 401 Unauthorized if auth credentials are missing', async () => {
 		const res = await request(app).post(endpoint).send({
@@ -324,7 +325,7 @@ describe('POST /staff/restaurants/:restaurantId/queue/walk-in HTTP Tests', () =>
 			.post(endpoint)
 			.set('x-user-id', 'staff-1')
 			.set('x-user-role', 'STAFF')
-			.set('x-restaurant-id', 'different-restaurant-id')
+			.set('x-restaurant-id', 'b1ffcd88-8b1a-4fe7-aa5c-5bb8ad270a22')
 			.send({
 				guestName: 'David Miller',
 				guestPhone: '+15559876543',
@@ -356,7 +357,7 @@ describe('POST /staff/restaurants/:restaurantId/queue/walk-in HTTP Tests', () =>
 			.post(endpoint)
 			.set('x-user-id', 'staff-1')
 			.set('x-user-role', 'STAFF')
-			.set('x-restaurant-id', 'rest-1234')
+			.set('x-restaurant-id', validRestaurantId)
 			.send({
 				guestName: 'David Miller',
 				guestPhone: '+15559876543',
@@ -373,7 +374,7 @@ describe('POST /staff/restaurants/:restaurantId/queue/walk-in HTTP Tests', () =>
 			.post(endpoint)
 			.set('x-user-id', 'staff-1')
 			.set('x-user-role', 'STAFF')
-			.set('x-restaurant-id', 'rest-1234')
+			.set('x-restaurant-id', validRestaurantId)
 			.send({
 				guestName: 'David Miller',
 				guestPhone: 'invalid-phone-format',
@@ -383,6 +384,23 @@ describe('POST /staff/restaurants/:restaurantId/queue/walk-in HTTP Tests', () =>
 		expect(res.status).toBe(400);
 		expect(res.body.success).toBe(false);
 		expect(res.body.error).toBe('VALIDATION_ERROR');
+	});
+
+	it('should return 400 Bad Request if restaurantId is not a valid UUIDv4', async () => {
+		const res = await request(app)
+			.post('/staff/restaurants/invalid-restaurant-uuid/queue/walk-in')
+			.set('x-user-id', 'staff-1')
+			.set('x-user-role', 'STAFF')
+			.set('x-restaurant-id', 'invalid-restaurant-uuid')
+			.send({
+				guestName: 'David Miller',
+				guestPhone: '+15559876543',
+				partySize: 2,
+			});
+
+		expect(res.status).toBe(400);
+		expect(res.body.success).toBe(false);
+		expect(res.body.error).toBe('INVALID_PARAMETERS');
 	});
 });
 

@@ -1,4 +1,3 @@
-import { HTTP_STATUS } from '@shared/constants/http.constants.ts';
 import { AUTH_MESSAGES, QUEUE_MESSAGES } from '@shared/constants/message.constants.ts';
 import { DomainError } from './domain.error.ts';
 
@@ -8,7 +7,7 @@ import { DomainError } from './domain.error.ts';
  */
 export class TableAvailableError extends DomainError {
 	constructor(availableCount = 1, details?: unknown) {
-		super(QUEUE_MESSAGES.TABLES_AVAILABLE, 'TABLES_AVAILABLE', HTTP_STATUS.CONFLICT, {
+		super(QUEUE_MESSAGES.TABLES_AVAILABLE, 'TABLES_AVAILABLE', {
 			availableCount,
 			...((details as object) || {}),
 		});
@@ -20,7 +19,7 @@ export class TableAvailableError extends DomainError {
  */
 export class RestaurantNotAcceptingQueueError extends DomainError {
 	constructor(message: string = QUEUE_MESSAGES.RESTAURANT_NOT_ACCEPTING) {
-		super(message, 'RESTAURANT_NOT_ACCEPTING_QUEUE', HTTP_STATUS.CONFLICT);
+		super(message, 'RESTAURANT_NOT_ACCEPTING_QUEUE');
 	}
 }
 
@@ -29,11 +28,7 @@ export class RestaurantNotAcceptingQueueError extends DomainError {
  */
 export class ActiveQueueEntryExistsError extends DomainError {
 	constructor(phone: string) {
-		super(
-			`${QUEUE_MESSAGES.ACTIVE_ENTRY_EXISTS} (Phone: ${phone})`,
-			'ACTIVE_QUEUE_ENTRY_EXISTS',
-			HTTP_STATUS.CONFLICT,
-		);
+		super(`${QUEUE_MESSAGES.ACTIVE_ENTRY_EXISTS} (Phone: ${phone})`, 'ACTIVE_QUEUE_ENTRY_EXISTS');
 	}
 }
 
@@ -42,11 +37,7 @@ export class ActiveQueueEntryExistsError extends DomainError {
  */
 export class QueueEntryNotFoundError extends DomainError {
 	constructor(id: string) {
-		super(
-			`${QUEUE_MESSAGES.ENTRY_NOT_FOUND} (ID: ${id})`,
-			'QUEUE_ENTRY_NOT_FOUND',
-			HTTP_STATUS.NOT_FOUND,
-		);
+		super(`${QUEUE_MESSAGES.ENTRY_NOT_FOUND} (ID: ${id})`, 'QUEUE_ENTRY_NOT_FOUND');
 	}
 }
 
@@ -55,7 +46,7 @@ export class QueueEntryNotFoundError extends DomainError {
  */
 export class UnauthorizedStaffAccessError extends DomainError {
 	constructor(message: string = AUTH_MESSAGES.UNAUTHORIZED_RESTAURANT_ACCESS) {
-		super(message, 'FORBIDDEN', HTTP_STATUS.FORBIDDEN);
+		super(message, 'FORBIDDEN');
 	}
 }
 
@@ -64,7 +55,7 @@ export class UnauthorizedStaffAccessError extends DomainError {
  */
 export class InvalidPartySizeError extends DomainError {
 	constructor(message: string = QUEUE_MESSAGES.INVALID_PARTY_SIZE) {
-		super(message, 'INVALID_PARTY_SIZE', HTTP_STATUS.BAD_REQUEST);
+		super(message, 'INVALID_PARTY_SIZE');
 	}
 }
 
@@ -76,7 +67,6 @@ export class RestaurantBlockedError extends DomainError {
 		super(
 			`${QUEUE_MESSAGES.RESTAURANT_BLOCKED}${reason ? ` Reason: ${reason}` : ''}`,
 			'RESTAURANT_BLOCKED',
-			HTTP_STATUS.FORBIDDEN,
 			{ restaurantId, reason },
 		);
 	}
@@ -90,7 +80,6 @@ export class SubscriptionRequiredError extends DomainError {
 		super(
 			`${QUEUE_MESSAGES.SUBSCRIPTION_REQUIRED} (Current plan: ${currentPlan ?? 'NONE'})`,
 			'SUBSCRIPTION_REQUIRED',
-			HTTP_STATUS.FORBIDDEN,
 			{ restaurantId, currentPlan, requiredPlan: 'QUEUE_PRO' },
 		);
 	}
@@ -104,7 +93,6 @@ export class RestaurantNotFoundError extends DomainError {
 		super(
 			`${QUEUE_MESSAGES.RESTAURANT_NOT_FOUND} (Restaurant ID: ${restaurantId})`,
 			'RESTAURANT_NOT_FOUND',
-			HTTP_STATUS.NOT_FOUND,
 			{ restaurantId },
 		);
 	}
@@ -116,9 +104,8 @@ export class RestaurantNotFoundError extends DomainError {
 export class UpstreamServiceUnavailableError extends DomainError {
 	constructor(
 		message: string = 'Upstream service is currently unavailable. Please try again later.',
-		statusCode: number = HTTP_STATUS.SERVICE_UNAVAILABLE,
 		details?: unknown,
 	) {
-		super(message, 'UPSTREAM_SERVICE_UNAVAILABLE', statusCode, details);
+		super(message, 'UPSTREAM_SERVICE_UNAVAILABLE', details);
 	}
 }

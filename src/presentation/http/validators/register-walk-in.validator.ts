@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const registerWalkInParamsSchema = z.object({
-	restaurantId: z.string().min(1, 'restaurantId is required'),
+	restaurantId: z.string().uuid('Invalid restaurant ID format'),
 });
 
 export const registerWalkInBodySchema = z.object({

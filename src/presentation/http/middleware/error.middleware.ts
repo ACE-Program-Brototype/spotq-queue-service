@@ -2,7 +2,13 @@ import { DomainError } from '@domain/index.ts';
 import { config } from '@infrastructure/config/index.ts';
 import { PersistenceError } from '@infrastructure/errors/persistence.error.ts';
 import { logger } from '@infrastructure/logger/index.ts';
-import { HTTP_STATUS, MESSAGES, QUEUE_MESSAGES, sendErrorResponse } from '@shared/index.ts';
+import {
+	HTTP_STATUS,
+	MESSAGES,
+	mapDomainErrorToHttpStatus,
+	QUEUE_MESSAGES,
+	sendErrorResponse,
+} from '@shared/index.ts';
 import type { NextFunction, Request, Response } from 'express';
 import { ZodError } from 'zod';
 
@@ -44,11 +50,12 @@ export function errorMiddleware(
 
 	// 2. Business domain errors (conflict, not found, forbidden, business rules)
 	if (err instanceof DomainError) {
+		const statusCode = mapDomainErrorToHttpStatus(err);
 		logger.warn(
 			{
 				errName: err.name,
 				code: err.code,
-				statusCode: err.statusCode,
+				statusCode,
 				details: err.details,
 				url: req.url,
 				method: req.method,
@@ -56,7 +63,7 @@ export function errorMiddleware(
 			`Domain rule violation: ${err.message}`,
 		);
 
-		sendErrorResponse(res, err.code, err.message, err.statusCode, err.details);
+		sendErrorResponse(res, err.code, err.message, statusCode, err.details);
 		return;
 	}
 
