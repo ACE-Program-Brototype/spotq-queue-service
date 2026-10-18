@@ -19,12 +19,9 @@ import {
 	TableAvailableError,
 } from '@domain/index.ts';
 import { logger } from '@infrastructure/logger/index.ts';
-import { WS_SERVER_EVENTS } from '@shared/index.ts';
+import { SUBSCRIPTION_PLAN, WS_SERVER_EVENTS } from '@shared/index.ts';
 import { inject, injectable } from 'inversify';
 
-/**
- * Use case orchestrating guest queue registration (both staff-assisted walk-in and online customer joins).
- */
 @injectable()
 export class RegisterQueueUseCase implements IRegisterQueueUseCase {
 	constructor(
@@ -71,7 +68,7 @@ export class RegisterQueueUseCase implements IRegisterQueueUseCase {
 
 		if (
 			!restaurantStatus.isSubscriptionActive ||
-			restaurantStatus.subscriptionPlanCode !== 'QUEUE_PRO'
+			restaurantStatus.subscriptionPlanCode !== SUBSCRIPTION_PLAN.QUEUE_PRO
 		) {
 			throw new SubscriptionRequiredError(restaurantId, restaurantStatus.subscriptionPlanCode);
 		}

@@ -1,6 +1,7 @@
 import type { IEtaService } from '@application/ports/services/eta-service.port.ts';
 import { config } from '@infrastructure/config/index.ts';
 import { logger } from '@infrastructure/logger/index.ts';
+import { ML_ETA_SERVICE_ROUTES } from '@shared/constants/routes.constants.ts';
 import { injectable } from 'inversify';
 
 @injectable()
@@ -27,7 +28,7 @@ export class MlEtaServiceClient implements IEtaService {
 				party_size: partySize.toString(),
 			});
 
-			const url = `${this.baseUrl}/eta/predict?${query.toString()}`;
+			const url = `${this.baseUrl}${ML_ETA_SERVICE_ROUTES.PREDICT(query)}`;
 			const response = await fetch(url, {
 				method: 'GET',
 				headers: {

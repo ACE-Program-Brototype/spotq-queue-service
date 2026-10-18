@@ -32,12 +32,6 @@ export function validateBody<T>(schema: ZodSchema<T>) {
 	};
 }
 
-/**
- * Express middleware generator validating request URL parameters against a Zod schema.
- *
- * @param schema - Zod validation schema
- * @returns Express middleware function
- */
 export function validateParams<T>(schema: ZodSchema<T>) {
 	return (req: Request, res: Response, next: NextFunction): void => {
 		const result = schema.safeParse(req.params);
@@ -58,6 +52,35 @@ export function validateParams<T>(schema: ZodSchema<T>) {
 		}
 
 		req.params = result.data as unknown as Record<string, string>;
+		next();
+	};
+}
+
+export function validateQuery<T>(schema: ZodSchema<T>) {
+	return (req: Request, res: Response, next: NextFunction): void => {
+		const result = schema.safeParse(req.query);
+		if (!result.success) {
+			const errors = result.error.issues.map((issue) => ({
+				field: issue.path.join('.'),
+				message: issue.message,
+			}));
+
+			sendErrorResponse(
+				res,
+				'INVALID_PARAMETERS',
+				QUEUE_MESSAGES.INVALID_PARAMETERS,
+				HTTP_STATUS.BAD_REQUEST,
+				errors,
+			);
+			return;
+		}
+
+		Object.defineProperty(req, 'query', {
+			value: result.data,
+			writable: true,
+			enumerable: true,
+			configurable: true,
+		});
 		next();
 	};
 }
