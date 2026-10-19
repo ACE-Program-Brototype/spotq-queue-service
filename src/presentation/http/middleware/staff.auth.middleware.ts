@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
+import { ERROR_CODES } from '@/shared/constants/error-code.constants.ts';
 import { HTTP_STATUS } from '@/shared/constants/http.constants.ts';
 import { messages } from '@/shared/constants/message.constants.ts';
 import { ApiResponse } from '@/shared/response/api-response.ts';
@@ -35,7 +36,11 @@ export function staffAuthMiddleware(req: Request, res: Response, next: NextFunct
 		res
 			.status(HTTP_STATUS.UNAUTHORIZED)
 			.json(
-				ApiResponse.error(messages.GATEWAY_UNAUTHORIZED, 'UNAUTHORIZED', HTTP_STATUS.UNAUTHORIZED),
+				ApiResponse.error(
+					messages.GATEWAY_UNAUTHORIZED,
+					ERROR_CODES.UNAUTHORIZED,
+					HTTP_STATUS.UNAUTHORIZED,
+				),
 			);
 		return;
 	}
@@ -46,7 +51,9 @@ export function staffAuthMiddleware(req: Request, res: Response, next: NextFunct
 	if (normalizedRole !== 'staff' && normalizedRole !== 'admin') {
 		res
 			.status(HTTP_STATUS.FORBIDDEN)
-			.json(ApiResponse.error(messages.STAFF_FORBIDDEN, 'FORBIDDEN', HTTP_STATUS.FORBIDDEN));
+			.json(
+				ApiResponse.error(messages.STAFF_FORBIDDEN, ERROR_CODES.FORBIDDEN, HTTP_STATUS.FORBIDDEN),
+			);
 		return;
 	}
 
@@ -63,7 +70,11 @@ export function staffAuthMiddleware(req: Request, res: Response, next: NextFunct
 		res
 			.status(HTTP_STATUS.FORBIDDEN)
 			.json(
-				ApiResponse.error(messages.RESTAURANT_ACCESS_FORBIDDEN, 'FORBIDDEN', HTTP_STATUS.FORBIDDEN),
+				ApiResponse.error(
+					messages.RESTAURANT_ACCESS_FORBIDDEN,
+					ERROR_CODES.FORBIDDEN,
+					HTTP_STATUS.FORBIDDEN,
+				),
 			);
 		return;
 	}

@@ -1,4 +1,4 @@
-import { HTTP_STATUS, QUEUE_MESSAGES, sendErrorResponse } from '@shared/index.ts';
+import { ERROR_CODES, HTTP_STATUS, QUEUE_MESSAGES, sendErrorResponse } from '@shared/index.ts';
 import type { NextFunction, Request, Response } from 'express';
 import type { ZodSchema } from 'zod';
 
@@ -19,7 +19,7 @@ export function validateBody<T>(schema: ZodSchema<T>) {
 
 			sendErrorResponse(
 				res,
-				'VALIDATION_ERROR',
+				ERROR_CODES.VALIDATION_ERROR,
 				QUEUE_MESSAGES.VALIDATION_FAILED,
 				HTTP_STATUS.BAD_REQUEST,
 				errors,
@@ -43,7 +43,7 @@ export function validateParams<T>(schema: ZodSchema<T>) {
 
 			sendErrorResponse(
 				res,
-				'INVALID_PARAMETERS',
+				ERROR_CODES.INVALID_PARAMETERS,
 				QUEUE_MESSAGES.INVALID_PARAMETERS,
 				HTTP_STATUS.BAD_REQUEST,
 				errors,
@@ -67,7 +67,7 @@ export function validateQuery<T>(schema: ZodSchema<T>) {
 
 			sendErrorResponse(
 				res,
-				'INVALID_PARAMETERS',
+				ERROR_CODES.INVALID_PARAMETERS,
 				QUEUE_MESSAGES.INVALID_PARAMETERS,
 				HTTP_STATUS.BAD_REQUEST,
 				errors,
