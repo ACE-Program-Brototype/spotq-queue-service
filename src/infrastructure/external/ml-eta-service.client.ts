@@ -36,7 +36,7 @@ export class MlEtaServiceClient implements IEtaService {
 
 		try {
 			const response = await axios.get<IMlEtaPredictionResponse>(
-				`${this.baseUrl}${ML_ETA_SERVICE_ROUTES.PREDICT()}`,
+				`${this.baseUrl}${ML_ETA_SERVICE_ROUTES.PREDICT}`,
 				{
 					params: {
 						restaurant_id: restaurantId,

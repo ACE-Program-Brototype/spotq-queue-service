@@ -16,6 +16,5 @@ export const RESTAURANT_SERVICE_ROUTES = {
 } as const;
 
 export const ML_ETA_SERVICE_ROUTES = {
-	PREDICT: (queryString?: string | URLSearchParams) =>
-		queryString ? `/eta/predict?${queryString.toString()}` : '/eta/predict',
+	PREDICT: '/eta/predict',
 } as const;

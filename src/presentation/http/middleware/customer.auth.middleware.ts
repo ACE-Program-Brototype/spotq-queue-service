@@ -3,19 +3,7 @@ import { ERROR_CODES } from '@/shared/constants/error-code.constants.ts';
 import { HTTP_STATUS } from '@/shared/constants/http.constants.ts';
 import { messages } from '@/shared/constants/message.constants.ts';
 import { ApiResponse } from '@/shared/response/api-response.ts';
-import type { AuthenticatedUser } from '@/types/express.d.ts';
-
-export interface AuthenticatedCustomerRequest extends Request {
-	user?: AuthenticatedUser;
-	userId?: string;
-}
-
-function getHeaderValue(header: string | string[] | undefined): string | undefined {
-	if (Array.isArray(header)) {
-		return header[0];
-	}
-	return header;
-}
+import { getHeaderValue } from './middleware.utils.ts';
 
 export function customerAuthMiddleware(req: Request, res: Response, next: NextFunction): void {
 	const userId = getHeaderValue(req.headers['x-user-id']);

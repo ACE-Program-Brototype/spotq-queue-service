@@ -4,6 +4,7 @@ import { HTTP_STATUS } from '@/shared/constants/http.constants.ts';
 import { messages } from '@/shared/constants/message.constants.ts';
 import { ApiResponse } from '@/shared/response/api-response.ts';
 import type { AuthenticatedStaff } from '@/types/express.d.ts';
+import { getHeaderValue } from './middleware.utils.ts';
 
 export type { AuthenticatedStaff };
 
@@ -12,23 +13,6 @@ export interface AuthenticatedRequest extends Request {
 	userId?: string;
 }
 
-/**
- * Extracts a normalized single string value from a potential array of header values.
- */
-function getHeaderValue(header: string | string[] | undefined): string | undefined {
-	if (Array.isArray(header)) {
-		return header[0];
-	}
-	return header;
-}
-
-/**
- * Staff authentication middleware.
- *
- * Trust boundary: JWT decoding and signature verification occur upstream at the API Gateway.
- * This middleware inspects the forwarded identity headers ('x-user-id', 'x-user-role',
- * 'x-restaurant-id', 'x-user-email') and enforces staff role membership and restaurant scoping.
- */
 export function staffAuthMiddleware(req: Request, res: Response, next: NextFunction): void {
 	const userId = getHeaderValue(req.headers['x-user-id']);
 

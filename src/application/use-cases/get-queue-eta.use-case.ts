@@ -2,16 +2,12 @@ import type {
 	GetQueueEtaInputDTO,
 	GetQueueEtaOutputDTO,
 } from '@application/dtos/get-queue-eta.dto.ts';
+import { validateRestaurantActiveSubscription } from '@application/helpers/index.ts';
 import type { IEtaService } from '@application/ports/services/eta-service.port.ts';
 import type { IRestaurantServiceClient } from '@application/ports/services/restaurant-service.port.ts';
 import type { IGetQueueEtaUseCase } from '@application/ports/use-cases/get-queue-eta.use-case.port.ts';
 import { TYPES } from '@di/types.ts';
-import {
-	type IQueueRepository,
-	RestaurantBlockedError,
-	SubscriptionRequiredError,
-} from '@domain/index.ts';
-import { SUBSCRIPTION_PLAN } from '@shared/index.ts';
+import type { IQueueRepository } from '@domain/index.ts';
 import { inject, injectable } from 'inversify';
 
 @injectable()
@@ -30,21 +26,10 @@ export class GetQueueEtaUseCase implements IGetQueueEtaUseCase {
 
 		const restaurantStatus = await this.restaurantServiceClient.getRestaurantStatus(restaurantId);
 
-		if (restaurantStatus.isBlocked) {
-			throw new RestaurantBlockedError(restaurantId, restaurantStatus.blockReason);
-		}
+		validateRestaurantActiveSubscription(restaurantStatus);
 
-		if (
-			!restaurantStatus.isSubscriptionActive ||
-			restaurantStatus.subscriptionPlanCode !== SUBSCRIPTION_PLAN.QUEUE_PRO
-		) {
-			throw new SubscriptionRequiredError(restaurantId, restaurantStatus.subscriptionPlanCode);
-		}
-
-		const [queueDepth, totalPeopleAhead] = await Promise.all([
-			this.queueRepository.countActiveAhead(restaurantId),
-			this.queueRepository.sumPartySizeActiveAhead(restaurantId),
-		]);
+		const { queueDepth, totalPeopleAhead } =
+			await this.queueRepository.getActiveQueueMetrics(restaurantId);
 
 		if (queueDepth === 0 || totalPeopleAhead === 0) {
 			return {

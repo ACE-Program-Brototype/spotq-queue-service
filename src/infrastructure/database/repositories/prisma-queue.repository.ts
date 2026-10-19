@@ -91,6 +91,39 @@ export class PrismaQueueRepository
 	}
 
 	/**
+	 * Computes active queue metrics (depth and cumulative people waiting)
+	 * for a restaurant in a single database round-trip via Prisma aggregate.
+	 *
+	 * @param restaurantId - Restaurant UUID
+	 * @returns Aggregated queue depth and total people ahead
+	 */
+	public async getActiveQueueMetrics(
+		restaurantId: string,
+	): Promise<{ queueDepth: number; totalPeopleAhead: number }> {
+		return this.run(async () => {
+			const aggregate = await this.prismaClient.queueEntry.aggregate({
+				where: {
+					restaurantId,
+					status: {
+						in: [QueueStatus.WAITING, QueueStatus.RINGING],
+					},
+				},
+				_count: {
+					_all: true,
+				},
+				_sum: {
+					partySize: true,
+				},
+			});
+
+			return {
+				queueDepth: aggregate._count._all,
+				totalPeopleAhead: aggregate._sum.partySize ?? 0,
+			};
+		});
+	}
+
+	/**
 	 * Counts total queue entries registered today for generating daily sequential queue numbers (e.g. W-001).
 	 *
 	 * @param restaurantId - Restaurant UUID

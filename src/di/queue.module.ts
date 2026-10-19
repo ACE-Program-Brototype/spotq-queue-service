@@ -47,7 +47,7 @@ export const queueModule = new ContainerModule(({ bind }) => {
 		.to(RegisterQueueUseCase)
 		.inSingletonScope();
 
-	bind<StaffQueueController>(TYPES.Controller.StaffQueueController)
+	bind<StaffQueueController>(TYPES.Controllers.StaffQueueController)
 		.to(StaffQueueController)
 		.inSingletonScope();
 
@@ -55,7 +55,7 @@ export const queueModule = new ContainerModule(({ bind }) => {
 		.to(GetQueueEtaUseCase)
 		.inSingletonScope();
 
-	bind<CustomerQueueController>(TYPES.Controller.CustomerQueueController)
+	bind<CustomerQueueController>(TYPES.Controllers.CustomerQueueController)
 		.to(CustomerQueueController)
 		.inSingletonScope();
 });

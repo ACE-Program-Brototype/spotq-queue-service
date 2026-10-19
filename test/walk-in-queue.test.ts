@@ -45,6 +45,7 @@ describe('RegisterQueueUseCase Unit Tests', () => {
 			findActiveEntries: jest.fn(),
 			countActiveAhead: jest.fn().mockResolvedValue(5),
 			sumPartySizeActiveAhead: jest.fn().mockResolvedValue(16),
+			getActiveQueueMetrics: jest.fn().mockResolvedValue({ queueDepth: 5, totalPeopleAhead: 16 }),
 			countToday: jest.fn().mockResolvedValue(12),
 			findActiveByPhone: jest.fn().mockResolvedValue(null),
 			createWithHistory: jest
@@ -414,7 +415,7 @@ import { StaffQueueController } from '../src/presentation/http/controllers/staff
 
 describe('Inversify DI Container Resolution Tests', () => {
 	it('should successfully resolve StaffQueueController from container', () => {
-		const controller = container.get<StaffQueueController>(TYPES.Controller.StaffQueueController);
+		const controller = container.get<StaffQueueController>(TYPES.Controllers.StaffQueueController);
 		expect(controller).toBeDefined();
 		expect(controller).toBeInstanceOf(StaffQueueController);
 		expect(typeof controller.registerWalkIn).toBe('function');

@@ -4,9 +4,9 @@ import { container } from './container.ts';
 import { TYPES } from './types.ts';
 
 export const staffQueueController = container.get<StaffQueueController>(
-	TYPES.Controller.StaffQueueController,
+	TYPES.Controllers.StaffQueueController,
 );
 
 export const customerQueueController = container.get<CustomerQueueController>(
-	TYPES.Controller.CustomerQueueController,
+	TYPES.Controllers.CustomerQueueController,
 );
