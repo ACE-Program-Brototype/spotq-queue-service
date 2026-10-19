@@ -7,7 +7,7 @@ import type { IEtaService } from '@application/ports/services/eta-service.port.t
 import type { IRestaurantServiceClient } from '@application/ports/services/restaurant-service.port.ts';
 import type { IGetQueueEtaUseCase } from '@application/ports/use-cases/get-queue-eta.use-case.port.ts';
 import { TYPES } from '@di/types.ts';
-import type { IQueueRepository } from '@domain/index.ts';
+import { type IQueueRepository, RestaurantNotAcceptingQueueError } from '@domain/index.ts';
 import { inject, injectable } from 'inversify';
 
 @injectable()
@@ -28,15 +28,24 @@ export class GetQueueEtaUseCase implements IGetQueueEtaUseCase {
 
 		validateRestaurantActiveSubscription(restaurantStatus);
 
+		const tableCheck = await this.restaurantServiceClient.checkAvailability(
+			restaurantId,
+			partySize,
+		);
+
+		if (!tableCheck.isOpen || !tableCheck.acceptsQueue) {
+			throw new RestaurantNotAcceptingQueueError();
+		}
+
 		const { queueDepth, totalPeopleAhead } =
 			await this.queueRepository.getActiveQueueMetrics(restaurantId);
 
-		if (queueDepth === 0 || totalPeopleAhead === 0) {
+		if (tableCheck.isTableAvailable && queueDepth === 0) {
 			return {
 				restaurantId,
 				partySize,
 				estimatedWaitMinutes: 0,
-				queueDepth: 0,
+				queueDepth,
 				calculatedAt: new Date().toISOString(),
 			};
 		}
