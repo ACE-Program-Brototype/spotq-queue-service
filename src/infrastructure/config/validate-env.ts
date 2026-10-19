@@ -29,6 +29,16 @@ const envSchema = z.object({
 			return false;
 		}, z.boolean())
 		.default(false),
+	FIREBASE_PROJECT_ID: z.string().min(1, 'FIREBASE_PROJECT_ID is required'),
+	FIREBASE_CLIENT_EMAIL: z.string().min(1, 'FIREBASE_CLIENT_EMAIL is required'),
+	FIREBASE_PRIVATE_KEY: z.string().min(1, 'FIREBASE_PRIVATE_KEY is required'),
+	FCM_ENABLED: z
+		.preprocess((val) => {
+			if (typeof val === 'string') return val.toLowerCase() === 'true';
+			if (typeof val === 'boolean') return val;
+			return true;
+		}, z.boolean())
+		.default(true),
 });
 
 export const validateEnv = () => {
