@@ -27,9 +27,11 @@ export const TYPES = {
 	},
 	UseCases: {
 		RegisterQueueUseCase: Symbol.for('RegisterQueueUseCase'),
+		GetActiveQueueByUserUseCase: Symbol.for('GetActiveQueueByUserUseCase'),
 	},
 	Controller: {
 		StaffQueueController: Symbol.for('StaffQueueController'),
+		InternalQueueController: Symbol.for('InternalQueueController'),
 	},
 
 	// Top-level aliases for direct access convenience
@@ -41,7 +43,9 @@ export const TYPES = {
 	QueueCacheService: Symbol.for('QueueCacheService'),
 	WebSocketBroadcaster: Symbol.for('WebSocketBroadcaster'),
 	RegisterQueueUseCase: Symbol.for('RegisterQueueUseCase'),
+	GetActiveQueueByUserUseCase: Symbol.for('GetActiveQueueByUserUseCase'),
 	StaffQueueController: Symbol.for('StaffQueueController'),
+	InternalQueueController: Symbol.for('InternalQueueController'),
 } as const;
 
 export type ServiceTypes = typeof TYPES;

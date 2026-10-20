@@ -47,6 +47,7 @@ export const QUEUE_MESSAGES = {
 	SUBSCRIPTION_REQUIRED:
 		'Restaurant requires an active QUEUE_PRO subscription to access queue services.',
 	RESTAURANT_NOT_FOUND: 'Restaurant was not found.',
+	ACTIVE_QUEUE_CHECK_SUCCESS: 'Active queue check completed successfully',
 } as const;
 
 /**

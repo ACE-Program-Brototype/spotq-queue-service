@@ -7,5 +7,6 @@ export interface IQueueRepository extends IBaseRepository<QueueEntry, string> {
 	sumPartySizeActiveAhead(restaurantId: string): Promise<number>;
 	countToday(restaurantId: string): Promise<number>;
 	findActiveByPhone(restaurantId: string, phone: string): Promise<QueueEntry | null>;
+	findActiveByUserId(restaurantId: string, userId: string): Promise<QueueEntry | null>;
 	createWithHistory(queueEntry: QueueEntry, changedBy?: string): Promise<QueueEntry>;
 }

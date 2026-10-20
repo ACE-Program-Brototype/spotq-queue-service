@@ -135,6 +135,31 @@ export class PrismaQueueRepository
 	}
 
 	/**
+	 * Queries whether a registered user currently has an active ticket.
+	 *
+	 * @param restaurantId - Restaurant UUID
+	 * @param userId - User UUID
+	 * @returns Active QueueEntry or null
+	 */
+	public async findActiveByUserId(
+		restaurantId: string,
+		userId: string,
+	): Promise<QueueEntry | null> {
+		return this.run(async () => {
+			const record = await this.prismaClient.queueEntry.findFirst({
+				where: {
+					restaurantId,
+					userId,
+					status: {
+						in: [QueueStatus.WAITING, QueueStatus.RINGING, QueueStatus.ACCEPTED],
+					},
+				},
+			});
+			return record ? this.mapper.toDomain(record) : null;
+		});
+	}
+
+	/**
 	 * Atomically creates a queue entry and an initial queue status audit history entry
 	 * within a single database transaction.
 	 *

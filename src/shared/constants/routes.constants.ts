@@ -12,3 +12,8 @@ export const RESTAURANT_SERVICE_ROUTES = {
 	TABLE_AVAILABILITY: (restaurantId: string) =>
 		`/api/internal/v1/restaurants/${encodeURIComponent(restaurantId)}/tables/availability`,
 } as const;
+
+export const INTERNAL_ROUTES = {
+	BASE: '/api/internal/v1',
+	USER_ACTIVE_QUEUE: '/restaurants/:restaurantId/queue/users/:userId/active',
+} as const;
