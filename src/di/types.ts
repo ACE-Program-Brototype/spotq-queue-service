@@ -17,21 +17,12 @@ export const TYPES = {
 	},
 	UseCases: {
 		RegisterQueueUseCase: Symbol.for('RegisterQueueUseCase'),
+		GetQueueEtaUseCase: Symbol.for('GetQueueEtaUseCase'),
 	},
-	Controller: {
+	Controllers: {
 		StaffQueueController: Symbol.for('StaffQueueController'),
+		CustomerQueueController: Symbol.for('CustomerQueueController'),
 	},
-
-	PrismaClient: Symbol.for('PrismaClient'),
-	RedisClient: Symbol.for('RedisClient'),
-	QueueRepository: Symbol.for('QueueRepository'),
-	RestaurantServiceClient: Symbol.for('RestaurantServiceClient'),
-	EtaService: Symbol.for('EtaService'),
-	QueueCacheService: Symbol.for('QueueCacheService'),
-	WebSocketBroadcaster: Symbol.for('WebSocketBroadcaster'),
-	PushNotificationService: Symbol.for('PushNotificationService'),
-	RegisterQueueUseCase: Symbol.for('RegisterQueueUseCase'),
-	StaffQueueController: Symbol.for('StaffQueueController'),
 } as const;
 
 export type ServiceTypes = typeof TYPES;

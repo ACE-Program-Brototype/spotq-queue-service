@@ -2,6 +2,7 @@ import type {
 	RegisterQueueInputDTO,
 	RegisterQueueOutputDTO,
 } from '@application/dtos/register-queue.dto.ts';
+import { validateRestaurantActiveSubscription } from '@application/helpers/index.ts';
 import type { IQueueCacheService } from '@application/ports/cache/queue-cache.port.ts';
 import type { IEtaService } from '@application/ports/services/eta-service.port.ts';
 import type { IRestaurantServiceClient } from '@application/ports/services/restaurant-service.port.ts';
@@ -13,18 +14,13 @@ import {
 	type IQueueRepository,
 	QueueEntry,
 	RegistrationType,
-	RestaurantBlockedError,
 	RestaurantNotAcceptingQueueError,
-	SubscriptionRequiredError,
 	TableAvailableError,
 } from '@domain/index.ts';
 import { logger } from '@infrastructure/logger/index.ts';
 import { WS_SERVER_EVENTS } from '@shared/index.ts';
 import { inject, injectable } from 'inversify';
 
-/**
- * Use case orchestrating guest queue registration (both staff-assisted walk-in and online customer joins).
- */
 @injectable()
 export class RegisterQueueUseCase implements IRegisterQueueUseCase {
 	constructor(
@@ -65,16 +61,7 @@ export class RegisterQueueUseCase implements IRegisterQueueUseCase {
 
 		const restaurantStatus = await this.restaurantServiceClient.getRestaurantStatus(restaurantId);
 
-		if (restaurantStatus.isBlocked) {
-			throw new RestaurantBlockedError(restaurantId, restaurantStatus.blockReason);
-		}
-
-		if (
-			!restaurantStatus.isSubscriptionActive ||
-			restaurantStatus.subscriptionPlanCode !== 'QUEUE_PRO'
-		) {
-			throw new SubscriptionRequiredError(restaurantId, restaurantStatus.subscriptionPlanCode);
-		}
+		validateRestaurantActiveSubscription(restaurantStatus);
 
 		const tableCheck = await this.restaurantServiceClient.checkAvailability(
 			restaurantId,

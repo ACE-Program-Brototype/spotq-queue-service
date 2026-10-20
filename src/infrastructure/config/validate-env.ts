@@ -1,3 +1,4 @@
+import { ETA_CONSTANTS } from '@shared/constants/eta.constants.ts';
 import { z } from 'zod';
 
 const envSchema = z.object({
@@ -12,6 +13,7 @@ const envSchema = z.object({
 	RESTAURANT_SERVICE_URL: z.string().default('http://spotq-restaurant-service:3001'),
 	RESTAURANT_SERVICE: z.string().default('restaurant-service'),
 	ETA_SERVICE_URL: z.string().default('http://spotq-ml-eta-service:8000'),
+	ETA_SERVICE_TIMEOUT_MS: z.coerce.number().positive().default(ETA_CONSTANTS.DEFAULT_TIMEOUT_MS),
 	S2S_PRIVATE_KEY: z.string().optional(),
 	MOCK_TABLE_CHECK: z
 		.preprocess((val) => {

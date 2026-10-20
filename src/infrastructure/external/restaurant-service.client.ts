@@ -16,7 +16,7 @@ import { generateToken, type TokenIssuerConfig } from '@spotq-org/s2s-core';
 import axios from 'axios';
 import { injectable } from 'inversify';
 
-interface ApiResponseEnvelope<T> {
+interface IApiResponseEnvelope<T> {
 	success?: boolean;
 	data?: T;
 	message?: string;
@@ -93,7 +93,7 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 	async getRestaurantStatus(restaurantId: string): Promise<RestaurantStatusResult> {
 		try {
 			const url = `${this.baseUrl}${RESTAURANT_SERVICE_ROUTES.VALIDATION(restaurantId)}`;
-			const response = await axios.get<ApiResponseEnvelope<RestaurantStatusResult>>(url, {
+			const response = await axios.get<IApiResponseEnvelope<RestaurantStatusResult>>(url, {
 				timeout: RestaurantServiceClient.REQUEST_TIMEOUT_MS,
 				headers: this.getInternalHeaders(),
 			});
@@ -171,7 +171,7 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 
 		try {
 			const url = `${this.baseUrl}${RESTAURANT_SERVICE_ROUTES.TABLE_AVAILABILITY(restaurantId)}`;
-			const response = await axios.get<ApiResponseEnvelope<TableAvailabilityResult>>(url, {
+			const response = await axios.get<IApiResponseEnvelope<TableAvailabilityResult>>(url, {
 				params: { partySize },
 				timeout: RestaurantServiceClient.REQUEST_TIMEOUT_MS,
 				headers: this.getInternalHeaders(),
