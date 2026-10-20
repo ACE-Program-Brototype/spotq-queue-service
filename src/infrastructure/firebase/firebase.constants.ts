@@ -4,6 +4,18 @@ export const INVALID_TOKEN_ERROR_CODES = new Set([
 	'messaging/invalid-argument',
 ]);
 
+export const PERMANENT_CLIENT_ERROR_CODES = new Set([
+	'messaging/authentication-error',
+	'messaging/mismatched-credential',
+	'messaging/forbidden',
+	'messaging/invalid-payload',
+	'messaging/payload-size-limit-exceeded',
+	'messaging/invalid-data-payload-key',
+	'messaging/third-party-auth-error',
+	'messaging/invalid-recipient',
+	'messaging/invalid-options',
+]);
+
 export const RETRYABLE_ERROR_CODES = new Set([
 	'messaging/server-unavailable',
 	'messaging/internal-error',

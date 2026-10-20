@@ -95,6 +95,24 @@ describe('FirebasePushNotificationService', () => {
 			expect(mockMessaging.send).toHaveBeenCalledTimes(1); // No retries for permanent errors
 		});
 
+		it('should identify permanent client errors and fail immediately without retry', async () => {
+			const payloadError = Object.assign(new Error('Payload size limit exceeded'), {
+				code: 'messaging/payload-size-limit-exceeded',
+			});
+
+			mockMessaging.send.mockRejectedValueOnce(payloadError);
+
+			const result = await service.send({
+				token: 'valid-token-123',
+				title: 'Heavy Payload',
+				body: 'Too much data',
+			});
+
+			expect(result.success).toBe(false);
+			expect(result.isTokenInvalid).toBe(false);
+			expect(mockMessaging.send).toHaveBeenCalledTimes(1); // No retries
+		});
+
 		it('should retry on transient server errors and succeed on subsequent attempt', async () => {
 			const serverUnavailableError = Object.assign(new Error('FCM server temporarily overloaded'), {
 				code: 'messaging/server-unavailable',

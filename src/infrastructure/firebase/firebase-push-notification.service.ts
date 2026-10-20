@@ -12,7 +12,7 @@ import {
 	FCM_DEFAULTS,
 	FCM_ERROR_MESSAGES,
 	INVALID_TOKEN_ERROR_CODES,
-	RETRYABLE_ERROR_CODES,
+	PERMANENT_CLIENT_ERROR_CODES,
 } from './firebase.constants.ts';
 
 @injectable()
@@ -108,13 +108,19 @@ export class FirebasePushNotificationService implements IPushNotificationService
 					};
 				}
 
-				const isTransient =
-					RETRYABLE_ERROR_CODES.has(errorCode) ||
-					errorMessage.includes('timeout') ||
-					errorMessage.includes('ECONNRESET') ||
-					errorMessage.includes('ETIMEDOUT');
+				if (PERMANENT_CLIENT_ERROR_CODES.has(errorCode)) {
+					logger.error(
+						{ errorCode, tokenSuffix: payload.token.slice(-6), err: errorMessage },
+						'Permanent FCM client error encountered. Skipping retries.',
+					);
+					return {
+						success: false,
+						error: errorMessage,
+						isTokenInvalid: false,
+					};
+				}
 
-				if (isTransient && attempt <= this.maxRetries) {
+				if (attempt <= this.maxRetries) {
 					const delay = this.retryDelayMs * attempt;
 					logger.warn(
 						{ attempt, maxRetries: this.maxRetries, delay, errorCode },
