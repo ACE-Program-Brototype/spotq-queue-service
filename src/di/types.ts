@@ -13,6 +13,7 @@ export const TYPES = {
 		EtaService: Symbol.for('EtaService'),
 		QueueCacheService: Symbol.for('QueueCacheService'),
 		WebSocketBroadcaster: Symbol.for('WebSocketBroadcaster'),
+		PushNotificationService: Symbol.for('PushNotificationService'),
 	},
 	UseCases: {
 		RegisterQueueUseCase: Symbol.for('RegisterQueueUseCase'),

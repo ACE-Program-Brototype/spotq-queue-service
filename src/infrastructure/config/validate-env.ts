@@ -31,6 +31,18 @@ const envSchema = z.object({
 			return false;
 		}, z.boolean())
 		.default(false),
+	FIREBASE_PROJECT_ID: z.string().optional(),
+	FIREBASE_CLIENT_EMAIL: z.string().optional(),
+	FIREBASE_PRIVATE_KEY: z.string().optional(),
+	FCM_ENABLED: z
+		.preprocess((val) => {
+			if (typeof val === 'string') return val.toLowerCase() === 'true';
+			if (typeof val === 'boolean') return val;
+			return true;
+		}, z.boolean())
+		.default(true),
+	FCM_MAX_RETRIES: z.coerce.number().int().nonnegative().default(2),
+	FCM_RETRY_DELAY_MS: z.coerce.number().int().positive().default(500),
 });
 
 export const validateEnv = () => {

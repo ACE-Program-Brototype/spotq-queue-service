@@ -1,5 +1,6 @@
 import type { IQueueCacheService } from '@application/ports/cache/queue-cache.port.ts';
 import type { IEtaService } from '@application/ports/services/eta-service.port.ts';
+import type { IPushNotificationService } from '@application/ports/services/push-notification.port.ts';
 import type { IRestaurantServiceClient } from '@application/ports/services/restaurant-service.port.ts';
 import type { IWebSocketBroadcaster } from '@application/ports/services/websocket-broadcaster.port.ts';
 import type { IGetQueueEtaUseCase } from '@application/ports/use-cases/get-queue-eta.use-case.port.ts';
@@ -11,6 +12,7 @@ import { prisma } from '@infrastructure/database/prisma.ts';
 import { PrismaQueueRepository } from '@infrastructure/database/repositories/prisma-queue.repository.ts';
 import { MlEtaServiceClient } from '@infrastructure/external/ml-eta-service.client.ts';
 import { RestaurantServiceClient } from '@infrastructure/external/restaurant-service.client.ts';
+import { FirebasePushNotificationService } from '@infrastructure/firebase/index.ts';
 import { redisClient } from '@infrastructure/redis/redis.client.ts';
 import { RedisQueueCacheService } from '@infrastructure/redis/redis-queue-cache.service.ts';
 import { SocketBroadcaster } from '@infrastructure/websocket/socket-broadcaster.ts';
@@ -41,6 +43,10 @@ export const queueModule = new ContainerModule(({ bind }) => {
 
 	bind<IWebSocketBroadcaster>(TYPES.Services.WebSocketBroadcaster)
 		.to(SocketBroadcaster)
+		.inSingletonScope();
+
+	bind<IPushNotificationService>(TYPES.Services.PushNotificationService)
+		.to(FirebasePushNotificationService)
 		.inSingletonScope();
 
 	bind<IRegisterQueueUseCase>(TYPES.UseCases.RegisterQueueUseCase)
