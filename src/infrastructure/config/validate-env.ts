@@ -13,6 +13,7 @@ const envSchema = z.object({
 	RESTAURANT_SERVICE: z.string().default('restaurant-service'),
 	ETA_SERVICE_URL: z.string().default('http://spotq-ml-eta-service:8000'),
 	S2S_PRIVATE_KEY: z.string().optional(),
+	S2S_ORDER_PUBLIC: z.string().optional(),
 	MOCK_TABLE_CHECK: z
 		.preprocess((val) => {
 			if (typeof val === 'string') return val.toLowerCase() === 'true';

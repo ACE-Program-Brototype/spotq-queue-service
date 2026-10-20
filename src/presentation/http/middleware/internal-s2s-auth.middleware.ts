@@ -3,7 +3,11 @@ import { authMiddleware, type TokenVerifierConfig } from '@spotq-org/s2s-core';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 
 export function internalS2SAuthMiddleware(): RequestHandler {
-	const orderKey = process.env.ORDER_S2S_PUBLIC_KEY;
+	const orderKey =
+		process.env.S2S_ORDER_PUBLIC ||
+		config.s2s.orderPublicKey ||
+		process.env.ORDER_S2S_PUBLIC_KEY ||
+		process.env.ORDER_SERVICE_PUBLIC_KEY;
 	const publicKeys: Record<string, string> = {
 		...(orderKey && {
 			'order-service': orderKey.replace(/\\n/g, '\n').trim(),
