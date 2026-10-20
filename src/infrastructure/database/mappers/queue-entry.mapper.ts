@@ -46,6 +46,7 @@ export const QueueEntryMapper: IEntityMapper<QueueEntry, PrismaQueueEntry> = {
 			estimatedWaitMinutesAtJoin: entity.estimatedWaitMinutesAtJoin,
 			status: entity.status,
 			ringCount: entity.ringCount,
+			fcmToken: (entity as any).fcmToken ?? null,
 			joinedAt: entity.joinedAt,
 			seatedAt: entity.seatedAt ?? null,
 			createdAt: entity.createdAt,
