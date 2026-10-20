@@ -3,6 +3,7 @@ import { config } from '@infrastructure/config/index.ts';
 import { PersistenceError } from '@infrastructure/errors/persistence.error.ts';
 import { logger } from '@infrastructure/logger/index.ts';
 import {
+	ERROR_CODES,
 	HTTP_STATUS,
 	MESSAGES,
 	mapDomainErrorToHttpStatus,
@@ -40,7 +41,7 @@ export function errorMiddleware(
 
 		sendErrorResponse(
 			res,
-			'VALIDATION_ERROR',
+			ERROR_CODES.VALIDATION_ERROR,
 			QUEUE_MESSAGES.VALIDATION_FAILED,
 			HTTP_STATUS.BAD_REQUEST,
 			errors,
@@ -76,7 +77,7 @@ export function errorMiddleware(
 
 		sendErrorResponse(
 			res,
-			'DATABASE_ERROR',
+			ERROR_CODES.DATABASE_ERROR,
 			config.nodeEnv === 'production' ? MESSAGES.INTERNAL_SERVER_ERROR : err.message,
 			HTTP_STATUS.INTERNAL_SERVER_ERROR,
 		);

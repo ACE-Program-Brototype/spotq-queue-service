@@ -5,17 +5,18 @@ import 'express';
  */
 export interface AuthenticatedUser {
 	userId: string;
-	restaurantId: string;
+	restaurantId?: string;
 	email: string;
 	role: string;
 }
 
 export type AuthenticatedStaff = AuthenticatedUser;
+export type AuthenticatedCustomer = AuthenticatedUser;
 
 declare global {
 	namespace Express {
 		interface Request {
-			user?: AuthenticatedStaff;
+			user?: AuthenticatedUser;
 			userId?: string;
 		}
 	}

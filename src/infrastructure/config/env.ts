@@ -21,6 +21,7 @@ export const config = {
 		restaurantServiceName: validatedEnv.RESTAURANT_SERVICE,
 		restaurantServiceUrl: validatedEnv.RESTAURANT_SERVICE_URL,
 		etaServiceUrl: validatedEnv.ETA_SERVICE_URL,
+		etaServiceTimeoutMs: validatedEnv.ETA_SERVICE_TIMEOUT_MS,
 		mockTableCheck: validatedEnv.MOCK_TABLE_CHECK,
 	},
 	s2s: {
