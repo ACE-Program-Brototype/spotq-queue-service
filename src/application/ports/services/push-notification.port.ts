@@ -20,7 +20,7 @@ export interface PushNotificationPayload {
 	data?: Record<string, string>;
 
 	/**
-	 * Deep link navigation metadata (e.g., /queue/:queueEntryId or spotq://ticket/:id).
+	 * Deep link navigation metadata (e.g., `/queue/:queueEntryId` or `spotq://ticket/:id`).
 	 */
 	deepLink?: string;
 }
