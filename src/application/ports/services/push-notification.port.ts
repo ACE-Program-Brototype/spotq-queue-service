@@ -1,8 +1,8 @@
 export interface PushNotificationPayload {
 	/**
-	 * FCM device registration token.
+	 * Firebase Installation ID (FID) to target.
 	 */
-	token: string;
+	fid: string;
 
 	/**
 	 * User-visible notification headline/title.
