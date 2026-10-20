@@ -18,6 +18,7 @@ export interface QueueEntryProps {
 	estimatedWaitMinutesAtJoin: number | null;
 	status: QueueStatus;
 	ringCount: number;
+	fid?: string | null;
 	joinedAt: Date;
 	seatedAt?: Date | null;
 	createdAt: Date;
@@ -39,6 +40,7 @@ export interface CreateQueueEntryProps {
 	registrationType?: RegistrationType;
 	position: number;
 	estimatedWaitMinutes: number;
+	fid?: string | null;
 }
 
 /**
@@ -88,6 +90,7 @@ export class QueueEntry {
 			estimatedWaitMinutesAtJoin: props.estimatedWaitMinutes,
 			status: QueueStatus.WAITING,
 			ringCount: 0,
+			fid: props.fid ?? null,
 			joinedAt: now,
 			seatedAt: null,
 			createdAt: now,
@@ -172,6 +175,10 @@ export class QueueEntry {
 
 	public get ringCount(): number {
 		return this.props.ringCount;
+	}
+
+	public get fid(): string | null | undefined {
+		return this.props.fid;
 	}
 
 	public get joinedAt(): Date {
