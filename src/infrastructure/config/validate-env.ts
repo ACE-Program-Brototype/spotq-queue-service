@@ -39,6 +39,8 @@ const envSchema = z.object({
 			return true;
 		}, z.boolean())
 		.default(true),
+	FCM_MAX_RETRIES: z.coerce.number().int().nonnegative().default(2),
+	FCM_RETRY_DELAY_MS: z.coerce.number().int().positive().default(500),
 });
 
 export const validateEnv = () => {

@@ -1,14 +1,3 @@
-/**
- * Inversify Dependency Injection service identifier symbols.
- *
- * Categorized logically into:
- * - Database: Data persistence clients (Prisma)
- * - Redis: Cache and in-memory key-value stores
- * - Repositories: Domain repository abstractions
- * - Services: External HTTP clients and internal utility adapters
- * - UseCases: Application business logic orchestration
- * - Controller: HTTP presentation controllers
- */
 export const TYPES = {
 	Database: {
 		PrismaClient: Symbol.for('PrismaClient'),
@@ -33,7 +22,6 @@ export const TYPES = {
 		StaffQueueController: Symbol.for('StaffQueueController'),
 	},
 
-	// Top-level aliases for direct access convenience
 	PrismaClient: Symbol.for('PrismaClient'),
 	RedisClient: Symbol.for('RedisClient'),
 	QueueRepository: Symbol.for('QueueRepository'),

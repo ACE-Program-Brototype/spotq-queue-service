@@ -6,10 +6,6 @@ import { getMessaging, type Messaging } from 'firebase-admin/messaging';
 let firebaseApp: App | null = null;
 let messagingClient: Messaging | null = null;
 
-/**
- * Returns an initialized Firebase Cloud Messaging client singleton.
- * Returns null if Firebase is disabled or credentials are not provided.
- */
 export function getFirebaseMessaging(): Messaging | null {
 	if (!config.firebase.enabled) {
 		logger.debug('Firebase Cloud Messaging is explicitly disabled in config.');
@@ -56,9 +52,6 @@ export function getFirebaseMessaging(): Messaging | null {
 	}
 }
 
-/**
- * Helper to override or reset messaging client for unit testing.
- */
 export function setFirebaseMessagingForTesting(client: Messaging | null): void {
 	messagingClient = client;
 }

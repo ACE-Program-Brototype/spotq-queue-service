@@ -3,39 +3,23 @@ import type {
 	PushNotificationPayload,
 	PushNotificationResult,
 } from '@application/ports/services/push-notification.port.ts';
+import { config } from '@infrastructure/config/index.ts';
 import { logger } from '@infrastructure/logger/index.ts';
 import type { Message } from 'firebase-admin/messaging';
 import { injectable } from 'inversify';
 import { getFirebaseMessaging } from './firebase.client.ts';
-
-/**
- * Firebase error codes indicating an invalid, expired, or unregistered device token.
- * These are permanent failures and should never be retried.
- */
-const INVALID_TOKEN_ERROR_CODES = new Set([
-	'messaging/invalid-registration-token',
-	'messaging/registration-token-not-registered',
-	'messaging/invalid-argument',
-]);
-
-/**
- * Firebase error codes indicating a transient server error where retries are appropriate.
- */
-const RETRYABLE_ERROR_CODES = new Set([
-	'messaging/server-unavailable',
-	'messaging/internal-error',
-	'messaging/device-message-rate-exceeded',
-	'messaging/unavailable',
-]);
+import {
+	FCM_DEFAULTS,
+	FCM_ERROR_MESSAGES,
+	INVALID_TOKEN_ERROR_CODES,
+	RETRYABLE_ERROR_CODES,
+} from './firebase.constants.ts';
 
 @injectable()
 export class FirebasePushNotificationService implements IPushNotificationService {
-	private static readonly MAX_RETRIES = 2;
-	private static readonly RETRY_DELAY_MS = 500;
+	private readonly maxRetries: number = config.firebase.maxRetries;
+	private readonly retryDelayMs: number = config.firebase.retryDelayMs;
 
-	/**
-	 * Dispatches a push notification to an FCM device token with bounded retries and error isolation.
-	 */
 	async send(payload: PushNotificationPayload): Promise<PushNotificationResult> {
 		const messaging = getFirebaseMessaging();
 		if (!messaging) {
@@ -45,7 +29,7 @@ export class FirebasePushNotificationService implements IPushNotificationService
 			);
 			return {
 				success: true,
-				messageId: 'mock-fcm-id',
+				messageId: FCM_DEFAULTS.MOCK_MESSAGE_ID,
 			};
 		}
 
@@ -53,7 +37,7 @@ export class FirebasePushNotificationService implements IPushNotificationService
 			logger.warn({ payload }, 'Cannot send FCM notification: missing or invalid token format');
 			return {
 				success: false,
-				error: 'Missing or invalid token format',
+				error: FCM_ERROR_MESSAGES.MISSING_TOKEN,
 				isTokenInvalid: true,
 			};
 		}
@@ -78,24 +62,24 @@ export class FirebasePushNotificationService implements IPushNotificationService
 					}
 				: undefined,
 			android: {
-				priority: 'high',
+				priority: FCM_DEFAULTS.ANDROID.PRIORITY,
 				notification: {
-					channelId: 'queue_alerts',
-					sound: 'default',
+					channelId: FCM_DEFAULTS.ANDROID.CHANNEL_ID,
+					sound: FCM_DEFAULTS.ANDROID.SOUND,
 				},
 			},
 			apns: {
 				payload: {
 					aps: {
-						sound: 'default',
-						badge: 1,
+						sound: FCM_DEFAULTS.APNS.SOUND,
+						badge: FCM_DEFAULTS.APNS.BADGE,
 					},
 				},
 			},
 		};
 
 		let attempt = 0;
-		while (attempt <= FirebasePushNotificationService.MAX_RETRIES) {
+		while (attempt <= this.maxRetries) {
 			attempt++;
 			try {
 				const messageId = await messaging.send(message);
@@ -112,7 +96,6 @@ export class FirebasePushNotificationService implements IPushNotificationService
 				const errorCode = err?.code || '';
 				const errorMessage = err?.message || String(error);
 
-				// 1. Permanent failure - invalid or unregistered token
 				if (INVALID_TOKEN_ERROR_CODES.has(errorCode)) {
 					logger.warn(
 						{ errorCode, tokenSuffix: payload.token.slice(-6), err: errorMessage },
@@ -125,24 +108,22 @@ export class FirebasePushNotificationService implements IPushNotificationService
 					};
 				}
 
-				// 2. Transient failure - check if eligible for retry
 				const isTransient =
 					RETRYABLE_ERROR_CODES.has(errorCode) ||
 					errorMessage.includes('timeout') ||
 					errorMessage.includes('ECONNRESET') ||
 					errorMessage.includes('ETIMEDOUT');
 
-				if (isTransient && attempt <= FirebasePushNotificationService.MAX_RETRIES) {
-					const delay = FirebasePushNotificationService.RETRY_DELAY_MS * attempt;
+				if (isTransient && attempt <= this.maxRetries) {
+					const delay = this.retryDelayMs * attempt;
 					logger.warn(
-						{ attempt, maxRetries: FirebasePushNotificationService.MAX_RETRIES, delay, errorCode },
+						{ attempt, maxRetries: this.maxRetries, delay, errorCode },
 						'Transient FCM dispatch failure. Applying bounded retry with backoff...',
 					);
 					await this.sleep(delay);
 					continue;
 				}
 
-				// 3. Final failure after retries or non-retryable error
 				logger.error(
 					{ err: error, attempt, tokenSuffix: payload.token.slice(-6) },
 					'Failed to dispatch FCM push notification',
@@ -157,7 +138,7 @@ export class FirebasePushNotificationService implements IPushNotificationService
 
 		return {
 			success: false,
-			error: 'Max bounded retries exceeded',
+			error: FCM_ERROR_MESSAGES.MAX_RETRIES_EXCEEDED,
 			isTokenInvalid: false,
 		};
 	}
