@@ -56,6 +56,7 @@ describe('GetQueueEtaUseCase Unit Tests', () => {
 			}),
 			countToday: jest.fn(),
 			findActiveByPhone: jest.fn(),
+			findActiveByUser: jest.fn().mockResolvedValue(null),
 			createWithHistory: jest.fn(),
 		};
 

@@ -85,6 +85,13 @@ export class RegisterQueueUseCase implements IRegisterQueueUseCase {
 			throw new ActiveQueueEntryExistsError(guestPhone);
 		}
 
+		if (userId) {
+			const existingActiveUser = await this.queueRepository.findActiveByUser(restaurantId, userId);
+			if (existingActiveUser) {
+				throw new ActiveQueueEntryExistsError(`User: ${userId}`);
+			}
+		}
+
 		const [activeAheadCount, totalPeopleAhead, countToday] = await Promise.all([
 			this.queueRepository.countActiveAhead(restaurantId),
 			this.queueRepository.sumPartySizeActiveAhead(restaurantId),
@@ -114,6 +121,7 @@ export class RegisterQueueUseCase implements IRegisterQueueUseCase {
 			queueNumber,
 			partySize,
 			specialNotes,
+			fid: input.fcmDeviceToken ?? null,
 			registrationType: resolvedType,
 			position,
 			estimatedWaitMinutes,

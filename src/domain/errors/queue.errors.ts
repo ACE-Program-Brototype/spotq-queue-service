@@ -28,8 +28,10 @@ export class RestaurantNotAcceptingQueueError extends DomainError {
  * Thrown when a party with the specified phone number is already active in the queue.
  */
 export class ActiveQueueEntryExistsError extends DomainError {
-	constructor(phone: string) {
-		super(`${QUEUE_MESSAGES.ACTIVE_ENTRY_EXISTS} (Phone: ${phone})`, 'ACTIVE_QUEUE_ENTRY_EXISTS');
+	constructor(identifier: string) {
+		const detail =
+			identifier.startsWith('+') || /^\d+$/.test(identifier) ? `Phone: ${identifier}` : identifier;
+		super(`${QUEUE_MESSAGES.ACTIVE_ENTRY_EXISTS} (${detail})`, 'ACTIVE_QUEUE_ENTRY_EXISTS');
 	}
 }
 

@@ -33,6 +33,7 @@ export const MESSAGES = {
  */
 export const QUEUE_MESSAGES = {
 	WALK_IN_REGISTER_SUCCESS: 'Walk-in guest registered to queue successfully',
+	JOIN_QUEUE_SUCCESS: 'Joined restaurant queue successfully',
 	ETA_RETRIEVED_SUCCESS: 'Estimated wait time retrieved successfully',
 	TABLES_AVAILABLE:
 		'Tables are currently available. Seat the guest directly without joining the queue.',
