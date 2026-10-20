@@ -24,7 +24,7 @@ export class FirebasePushNotificationService implements IPushNotificationService
 		const messaging = getFirebaseMessaging();
 		if (!messaging) {
 			logger.info(
-				{ title: payload.title, tokenSuffix: payload.token?.slice(-6) },
+				{ title: payload.title, fidSuffix: payload.fid?.slice(-6) },
 				'FCM notification suppressed (Firebase client is not configured or disabled)',
 			);
 			return {
@@ -33,8 +33,8 @@ export class FirebasePushNotificationService implements IPushNotificationService
 			};
 		}
 
-		if (!payload.token || typeof payload.token !== 'string') {
-			logger.warn({ payload }, 'Cannot send FCM notification: missing or invalid token format');
+		if (!payload.fid || typeof payload.fid !== 'string') {
+			logger.warn({ payload }, 'Cannot send FCM notification: missing or invalid fid format');
 			return {
 				success: false,
 				error: FCM_ERROR_MESSAGES.MISSING_TOKEN,
@@ -48,7 +48,7 @@ export class FirebasePushNotificationService implements IPushNotificationService
 		}
 
 		const message: Message = {
-			token: payload.token,
+			fid: payload.fid,
 			notification: {
 				title: payload.title,
 				body: payload.body,
@@ -84,7 +84,7 @@ export class FirebasePushNotificationService implements IPushNotificationService
 			try {
 				const messageId = await messaging.send(message);
 				logger.info(
-					{ messageId, attempt, tokenSuffix: payload.token.slice(-6) },
+					{ messageId, attempt, fidSuffix: payload.fid.slice(-6) },
 					'Push notification sent successfully',
 				);
 				return {
@@ -98,8 +98,8 @@ export class FirebasePushNotificationService implements IPushNotificationService
 
 				if (INVALID_TOKEN_ERROR_CODES.has(errorCode)) {
 					logger.warn(
-						{ errorCode, tokenSuffix: payload.token.slice(-6), err: errorMessage },
-						'FCM token is invalid or no longer registered. Skipping retries.',
+						{ errorCode, fidSuffix: payload.fid.slice(-6), err: errorMessage },
+						'FCM target FID is invalid or no longer registered. Skipping retries.',
 					);
 					return {
 						success: false,
@@ -110,7 +110,7 @@ export class FirebasePushNotificationService implements IPushNotificationService
 
 				if (PERMANENT_CLIENT_ERROR_CODES.has(errorCode)) {
 					logger.error(
-						{ errorCode, tokenSuffix: payload.token.slice(-6), err: errorMessage },
+						{ errorCode, fidSuffix: payload.fid.slice(-6), err: errorMessage },
 						'Permanent FCM client error encountered. Skipping retries.',
 					);
 					return {
@@ -131,7 +131,7 @@ export class FirebasePushNotificationService implements IPushNotificationService
 				}
 
 				logger.error(
-					{ err: error, attempt, tokenSuffix: payload.token.slice(-6) },
+					{ err: error, attempt, fidSuffix: payload.fid.slice(-6) },
 					'Failed to dispatch FCM push notification',
 				);
 				return {
