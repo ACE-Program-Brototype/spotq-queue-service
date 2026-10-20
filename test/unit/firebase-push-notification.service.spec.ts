@@ -24,9 +24,9 @@ describe('FirebasePushNotificationService', () => {
 	});
 
 	describe('send', () => {
-		it('should successfully send a push notification and format message correctly', async () => {
+		it('should successfully send a push notification and format message correctly with fid', async () => {
 			const result = await service.send({
-				token: 'valid-device-token-123456',
+				fid: 'valid-device-fid-123456',
 				title: 'Table Ready!',
 				body: 'Your table for 2 is ready.',
 				data: { queueEntryId: 'entry-123', event: 'TABLE_READY' },
@@ -38,7 +38,7 @@ describe('FirebasePushNotificationService', () => {
 			expect(mockMessaging.send).toHaveBeenCalledTimes(1);
 
 			const sentMessage = mockMessaging.send.mock.calls[0][0];
-			expect(sentMessage.token).toBe('valid-device-token-123456');
+			expect(sentMessage.fid).toBe('valid-device-fid-123456');
 			expect(sentMessage.notification).toEqual({
 				title: 'Table Ready!',
 				body: 'Your table for 2 is ready.',
@@ -56,7 +56,7 @@ describe('FirebasePushNotificationService', () => {
 			setFirebaseMessagingForTesting(null);
 
 			const result = await service.send({
-				token: 'token-123',
+				fid: 'fid-123',
 				title: 'Test Title',
 				body: 'Test Body',
 			});
@@ -65,9 +65,9 @@ describe('FirebasePushNotificationService', () => {
 			expect(result.messageId).toBe('mock-fcm-id');
 		});
 
-		it('should return isTokenInvalid when token is missing or empty', async () => {
+		it('should return isTokenInvalid when fid is missing or empty', async () => {
 			const result = await service.send({
-				token: '',
+				fid: '',
 				title: 'Test',
 				body: 'Test',
 			});
@@ -85,7 +85,7 @@ describe('FirebasePushNotificationService', () => {
 			mockMessaging.send.mockRejectedValueOnce(invalidTokenError);
 
 			const result = await service.send({
-				token: 'expired-token-123',
+				fid: 'expired-fid-123',
 				title: 'Notice',
 				body: 'Your table is ready',
 			});
@@ -103,7 +103,7 @@ describe('FirebasePushNotificationService', () => {
 			mockMessaging.send.mockRejectedValueOnce(payloadError);
 
 			const result = await service.send({
-				token: 'valid-token-123',
+				fid: 'valid-fid-123',
 				title: 'Heavy Payload',
 				body: 'Too much data',
 			});
@@ -123,7 +123,7 @@ describe('FirebasePushNotificationService', () => {
 				.mockResolvedValueOnce('projects/spotq/messages/msg-recovered');
 
 			const result = await service.send({
-				token: 'valid-token-123',
+				fid: 'valid-fid-123',
 				title: 'Retry Test',
 				body: 'Should recover on second attempt',
 			});
@@ -141,7 +141,7 @@ describe('FirebasePushNotificationService', () => {
 			mockMessaging.send.mockRejectedValue(internalError);
 
 			const result = await service.send({
-				token: 'valid-token-123',
+				fid: 'valid-fid-123',
 				title: 'Exhausted Retries',
 				body: 'Will fail after retries',
 			});
