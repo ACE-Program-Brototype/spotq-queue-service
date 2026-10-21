@@ -1,6 +1,7 @@
 import { logger } from '@infrastructure/logger/index.ts';
 import {
 	ADMIN_ROLE,
+	CUSTOMER_ROLE,
 	createRoomErrorResponse,
 	createRoomSuccessResponse,
 	isAuthorizedRestaurantMember,
@@ -113,7 +114,7 @@ export function registerRoomHandlers(socket: Socket): void {
 			const isStaff = STAFF_ROLES.has(user.role);
 			const isRestaurantOwner = user.role === RESTAURANT_OWNER_ROLE;
 			const isAuthorizedMember = isStaff || isRestaurantOwner;
-			const isCustomer = user.role === 'CUSTOMER';
+			const isCustomer = user.role === CUSTOMER_ROLE;
 
 			if (!user.ticketId && isCustomer) {
 				user.ticketId = ticketId;
@@ -171,7 +172,7 @@ export function registerRoomHandlers(socket: Socket): void {
 			}
 
 			const isAdmin = user.role === ADMIN_ROLE;
-			const isCustomer = user.role === 'CUSTOMER';
+			const isCustomer = user.role === CUSTOMER_ROLE;
 			const isAuthorizedMember = isAuthorizedRestaurantMember(user, queueId);
 			const isAuthorized = isAdmin || isCustomer || isAuthorizedMember;
 

@@ -61,6 +61,7 @@ export const WS_ERROR_MESSAGES = {
 export const STAFF_ROLES: ReadonlySet<string> = new Set(['STAFF']);
 export const RESTAURANT_OWNER_ROLE = 'RESTAURANT_OWNER';
 export const ADMIN_ROLE = 'ADMIN';
+export const CUSTOMER_ROLE = 'CUSTOMER';
 
 export function isAuthorizedRestaurantMember(
 	user: { role?: string; restaurantId?: string } | undefined,
