@@ -29,9 +29,12 @@ export class RestaurantNotAcceptingQueueError extends DomainError {
  */
 export class ActiveQueueEntryExistsError extends DomainError {
 	constructor(identifier: string) {
-		const detail =
-			identifier.startsWith('+') || /^\d+$/.test(identifier) ? `Phone: ${identifier}` : identifier;
-		super(`${QUEUE_MESSAGES.ACTIVE_ENTRY_EXISTS} (${detail})`, 'ACTIVE_QUEUE_ENTRY_EXISTS');
+		const isPhone = identifier.startsWith('+') || /^\d+$/.test(identifier);
+		const detail = isPhone ? `Phone: ${identifier}` : identifier;
+		const baseMessage = isPhone
+			? QUEUE_MESSAGES.ACTIVE_ENTRY_EXISTS
+			: QUEUE_MESSAGES.ACTIVE_USER_ENTRY_EXISTS;
+		super(`${baseMessage} (${detail})`, 'ACTIVE_QUEUE_ENTRY_EXISTS');
 	}
 }
 
