@@ -58,6 +58,7 @@ export class CustomerQueueController {
 			websocket: {
 				path: WEBSOCKET_PATHS.GATEWAY_QUEUES,
 				room: WEBSOCKET_ROOMS.ticket(result.queueEntryId),
+				ticketId: result.queueEntryId,
 				subscribeEvent: WS_CLIENT_EVENTS.JOIN_TICKET,
 				updateEvent: WS_SERVER_EVENTS.QUEUE_POSITION_UPDATED,
 			},

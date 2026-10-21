@@ -113,6 +113,12 @@ export function registerRoomHandlers(socket: Socket): void {
 			const isStaff = STAFF_ROLES.has(user.role);
 			const isRestaurantOwner = user.role === RESTAURANT_OWNER_ROLE;
 			const isAuthorizedMember = isStaff || isRestaurantOwner;
+			const isCustomer = user.role === 'CUSTOMER';
+
+			if (!user.ticketId && isCustomer) {
+				user.ticketId = ticketId;
+			}
+
 			const isTicketOwner = user.ticketId === ticketId || user.userId === ticketId;
 			const isAuthorized = user.role === ADMIN_ROLE || isAuthorizedMember || isTicketOwner;
 

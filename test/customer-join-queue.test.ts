@@ -127,6 +127,7 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 						websocket: {
 							path: WEBSOCKET_PATHS.GATEWAY_QUEUES,
 							room: WEBSOCKET_ROOMS.ticket('ticket-uuid-123'),
+							ticketId: 'ticket-uuid-123',
 							subscribeEvent: WS_CLIENT_EVENTS.JOIN_TICKET,
 							updateEvent: WS_SERVER_EVENTS.QUEUE_POSITION_UPDATED,
 						},
@@ -452,6 +453,7 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 					websocket: {
 						path: WEBSOCKET_PATHS.GATEWAY_QUEUES,
 						room: 'ticket:ticket-uuid-success',
+						ticketId: 'ticket-uuid-success',
 						subscribeEvent: 'join:ticket',
 						updateEvent: 'queue:position-updated',
 					},
