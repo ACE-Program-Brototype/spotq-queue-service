@@ -11,6 +11,7 @@ import type { IRegisterQueueUseCase } from '@application/ports/use-cases/registe
 import { TYPES } from '@di/types.ts';
 import {
 	ActiveQueueEntryExistsError,
+	ActiveUserQueueEntryExistsError,
 	type IQueueRepository,
 	QueueEntry,
 	RegistrationType,
@@ -80,24 +81,26 @@ export class RegisterQueueUseCase implements IRegisterQueueUseCase {
 			throw new TableAvailableError(tableCheck.availableCount);
 		}
 
-		const existingActive = await this.queueRepository.findActiveByPhone(restaurantId, guestPhone);
-		if (existingActive) {
+		const [existingActivePhone, existingActiveUser] = await Promise.all([
+			this.queueRepository.findActiveByPhone(restaurantId, guestPhone),
+			userId ? this.queueRepository.findActiveByUser(restaurantId, userId) : Promise.resolve(null),
+		]);
+
+		if (existingActivePhone) {
 			throw new ActiveQueueEntryExistsError(guestPhone);
 		}
 
-		if (userId) {
-			const existingActiveUser = await this.queueRepository.findActiveByUser(restaurantId, userId);
-			if (existingActiveUser) {
-				throw new ActiveQueueEntryExistsError(`User: ${userId}`);
-			}
+		if (existingActiveUser) {
+			throw new ActiveUserQueueEntryExistsError();
 		}
 
-		const [activeAheadCount, totalPeopleAhead, countToday] = await Promise.all([
-			this.queueRepository.countActiveAhead(restaurantId),
-			this.queueRepository.sumPartySizeActiveAhead(restaurantId),
+		const [metrics, countToday] = await Promise.all([
+			this.queueRepository.getActiveQueueMetrics(restaurantId),
 			this.queueRepository.countToday(restaurantId),
 		]);
 
+		const activeAheadCount = metrics.queueDepth;
+		const totalPeopleAhead = metrics.totalPeopleAhead;
 		const position = activeAheadCount + 1;
 
 		const resolvedType =

@@ -28,13 +28,17 @@ export class RestaurantNotAcceptingQueueError extends DomainError {
  * Thrown when a party with the specified phone number is already active in the queue.
  */
 export class ActiveQueueEntryExistsError extends DomainError {
-	constructor(identifier: string) {
-		const isPhone = identifier.startsWith('+') || /^\d+$/.test(identifier);
-		const detail = isPhone ? `Phone: ${identifier}` : identifier;
-		const baseMessage = isPhone
-			? QUEUE_MESSAGES.ACTIVE_ENTRY_EXISTS
-			: QUEUE_MESSAGES.ACTIVE_USER_ENTRY_EXISTS;
-		super(`${baseMessage} (${detail})`, 'ACTIVE_QUEUE_ENTRY_EXISTS');
+	constructor(phone: string) {
+		super(`${QUEUE_MESSAGES.ACTIVE_ENTRY_EXISTS} (Phone: ${phone})`, 'ACTIVE_QUEUE_ENTRY_EXISTS');
+	}
+}
+
+/**
+ * Thrown when an authenticated customer already holds an active ticket in the queue.
+ */
+export class ActiveUserQueueEntryExistsError extends DomainError {
+	constructor() {
+		super(QUEUE_MESSAGES.ACTIVE_USER_ENTRY_EXISTS, 'ACTIVE_QUEUE_ENTRY_EXISTS');
 	}
 }
 

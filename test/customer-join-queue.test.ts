@@ -15,6 +15,7 @@ import { RegisterQueueUseCase } from '../src/application/use-cases/register-queu
 import { container, TYPES } from '../src/di/index.ts';
 import {
 	ActiveQueueEntryExistsError,
+	ActiveUserQueueEntryExistsError,
 	QueueEntry,
 	RegistrationType,
 	RestaurantNotAcceptingQueueError,
@@ -209,7 +210,7 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 			);
 		});
 
-		it('should reject with ActiveQueueEntryExistsError when customer with userId is already queued', async () => {
+		it('should reject with ActiveUserQueueEntryExistsError when customer with userId is already queued', async () => {
 			mockQueueRepository.findActiveByUser.mockResolvedValueOnce(
 				QueueEntry.create({
 					restaurantId: validRestaurantId,
@@ -233,7 +234,7 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 					partySize: 2,
 					registrationType: RegistrationType.ONLINE,
 				}),
-			).rejects.toThrow(ActiveQueueEntryExistsError);
+			).rejects.toThrow(ActiveUserQueueEntryExistsError);
 
 			expect(mockQueueRepository.createWithHistory).not.toHaveBeenCalled();
 		});
@@ -408,6 +409,21 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 			jest
 				.spyOn(RegisterQueueUseCase.prototype, 'execute')
 				.mockRejectedValueOnce(new ActiveQueueEntryExistsError('+15551234567'));
+
+			const res = await request(app)
+				.post(joinEndpoint)
+				.set('x-user-id', validUserId)
+				.send(validBody);
+
+			expect(res.status).toBe(HTTP_STATUS.CONFLICT);
+			expect(res.body.success).toBe(false);
+			expect(res.body.code).toBe('ACTIVE_QUEUE_ENTRY_EXISTS');
+		});
+
+		it('should return 409 Conflict when authenticated customer already holds an active ticket', async () => {
+			jest
+				.spyOn(RegisterQueueUseCase.prototype, 'execute')
+				.mockRejectedValueOnce(new ActiveUserQueueEntryExistsError());
 
 			const res = await request(app)
 				.post(joinEndpoint)
