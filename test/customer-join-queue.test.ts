@@ -37,7 +37,6 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 	const validRestaurantId = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
 	const validUserId = 'b1ffcd88-8b1a-4fe7-aa5c-5bb8ad270a22';
 	const joinEndpoint = `/customer/restaurants/${validRestaurantId}/queue/join`;
-	const directJoinEndpoint = `/restaurants/${validRestaurantId}/queue/join`;
 
 	describe('DI Container Resolution', () => {
 		it('should resolve CustomerQueueController with joinQueue method', () => {
@@ -458,33 +457,6 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 					},
 				}),
 			);
-		});
-
-		it('should successfully join queue via direct route /restaurants/:restaurantId/queue/join', async () => {
-			jest.spyOn(RegisterQueueUseCase.prototype, 'execute').mockResolvedValueOnce({
-				queueEntryId: 'ticket-uuid-direct',
-				restaurantId: validRestaurantId,
-				userId: validUserId,
-				guestName: 'Alex Mercer',
-				guestPhone: '+15551234567',
-				partySize: 2,
-				specialNotes: null,
-				registrationType: 'ONLINE',
-				position: 1,
-				estimatedWaitMinutes: 5,
-				status: 'WAITING',
-				joinedAt: new Date().toISOString(),
-			});
-
-			const res = await request(app)
-				.post(directJoinEndpoint)
-				.set('x-user-id', validUserId)
-				.send(validBody);
-
-			expect(res.status).toBe(HTTP_STATUS.CREATED);
-			expect(res.body.success).toBe(true);
-			expect(res.body.data.queueEntryId).toBe('ticket-uuid-direct');
-			expect(res.body.data.websocket.room).toBe('ticket:ticket-uuid-direct');
 		});
 	});
 });

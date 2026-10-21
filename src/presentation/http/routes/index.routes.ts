@@ -11,6 +11,5 @@ router.use(ROUTES.ROOT, healthRouter);
 router.use(ROUTES.ROOT, metricsRouter);
 router.use(ROUTES.STAFF_BASE, staffQueueRouter);
 router.use(ROUTES.CUSTOMER_BASE, customerQueueRouter);
-router.use(ROUTES.ROOT, customerQueueRouter);
 
 export { router };
