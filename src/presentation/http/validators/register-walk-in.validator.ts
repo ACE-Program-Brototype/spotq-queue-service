@@ -1,3 +1,4 @@
+import { PARTY_SIZE_LIMITS } from '@shared/index.ts';
 import { z } from 'zod';
 
 export const registerWalkInParamsSchema = z.object({
@@ -18,8 +19,14 @@ export const registerWalkInBodySchema = z.object({
 			message: 'partySize must be a valid number',
 		})
 		.int('partySize must be an integer')
-		.min(1, 'partySize must be between 1 and 20')
-		.max(20, 'partySize must be between 1 and 20'),
+		.min(
+			PARTY_SIZE_LIMITS.MIN,
+			`partySize must be between ${PARTY_SIZE_LIMITS.MIN} and ${PARTY_SIZE_LIMITS.MAX}`,
+		)
+		.max(
+			PARTY_SIZE_LIMITS.MAX,
+			`partySize must be between ${PARTY_SIZE_LIMITS.MIN} and ${PARTY_SIZE_LIMITS.MAX}`,
+		),
 	specialNotes: z.string().trim().optional(),
 });
 

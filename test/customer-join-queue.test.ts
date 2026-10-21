@@ -25,6 +25,7 @@ import { CustomerQueueController } from '../src/presentation/http/controllers/cu
 import type { JoinQueueParams } from '../src/presentation/http/validators/join-queue.validator.ts';
 import {
 	HTTP_STATUS,
+	PARTY_SIZE_LIMITS,
 	QUEUE_MESSAGES,
 	WEBSOCKET_PATHS,
 	WEBSOCKET_ROOMS,
@@ -333,7 +334,7 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 				.set('x-user-id', validUserId)
 				.send({
 					...validBody,
-					partySize: 0,
+					partySize: PARTY_SIZE_LIMITS.MIN - 1,
 				});
 
 			expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST);
@@ -347,7 +348,7 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 				.set('x-user-id', validUserId)
 				.send({
 					...validBody,
-					partySize: 21,
+					partySize: PARTY_SIZE_LIMITS.MAX + 1,
 				});
 
 			expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST);
