@@ -1,4 +1,4 @@
-import { PARTY_SIZE_LIMITS } from '@shared/index.ts';
+import { PARTY_SIZE_LIMITS, QUEUE_LIMITS } from '@shared/index.ts';
 import { z } from 'zod';
 
 export const joinQueueParamsSchema = z.object({
@@ -6,7 +6,14 @@ export const joinQueueParamsSchema = z.object({
 });
 
 export const joinQueueBodySchema = z.object({
-	guestName: z.string().trim().min(1, 'guestName is required and cannot be empty'),
+	guestName: z
+		.string()
+		.trim()
+		.min(1, 'guestName is required and cannot be empty')
+		.max(
+			QUEUE_LIMITS.GUEST_NAME.MAX,
+			`guestName must not exceed ${QUEUE_LIMITS.GUEST_NAME.MAX} characters`,
+		),
 	guestPhone: z
 		.string()
 		.trim()
@@ -27,8 +34,22 @@ export const joinQueueBodySchema = z.object({
 			PARTY_SIZE_LIMITS.MAX,
 			`partySize must be between ${PARTY_SIZE_LIMITS.MIN} and ${PARTY_SIZE_LIMITS.MAX}`,
 		),
-	specialNotes: z.string().trim().optional(),
-	fid: z.string().trim().optional().nullable(),
+	specialNotes: z
+		.string()
+		.trim()
+		.max(
+			QUEUE_LIMITS.SPECIAL_NOTES.MAX,
+			`specialNotes must not exceed ${QUEUE_LIMITS.SPECIAL_NOTES.MAX} characters`,
+		)
+		.optional()
+		.nullable()
+		.transform((val) => (val && val.length > 0 ? val : null)),
+	fid: z
+		.string()
+		.trim()
+		.optional()
+		.nullable()
+		.transform((val) => (val && val.length > 0 ? val : null)),
 });
 
 export type JoinQueueParams = z.infer<typeof joinQueueParamsSchema>;

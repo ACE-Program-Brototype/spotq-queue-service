@@ -23,7 +23,10 @@ import {
 } from '../src/domain/index.ts';
 import type { IQueueRepository } from '../src/domain/repositories/queue.repository.interface.ts';
 import { CustomerQueueController } from '../src/presentation/http/controllers/customer-queue.controller.ts';
-import type { JoinQueueParams } from '../src/presentation/http/validators/join-queue.validator.ts';
+import {
+	type JoinQueueParams,
+	joinQueueBodySchema,
+} from '../src/presentation/http/validators/join-queue.validator.ts';
 import {
 	HTTP_STATUS,
 	PARTY_SIZE_LIMITS,
@@ -369,6 +372,47 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 			expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST);
 			expect(res.body.success).toBe(false);
 			expect(res.body.code).toBe('VALIDATION_ERROR');
+		});
+
+		it('should return 400 Bad Request when guestName exceeds max length', async () => {
+			const res = await request(app)
+				.post(joinEndpoint)
+				.set('x-user-id', validUserId)
+				.send({
+					...validBody,
+					guestName: 'A'.repeat(101),
+				});
+
+			expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST);
+			expect(res.body.success).toBe(false);
+			expect(res.body.code).toBe('VALIDATION_ERROR');
+		});
+
+		it('should return 400 Bad Request when specialNotes exceeds max length', async () => {
+			const res = await request(app)
+				.post(joinEndpoint)
+				.set('x-user-id', validUserId)
+				.send({
+					...validBody,
+					specialNotes: 'N'.repeat(501),
+				});
+
+			expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST);
+			expect(res.body.success).toBe(false);
+			expect(res.body.code).toBe('VALIDATION_ERROR');
+		});
+
+		it('should sanitize empty fid and empty specialNotes to null', () => {
+			const parsed = joinQueueBodySchema.parse({
+				guestName: 'Alex Mercer',
+				guestPhone: '+15551234567',
+				partySize: 2,
+				specialNotes: '',
+				fid: '',
+			});
+
+			expect(parsed.specialNotes).toBeNull();
+			expect(parsed.fid).toBeNull();
 		});
 
 		afterEach(() => {
