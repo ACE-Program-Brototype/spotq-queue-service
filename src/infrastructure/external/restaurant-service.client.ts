@@ -98,7 +98,7 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 				headers: this.getInternalHeaders(),
 			});
 
-			if (!response.data || response.data.success !== true || !response.data.data) {
+			if (response.data?.success !== true || !response.data.data) {
 				const errorMessage =
 					response.data?.message || 'Failed to retrieve restaurant validation status';
 				throw new UpstreamServiceUnavailableError(errorMessage);
@@ -177,7 +177,7 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 				headers: this.getInternalHeaders(),
 			});
 
-			if (!response.data || response.data.success !== true || !response.data.data) {
+			if (response.data?.success !== true || !response.data.data) {
 				const errorMessage =
 					response.data?.message || 'Failed to retrieve table availability status';
 				throw new UpstreamServiceUnavailableError(errorMessage);

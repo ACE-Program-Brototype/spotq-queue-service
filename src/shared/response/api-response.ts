@@ -1,5 +1,5 @@
 import type { Response } from 'express';
-import { HTTP_STATUS, type HttpStatus } from '../constants/http.constants.ts';
+import { HTTP_STATUS } from '../constants/http.constants.ts';
 import { messages } from '../constants/message.constants.ts';
 
 /**
@@ -101,7 +101,7 @@ export const ApiResponse = {
 			success: false,
 			message,
 			code,
-			error: typeof error === 'string' ? error : code,
+			...(error !== undefined ? { error } : {}),
 			statusCode,
 		};
 	},
@@ -120,7 +120,7 @@ export function sendSuccessResponse<T>(
 }
 
 /**
- * Helper to send error HTTP responses with unified code and error string fields.
+ * Helper to send error HTTP responses with unified code and status.
  */
 export function sendErrorResponse(
 	res: Response,
@@ -135,7 +135,7 @@ export function sendErrorResponse(
 	if (errorOrMessage.includes(' ') && messageOrCode && !messageOrCode.includes(' ')) {
 		msg = errorOrMessage;
 		code = messageOrCode;
-	} else if (messageOrCode && messageOrCode.includes(' ')) {
+	} else if (messageOrCode?.includes(' ')) {
 		code = errorOrMessage;
 		msg = messageOrCode;
 	}
@@ -144,8 +144,7 @@ export function sendErrorResponse(
 		success: false,
 		message: msg,
 		code,
-		error: code,
-		details,
+		...(details !== undefined ? { details } : {}),
 		statusCode,
 	});
 }
