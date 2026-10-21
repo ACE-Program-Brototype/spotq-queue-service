@@ -6,6 +6,7 @@ import {
 	HTTP_STATUS,
 	QUEUE_MESSAGES,
 	sendSuccessResponse,
+	WEBSOCKET_PATHS,
 	WEBSOCKET_ROOMS,
 	WS_CLIENT_EVENTS,
 	WS_SERVER_EVENTS,
@@ -38,8 +39,7 @@ export class CustomerQueueController {
 
 	joinQueue = async (req: Request, res: Response): Promise<void> => {
 		const { restaurantId } = req.params as unknown as JoinQueueParams;
-		const { guestName, guestPhone, partySize, specialNotes, fcmDeviceToken } =
-			req.body as JoinQueueBody;
+		const { guestName, guestPhone, partySize, specialNotes, fid } = req.body as JoinQueueBody;
 		const userId = req.userId || req.user?.userId;
 
 		const result = await this.registerQueueUseCase.execute({
@@ -49,14 +49,14 @@ export class CustomerQueueController {
 			guestPhone,
 			partySize,
 			specialNotes,
-			fcmDeviceToken,
+			fid,
 			registrationType: RegistrationType.ONLINE,
 		});
 
 		const responsePayload = {
 			...result,
 			websocket: {
-				path: '/ws/queues',
+				path: WEBSOCKET_PATHS.GATEWAY_QUEUES,
 				room: WEBSOCKET_ROOMS.ticket(result.queueEntryId),
 				subscribeEvent: WS_CLIENT_EVENTS.JOIN_TICKET,
 				updateEvent: WS_SERVER_EVENTS.QUEUE_POSITION_UPDATED,

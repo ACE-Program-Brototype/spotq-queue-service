@@ -26,6 +26,7 @@ import type { JoinQueueParams } from '../src/presentation/http/validators/join-q
 import {
 	HTTP_STATUS,
 	QUEUE_MESSAGES,
+	WEBSOCKET_PATHS,
 	WEBSOCKET_ROOMS,
 	WS_CLIENT_EVENTS,
 	WS_SERVER_EVENTS,
@@ -92,7 +93,7 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 					guestPhone: '+15551234567',
 					partySize: 3,
 					specialNotes: 'Window seat preferred',
-					fcmDeviceToken: 'fcm-token-xyz',
+					fid: 'fcm-token-xyz',
 				},
 				userId: validUserId,
 			};
@@ -106,7 +107,7 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 				guestPhone: '+15551234567',
 				partySize: 3,
 				specialNotes: 'Window seat preferred',
-				fcmDeviceToken: 'fcm-token-xyz',
+				fid: 'fcm-token-xyz',
 				registrationType: RegistrationType.ONLINE,
 			});
 
@@ -124,7 +125,7 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 						position: 4,
 						estimatedWaitMinutes: 20,
 						websocket: {
-							path: '/ws/queues',
+							path: WEBSOCKET_PATHS.GATEWAY_QUEUES,
 							room: WEBSOCKET_ROOMS.ticket('ticket-uuid-123'),
 							subscribeEvent: WS_CLIENT_EVENTS.JOIN_TICKET,
 							updateEvent: WS_SERVER_EVENTS.QUEUE_POSITION_UPDATED,
@@ -265,14 +266,14 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 			expect(mockQueueRepository.createWithHistory).not.toHaveBeenCalled();
 		});
 
-		it('should persist fcmDeviceToken into fid on QueueEntry creation', async () => {
+		it('should persist fid on QueueEntry creation', async () => {
 			const result = await useCase.execute({
 				restaurantId: validRestaurantId,
 				userId: validUserId,
 				guestName: 'Alex Mercer',
 				guestPhone: '+15551234567',
 				partySize: 2,
-				fcmDeviceToken: 'fcm-device-test-token',
+				fid: 'fcm-device-test-token',
 				registrationType: RegistrationType.ONLINE,
 			});
 
@@ -290,7 +291,7 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 			guestPhone: '+15551234567',
 			partySize: 2,
 			specialNotes: 'Quiet booth if possible',
-			fcmDeviceToken: 'token-abc',
+			fid: 'token-abc',
 		};
 
 		it('should return 401 Unauthorized when x-user-id header is missing', async () => {
@@ -449,7 +450,7 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 					position: 3,
 					estimatedWaitMinutes: 15,
 					websocket: {
-						path: '/ws/queues',
+						path: WEBSOCKET_PATHS.GATEWAY_QUEUES,
 						room: 'ticket:ticket-uuid-success',
 						subscribeEvent: 'join:ticket',
 						updateEvent: 'queue:position-updated',

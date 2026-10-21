@@ -34,6 +34,11 @@ export const WS_SERVER_EVENTS = {
 	ERROR: 'error',
 } as const;
 
+export const WEBSOCKET_PATHS = {
+	GATEWAY_QUEUES: '/ws/queues',
+	DEFAULT: '/ws',
+} as const;
+
 export const WEBSOCKET_CONFIG = {
 	DEFAULT_PATH: '/ws',
 	PING_TIMEOUT: 20000,

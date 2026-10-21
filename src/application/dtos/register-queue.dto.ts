@@ -8,7 +8,7 @@ export interface RegisterQueueInputDTO {
 	guestPhone: string;
 	partySize: number;
 	specialNotes?: string | null;
-	fcmDeviceToken?: string | null;
+	fid?: string | null;
 	registrationType?: RegistrationType | 'WALK_IN' | 'ONLINE';
 }
 

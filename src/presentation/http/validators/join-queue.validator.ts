@@ -21,7 +21,7 @@ export const joinQueueBodySchema = z.object({
 		.min(1, 'partySize must be between 1 and 20')
 		.max(20, 'partySize must be between 1 and 20'),
 	specialNotes: z.string().trim().optional(),
-	fcmDeviceToken: z.string().trim().optional().nullable(),
+	fid: z.string().trim().optional().nullable(),
 });
 
 export type JoinQueueParams = z.infer<typeof joinQueueParamsSchema>;

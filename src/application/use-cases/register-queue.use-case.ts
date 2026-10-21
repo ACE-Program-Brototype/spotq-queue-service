@@ -121,7 +121,7 @@ export class RegisterQueueUseCase implements IRegisterQueueUseCase {
 			queueNumber,
 			partySize,
 			specialNotes,
-			fid: input.fcmDeviceToken ?? null,
+			fid: input.fid ?? null,
 			registrationType: resolvedType,
 			position,
 			estimatedWaitMinutes,
