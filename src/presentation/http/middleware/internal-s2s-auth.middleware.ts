@@ -1,27 +1,29 @@
 import { config } from '@infrastructure/config/env.ts';
+import { HTTP_STATUS } from '@shared/constants/http.constants.ts';
 import { authMiddleware, type TokenVerifierConfig } from '@spotq-org/s2s-core';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 
 export function internalS2SAuthMiddleware(): RequestHandler {
-	const orderKey =
-		process.env.S2S_ORDER_PUBLIC ||
-		config.s2s.orderPublicKey ||
-		process.env.ORDER_S2S_PUBLIC_KEY ||
-		process.env.ORDER_SERVICE_PUBLIC_KEY;
-	const publicKeys: Record<string, string> = {
-		...(orderKey && {
-			'order-service': orderKey.replace(/\\n/g, '\n').trim(),
-		}),
-	};
+	const orderKey = config.s2s.orderPublicKey;
 
-	if (Object.keys(publicKeys).length === 0) {
-		return (_req: Request, _res: Response, next: NextFunction): void => {
-			next();
+	if (!orderKey) {
+		return (_req: Request, res: Response): void => {
+			res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+				success: false,
+				statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+				code: 'INTERNAL_SERVER_ERROR',
+				message: 'S2S authentication is misconfigured: public key for order-service is missing',
+				retryable: false,
+			});
 		};
 	}
 
+	const publicKeys: Record<string, string> = {
+		'order-service': orderKey.replace(/\\n/g, '\n').trim(),
+	};
+
 	const verifierConfig: TokenVerifierConfig = {
-		expectedAudience: process.env.S2S_AUDIENCE || config.serviceName,
+		expectedAudience: config.serviceName,
 		publicKeys,
 	};
 

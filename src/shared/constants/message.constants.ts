@@ -61,6 +61,14 @@ export const AUTH_MESSAGES = {
 } as const;
 
 /**
+ * Validation error messages.
+ */
+export const VALIDATION_MESSAGES = {
+	INVALID_RESTAURANT_ID_UUID: 'restaurantId must be a valid UUID',
+	INVALID_USER_ID_UUID: 'userId must be a valid UUID',
+} as const;
+
+/**
  * Unified messages dictionary matching spotq ecosystem conventions.
  */
 export const messages = {
@@ -73,6 +81,7 @@ export const messages = {
 	...MESSAGES,
 	...QUEUE_MESSAGES,
 	...AUTH_MESSAGES,
+	...VALIDATION_MESSAGES,
 } as const;
 
 export type Message = (typeof MESSAGES)[keyof typeof MESSAGES];

@@ -154,6 +154,9 @@ export class PrismaQueueRepository
 						in: [QueueStatus.WAITING, QueueStatus.RINGING, QueueStatus.ACCEPTED],
 					},
 				},
+				orderBy: {
+					joinedAt: 'desc',
+				},
 			});
 			return record ? this.mapper.toDomain(record) : null;
 		});
