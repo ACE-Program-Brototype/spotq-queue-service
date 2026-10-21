@@ -3,6 +3,7 @@ import type {
 	RegisterQueueOutputDTO,
 } from '@application/dtos/register-queue.dto.ts';
 import { validateRestaurantActiveSubscription } from '@application/helpers/index.ts';
+import { RegisterQueueMapper } from '@application/mappers/register-queue.mapper.ts';
 import type { IQueueCacheService } from '@application/ports/cache/queue-cache.port.ts';
 import type { IEtaService } from '@application/ports/services/eta-service.port.ts';
 import type { IRestaurantServiceClient } from '@application/ports/services/restaurant-service.port.ts';
@@ -168,19 +169,6 @@ export class RegisterQueueUseCase implements IRegisterQueueUseCase {
 			);
 		}
 
-		return {
-			queueEntryId: persisted.id,
-			restaurantId: persisted.restaurantId,
-			userId: persisted.userId ?? null,
-			guestName: persisted.guestName,
-			guestPhone: persisted.phone,
-			partySize: persisted.partySize,
-			specialNotes: persisted.specialNotes ?? null,
-			registrationType: persisted.registrationType,
-			position: persisted.position ?? position,
-			estimatedWaitMinutes: persisted.estimatedWaitMinutes ?? estimatedWaitMinutes,
-			status: persisted.status,
-			joinedAt: persisted.joinedAt.toISOString(),
-		};
+		return RegisterQueueMapper.toOutputDTO(persisted, position, estimatedWaitMinutes);
 	}
 }

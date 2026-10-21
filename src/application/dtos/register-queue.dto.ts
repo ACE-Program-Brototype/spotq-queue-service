@@ -9,7 +9,7 @@ export interface RegisterQueueInputDTO {
 	partySize: number;
 	specialNotes?: string | null;
 	fid?: string | null;
-	registrationType?: RegistrationType | 'WALK_IN' | 'ONLINE';
+	registrationType?: RegistrationType;
 }
 
 export interface RegisterQueueOutputDTO {
@@ -20,7 +20,7 @@ export interface RegisterQueueOutputDTO {
 	guestPhone: string;
 	partySize: number;
 	specialNotes?: string | null;
-	registrationType: RegistrationType | 'WALK_IN' | 'ONLINE';
+	registrationType: RegistrationType;
 	position: number;
 	estimatedWaitMinutes: number;
 	status: string;
