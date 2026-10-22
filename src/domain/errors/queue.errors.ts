@@ -130,3 +130,13 @@ export class InsufficientTableCapacityError extends DomainError {
 		);
 	}
 }
+
+export class CannotRingWalkInCustomerError extends DomainError {
+	constructor(queueEntryId: string) {
+		super(
+			`Walk-in customer (ID: ${queueEntryId}) cannot be rung as they do not have a registered device`,
+			'CANNOT_RING_WALK_IN_CUSTOMER',
+			{ queueEntryId },
+		);
+	}
+}

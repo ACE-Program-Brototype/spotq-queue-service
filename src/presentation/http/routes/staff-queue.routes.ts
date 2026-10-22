@@ -12,6 +12,7 @@ import {
 	registerWalkInBodySchema,
 	registerWalkInParamsSchema,
 } from '@presentation/http/validators/register-walk-in.validator.ts';
+import { ringCustomerParamsSchema } from '@presentation/http/validators/ring-customer.validator.ts';
 import { ROUTES } from '@shared/constants/routes.constants.ts';
 import { Router } from 'express';
 
@@ -36,6 +37,13 @@ staffQueueRouter.patch(
 	validateParams(assignTablesParamsSchema),
 	validateBody(assignTablesBodySchema),
 	staffQueueController.assignTables,
+);
+
+staffQueueRouter.post(
+	ROUTES.RING_CUSTOMER,
+	staffAuthMiddleware,
+	validateParams(ringCustomerParamsSchema),
+	staffQueueController.ringCustomer,
 );
 
 export { staffQueueRouter };

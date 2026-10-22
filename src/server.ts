@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import http from 'node:http';
+import { initWorkers } from '@di/index.ts';
 import { config } from '@infrastructure/config/index.ts';
 import { databaseService } from '@infrastructure/database/index.ts';
 import { logger } from '@infrastructure/logger/index.ts';
@@ -12,6 +13,8 @@ import app from './app.ts';
 async function bootstrap() {
 	await databaseService.connect();
 	await redisService.connect();
+
+	const workers = initWorkers();
 
 	const server = http.createServer(app);
 	const { close: closeSocketServer } = await initSocketServer(server);
@@ -58,6 +61,7 @@ async function bootstrap() {
 				});
 			});
 
+			await workers.closeAll();
 			await bullmqQueueService.close();
 			await redisService.disconnect();
 			await databaseService.disconnect();

@@ -50,6 +50,7 @@ export const QUEUE_MESSAGES = {
 	RESTAURANT_NOT_FOUND: 'Restaurant was not found.',
 	TABLE_ASSIGN_SUCCESS: 'Table assigned successfully',
 	TABLE_ASSIGN_FAILED: 'Failed to assign table',
+	CUSTOMER_RING_SUCCESS: 'Customer notified and rung successfully',
 	INVALID_TABLES: 'At least one table must be selected',
 	DUPLICATE_TABLE_ID: 'Duplicate table ID detected in assignment list',
 	QUEUE_ENTRY_NOT_FOUND: 'Queue entry was not found',

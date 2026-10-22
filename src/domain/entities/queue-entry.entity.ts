@@ -1,5 +1,8 @@
 import { QueueStatus, RegistrationType } from '../enums/queue.enums.ts';
-import { QueueEntryNotWaitingError } from '../errors/queue.errors.ts';
+import {
+	CannotRingWalkInCustomerError,
+	QueueEntryNotWaitingError,
+} from '../errors/queue.errors.ts';
 
 /**
  * Immutable properties representing a QueueEntry record in the domain model.
@@ -211,6 +214,18 @@ export class QueueEntry {
 		this.props.status = QueueStatus.SEATED;
 		this.props.seatedAt = new Date();
 		this.props.position = null;
+		this.props.updatedAt = new Date();
+	}
+
+	public ring(): void {
+		if (this.props.status !== QueueStatus.WAITING) {
+			throw new QueueEntryNotWaitingError(this.props.id, this.props.status);
+		}
+		if (this.props.registrationType === RegistrationType.WALK_IN) {
+			throw new CannotRingWalkInCustomerError(this.props.id);
+		}
+		this.props.ringCount += 1;
+		this.props.lastRingedAt = new Date();
 		this.props.updatedAt = new Date();
 	}
 

@@ -3,6 +3,7 @@ import { config } from '@infrastructure/config/index.ts';
 import { logger } from '@infrastructure/logger/index.ts';
 import { Queue } from 'bullmq';
 import IORedis from 'ioredis';
+import { QUEUE_EVENTS } from './queue.constants.ts';
 
 export class BullMQQueueService implements IQueueService {
 	private readonly queues: Map<string, Queue> = new Map();
@@ -12,9 +13,10 @@ export class BullMQQueueService implements IQueueService {
 		this.connection = new IORedis(connectionUrl, {
 			maxRetriesPerRequest: null,
 			enableReadyCheck: false,
+			lazyConnect: true,
 		});
 
-		this.connection.on('error', (err) => {
+		this.connection.on(QUEUE_EVENTS.ERROR, (err) => {
 			logger.error({ err }, 'BullMQ Redis connection error');
 		});
 	}

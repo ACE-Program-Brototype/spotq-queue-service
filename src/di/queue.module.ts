@@ -6,15 +6,19 @@ import type { IWebSocketBroadcaster } from '@application/ports/services/websocke
 import type { IAssignTableUseCase } from '@application/ports/use-cases/assign-table.use-case.port.ts';
 import type { IGetQueueEtaUseCase } from '@application/ports/use-cases/get-queue-eta.use-case.port.ts';
 import type { IRegisterQueueUseCase } from '@application/ports/use-cases/register-queue.use-case.port.ts';
+import type { IRingCustomerUseCase } from '@application/ports/use-cases/ring-customer.use-case.port.ts';
 import { AssignTableUseCase } from '@application/use-cases/assign-table.use-case.ts';
 import { GetQueueEtaUseCase } from '@application/use-cases/get-queue-eta.use-case.ts';
 import { RegisterQueueUseCase } from '@application/use-cases/register-queue.use-case.ts';
+import { RingCustomerUseCase } from '@application/use-cases/ring-customer.use-case.ts';
+import type { IQueueService } from '@domain/index.ts';
 import type { IQueueRepository } from '@domain/repositories/queue.repository.interface.ts';
 import { prisma } from '@infrastructure/database/prisma.ts';
 import { PrismaQueueRepository } from '@infrastructure/database/repositories/prisma-queue.repository.ts';
 import { MlEtaServiceClient } from '@infrastructure/external/ml-eta-service.client.ts';
 import { RestaurantServiceClient } from '@infrastructure/external/restaurant-service.client.ts';
 import { FirebasePushNotificationService } from '@infrastructure/firebase/index.ts';
+import { bullmqQueueService } from '@infrastructure/queue/index.ts';
 import { redisClient } from '@infrastructure/redis/redis.client.ts';
 import { RedisQueueCacheService } from '@infrastructure/redis/redis-queue-cache.service.ts';
 import { SocketBroadcaster } from '@infrastructure/websocket/socket-broadcaster.ts';
@@ -51,12 +55,18 @@ export const queueModule = new ContainerModule(({ bind }) => {
 		.to(FirebasePushNotificationService)
 		.inSingletonScope();
 
+	bind<IQueueService>(TYPES.Services.QueueService).toConstantValue(bullmqQueueService);
+
 	bind<IRegisterQueueUseCase>(TYPES.UseCases.RegisterQueueUseCase)
 		.to(RegisterQueueUseCase)
 		.inSingletonScope();
 
 	bind<IAssignTableUseCase>(TYPES.UseCases.AssignTableUseCase)
 		.to(AssignTableUseCase)
+		.inSingletonScope();
+
+	bind<IRingCustomerUseCase>(TYPES.UseCases.RingCustomerUseCase)
+		.to(RingCustomerUseCase)
 		.inSingletonScope();
 
 	bind<StaffQueueController>(TYPES.Controllers.StaffQueueController)

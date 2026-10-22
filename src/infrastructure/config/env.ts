@@ -49,6 +49,9 @@ export const config = {
 		maxRetries: validatedEnv.FCM_MAX_RETRIES,
 		retryDelayMs: validatedEnv.FCM_RETRY_DELAY_MS,
 	},
+	notifications: {
+		ticketDeepLinkBaseUrl: validatedEnv.TICKET_DEEP_LINK_BASE_URL,
+	},
 } as const;
 
 export type Config = typeof config;
