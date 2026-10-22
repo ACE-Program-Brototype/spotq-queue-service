@@ -3,8 +3,10 @@ import type { IEtaService } from '@application/ports/services/eta-service.port.t
 import type { IPushNotificationService } from '@application/ports/services/push-notification.port.ts';
 import type { IRestaurantServiceClient } from '@application/ports/services/restaurant-service.port.ts';
 import type { IWebSocketBroadcaster } from '@application/ports/services/websocket-broadcaster.port.ts';
+import type { IAssignTableUseCase } from '@application/ports/use-cases/assign-table.use-case.port.ts';
 import type { IGetQueueEtaUseCase } from '@application/ports/use-cases/get-queue-eta.use-case.port.ts';
 import type { IRegisterQueueUseCase } from '@application/ports/use-cases/register-queue.use-case.port.ts';
+import { AssignTableUseCase } from '@application/use-cases/assign-table.use-case.ts';
 import { GetQueueEtaUseCase } from '@application/use-cases/get-queue-eta.use-case.ts';
 import { RegisterQueueUseCase } from '@application/use-cases/register-queue.use-case.ts';
 import type { IQueueRepository } from '@domain/repositories/queue.repository.interface.ts';
@@ -51,6 +53,10 @@ export const queueModule = new ContainerModule(({ bind }) => {
 
 	bind<IRegisterQueueUseCase>(TYPES.UseCases.RegisterQueueUseCase)
 		.to(RegisterQueueUseCase)
+		.inSingletonScope();
+
+	bind<IAssignTableUseCase>(TYPES.UseCases.AssignTableUseCase)
+		.to(AssignTableUseCase)
 		.inSingletonScope();
 
 	bind<StaffQueueController>(TYPES.Controllers.StaffQueueController)

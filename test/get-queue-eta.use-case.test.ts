@@ -57,11 +57,13 @@ describe('GetQueueEtaUseCase Unit Tests', () => {
 			countToday: jest.fn(),
 			findActiveByPhone: jest.fn(),
 			createWithHistory: jest.fn(),
+			assignTablesWithHistory: jest.fn(),
 		};
 
 		mockRestaurantServiceClient = {
 			getRestaurantStatus: jest.fn().mockResolvedValue(validRestaurantStatus),
 			checkAvailability: jest.fn().mockResolvedValue(openTableCheck),
+			assignTables: jest.fn(),
 		};
 
 		mockEtaService = {

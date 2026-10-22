@@ -1,4 +1,5 @@
 import type { QueueEntry } from '../entities/queue-entry.entity.ts';
+import type { QueueStatus } from '../enums/queue.enums.ts';
 import type { IBaseRepository } from './base.repository.interface.ts';
 
 export interface ActiveQueueMetrics {
@@ -16,4 +17,10 @@ export interface IQueueRepository extends IBaseRepository<QueueEntry, string> {
 	countToday(restaurantId: string): Promise<number>;
 	findActiveByPhone(restaurantId: string, phone: string): Promise<QueueEntry | null>;
 	createWithHistory(queueEntry: QueueEntry, changedBy?: string): Promise<QueueEntry>;
+	assignTablesWithHistory(
+		queueEntry: QueueEntry,
+		tableIds: string[],
+		assignedBy: string,
+		previousStatus: QueueStatus,
+	): Promise<QueueEntry>;
 }

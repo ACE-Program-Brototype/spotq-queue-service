@@ -5,6 +5,10 @@ import {
 	validateParams,
 } from '@presentation/http/middleware/index.ts';
 import {
+	assignTablesBodySchema,
+	assignTablesParamsSchema,
+} from '@presentation/http/validators/assign-table.validator.ts';
+import {
 	registerWalkInBodySchema,
 	registerWalkInParamsSchema,
 } from '@presentation/http/validators/register-walk-in.validator.ts';
@@ -24,6 +28,14 @@ staffQueueRouter.post(
 	validateParams(registerWalkInParamsSchema),
 	validateBody(registerWalkInBodySchema),
 	staffQueueController.registerWalkIn,
+);
+
+staffQueueRouter.patch(
+	ROUTES.ASSIGN_TABLE,
+	staffAuthMiddleware,
+	validateParams(assignTablesParamsSchema),
+	validateBody(assignTablesBodySchema),
+	staffQueueController.assignTables,
 );
 
 export { staffQueueRouter };

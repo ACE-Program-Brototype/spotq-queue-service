@@ -1,4 +1,5 @@
 import type {
+	AssignTableItem,
 	IRestaurantServiceClient,
 	RestaurantStatusResult,
 	TableAvailabilityResult,
@@ -216,6 +217,61 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 			logger.error(
 				{ err: error, restaurantId, partySize },
 				'Unexpected error during table availability check',
+			);
+			throw new UpstreamServiceUnavailableError(
+				'Unexpected error communicating with restaurant service',
+			);
+		}
+	}
+
+	async assignTables(restaurantId: string, tables: AssignTableItem[]): Promise<void> {
+		try {
+			const url = `${this.baseUrl}${RESTAURANT_SERVICE_ROUTES.ASSIGN_TABLE(restaurantId)}`;
+			const response = await axios.patch<IApiResponseEnvelope<null>>(
+				url,
+				{ tables },
+				{
+					timeout: RestaurantServiceClient.REQUEST_TIMEOUT_MS,
+					headers: this.getInternalHeaders(),
+				},
+			);
+
+			if (!response.data || response.data.success !== true) {
+				const errorMessage = response.data?.message || 'Failed to assign tables upstream';
+				throw new UpstreamServiceUnavailableError(errorMessage);
+			}
+		} catch (error) {
+			if (error instanceof DomainError) {
+				throw error;
+			}
+
+			if (axios.isAxiosError(error)) {
+				if (error.response?.status === 404) {
+					throw new RestaurantNotFoundError(restaurantId);
+				}
+
+				const upstreamMessage =
+					(error.response?.data as { message?: string })?.message ||
+					`Restaurant table assignment failed: ${error.message}`;
+
+				logger.error(
+					{ err: error, restaurantId, tables, upstreamMessage },
+					'Failed to call spotq-restaurant-service table assignment API via axios',
+				);
+
+				const statusCode =
+					error.response?.status && error.response.status >= 400 && error.response.status < 500
+						? error.response.status
+						: HTTP_STATUS.SERVICE_UNAVAILABLE;
+
+				throw new UpstreamServiceUnavailableError(upstreamMessage, {
+					upstreamStatusCode: statusCode,
+				});
+			}
+
+			logger.error(
+				{ err: error, restaurantId, tables },
+				'Unexpected error during table assignment',
 			);
 			throw new UpstreamServiceUnavailableError(
 				'Unexpected error communicating with restaurant service',

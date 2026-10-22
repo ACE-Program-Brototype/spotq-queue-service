@@ -16,6 +16,7 @@ export function mapDomainErrorToHttpStatus(
 		case 'TABLES_AVAILABLE':
 		case 'RESTAURANT_NOT_ACCEPTING_QUEUE':
 		case 'ACTIVE_QUEUE_ENTRY_EXISTS':
+		case 'QUEUE_ENTRY_NOT_WAITING':
 			return HTTP_STATUS.CONFLICT;
 
 		case 'QUEUE_ENTRY_NOT_FOUND':
@@ -29,6 +30,7 @@ export function mapDomainErrorToHttpStatus(
 
 		case 'INVALID_PARTY_SIZE':
 		case 'INVALID_REGISTRATION_TYPE':
+		case 'INSUFFICIENT_TABLE_CAPACITY':
 			return HTTP_STATUS.BAD_REQUEST;
 
 		case 'UPSTREAM_SERVICE_UNAVAILABLE':

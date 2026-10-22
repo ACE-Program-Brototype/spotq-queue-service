@@ -110,3 +110,23 @@ export class UpstreamServiceUnavailableError extends DomainError {
 		super(message, 'UPSTREAM_SERVICE_UNAVAILABLE', details);
 	}
 }
+
+export class QueueEntryNotWaitingError extends DomainError {
+	constructor(queueEntryId: string, currentStatus: string) {
+		super(
+			`Queue entry ${queueEntryId} is not in waiting state (current status: ${currentStatus})`,
+			'QUEUE_ENTRY_NOT_WAITING',
+			{ queueEntryId, currentStatus },
+		);
+	}
+}
+
+export class InsufficientTableCapacityError extends DomainError {
+	constructor(partySize: number, totalCapacity: number) {
+		super(
+			`Total assigned table capacity (${totalCapacity}) is insufficient for party size (${partySize})`,
+			'INSUFFICIENT_TABLE_CAPACITY',
+			{ partySize, totalCapacity },
+		);
+	}
+}

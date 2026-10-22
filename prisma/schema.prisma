@@ -9,8 +9,6 @@ datasource db {
 
 enum QueueStatus {
   WAITING
-  RINGING
-  ACCEPTED
   SEATED
   SKIPPED
   CANCELLED
@@ -37,6 +35,7 @@ model QueueEntry {
   estimatedWaitMinutesAtJoin Int?             @map("estimated_wait_minutes_at_join")
   status                     QueueStatus      @default(WAITING) @map("status")
   ringCount                  Int              @default(0) @map("ring_count")
+  lastRingedAt               DateTime?        @map("last_ringed_at") @db.Timestamptz(3)
   fid                        String?          @map("fid")
   joinedAt                   DateTime         @default(now()) @map("joined_at") @db.Timestamptz(3)
   seatedAt                   DateTime?        @map("seated_at") @db.Timestamptz(3)

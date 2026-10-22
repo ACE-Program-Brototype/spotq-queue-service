@@ -1,9 +1,11 @@
+import type { IAssignTableUseCase } from '@application/ports/use-cases/assign-table.use-case.port.ts';
 import type { IRegisterQueueUseCase } from '@application/ports/use-cases/register-queue.use-case.port.ts';
 import { TYPES } from '@di/types.ts';
 import { RegistrationType } from '@domain/index.ts';
 import { HTTP_STATUS, QUEUE_MESSAGES, sendSuccessResponse } from '@shared/index.ts';
 import type { Request, Response } from 'express';
 import { inject, injectable } from 'inversify';
+import type { AssignTablesBody, AssignTablesParams } from '../validators/assign-table.validator.ts';
 import type {
 	RegisterWalkInBody,
 	RegisterWalkInParams,
@@ -14,6 +16,8 @@ export class StaffQueueController {
 	constructor(
 		@inject(TYPES.UseCases.RegisterQueueUseCase)
 		private readonly registerQueueUseCase: IRegisterQueueUseCase,
+		@inject(TYPES.UseCases.AssignTableUseCase)
+		private readonly assignTableUseCase: IAssignTableUseCase,
 	) {}
 
 	registerWalkIn = async (req: Request, res: Response): Promise<void> => {
@@ -32,5 +36,22 @@ export class StaffQueueController {
 		});
 
 		sendSuccessResponse(res, result, QUEUE_MESSAGES.WALK_IN_REGISTER_SUCCESS, HTTP_STATUS.CREATED);
+	};
+
+	assignTables = async (req: Request, res: Response): Promise<void> => {
+		const { queueEntryId } = req.params as unknown as AssignTablesParams;
+		const { tables } = req.body as AssignTablesBody;
+
+		const restaurantId = req.user!.restaurantId!;
+		const staffUserId = req.user!.userId;
+
+		const result = await this.assignTableUseCase.execute({
+			restaurantId,
+			queueEntryId,
+			staffUserId,
+			tables,
+		});
+
+		sendSuccessResponse(res, result, QUEUE_MESSAGES.TABLE_ASSIGN_SUCCESS, HTTP_STATUS.OK);
 	};
 }

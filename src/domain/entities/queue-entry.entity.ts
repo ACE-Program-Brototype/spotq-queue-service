@@ -1,4 +1,5 @@
 import { QueueStatus, RegistrationType } from '../enums/queue.enums.ts';
+import { QueueEntryNotWaitingError } from '../errors/queue.errors.ts';
 
 /**
  * Immutable properties representing a QueueEntry record in the domain model.
@@ -18,6 +19,7 @@ export interface QueueEntryProps {
 	estimatedWaitMinutesAtJoin: number | null;
 	status: QueueStatus;
 	ringCount: number;
+	lastRingedAt?: Date | null;
 	fid?: string | null;
 	joinedAt: Date;
 	seatedAt?: Date | null;
@@ -90,6 +92,7 @@ export class QueueEntry {
 			estimatedWaitMinutesAtJoin: props.estimatedWaitMinutes,
 			status: QueueStatus.WAITING,
 			ringCount: 0,
+			lastRingedAt: null,
 			fid: props.fid ?? null,
 			joinedAt: now,
 			seatedAt: null,
@@ -177,6 +180,10 @@ export class QueueEntry {
 		return this.props.ringCount;
 	}
 
+	public get lastRingedAt(): Date | null | undefined {
+		return this.props.lastRingedAt;
+	}
+
 	public get fid(): string | null | undefined {
 		return this.props.fid;
 	}
@@ -195,6 +202,16 @@ export class QueueEntry {
 
 	public get updatedAt(): Date {
 		return this.props.updatedAt;
+	}
+
+	public seat(): void {
+		if (this.props.status !== QueueStatus.WAITING) {
+			throw new QueueEntryNotWaitingError(this.props.id, this.props.status);
+		}
+		this.props.status = QueueStatus.SEATED;
+		this.props.seatedAt = new Date();
+		this.props.position = null;
+		this.props.updatedAt = new Date();
 	}
 
 	public toJSON(): QueueEntryProps {

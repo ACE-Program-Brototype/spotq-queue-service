@@ -48,6 +48,13 @@ export const QUEUE_MESSAGES = {
 	SUBSCRIPTION_REQUIRED:
 		'Restaurant requires an active QUEUE_PRO subscription to access queue services.',
 	RESTAURANT_NOT_FOUND: 'Restaurant was not found.',
+	TABLE_ASSIGN_SUCCESS: 'Table assigned successfully',
+	TABLE_ASSIGN_FAILED: 'Failed to assign table',
+	INVALID_TABLES: 'At least one table must be selected',
+	DUPLICATE_TABLE_ID: 'Duplicate table ID detected in assignment list',
+	QUEUE_ENTRY_NOT_FOUND: 'Queue entry was not found',
+	QUEUE_ENTRY_NOT_WAITING: 'Queue entry is not currently waiting',
+	INSUFFICIENT_TABLE_CAPACITY: 'Assigned table capacity is less than party size',
 } as const;
 
 /**

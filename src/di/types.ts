@@ -18,6 +18,7 @@ export const TYPES = {
 	UseCases: {
 		RegisterQueueUseCase: Symbol.for('RegisterQueueUseCase'),
 		GetQueueEtaUseCase: Symbol.for('GetQueueEtaUseCase'),
+		AssignTableUseCase: Symbol.for('AssignTableUseCase'),
 	},
 	Controllers: {
 		StaffQueueController: Symbol.for('StaffQueueController'),
