@@ -1,6 +1,8 @@
 import { config } from '@infrastructure/config/env.ts';
 import { internalS2SAuthMiddleware } from '@presentation/http/middleware/internal-s2s-auth.middleware.ts';
+import { ERROR_CODES } from '@shared/constants/error-code.constants.ts';
 import { HTTP_STATUS } from '@shared/constants/http.constants.ts';
+import { AUTH_MESSAGES } from '@shared/constants/message.constants.ts';
 import type { NextFunction, Request, Response } from 'express';
 
 jest.mock('@spotq-org/s2s-core', () => ({
@@ -37,7 +39,8 @@ describe('internalS2SAuthMiddleware', () => {
 			expect.objectContaining({
 				success: false,
 				statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
-				code: 'INTERNAL_SERVER_ERROR',
+				code: ERROR_CODES.INTERNAL_SERVER_ERROR,
+				message: AUTH_MESSAGES.S2S_ORDER_KEY_MISSING,
 				retryable: false,
 			}),
 		);

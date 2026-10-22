@@ -59,6 +59,8 @@ export const AUTH_MESSAGES = {
 	FORBIDDEN_STAFF_ONLY: 'Forbidden: Only authorized STAFF or ADMIN can manage the restaurant queue',
 	UNAUTHORIZED_RESTAURANT_ACCESS:
 		'Staff member does not have permission to manage this restaurant queue',
+	S2S_ORDER_KEY_MISSING:
+		'S2S authentication is misconfigured: public key for order-service is missing',
 } as const;
 
 /**

@@ -48,6 +48,7 @@ describe('GetActiveQueueByUserUseCase', () => {
 
 		expect(result.hasActiveQueue).toBe(true);
 		expect(result.queueEntry).not.toBeNull();
+		expect(result.queueEntry?.queueEntryId).toBe(activeQueue.id);
 		expect(result.queueEntry?.id).toBe(activeQueue.id);
 		expect(result.queueEntry?.queueNumber).toBe('W-001');
 		expect(result.queueEntry?.userId).toBe(userId);
