@@ -4,6 +4,8 @@ export const ROUTES = {
 	METRICS: '/metrics',
 	STAFF_BASE: '/staff',
 	REGISTER_WALK_IN: '/restaurants/:restaurantId/queue/walk-in',
+	CUSTOMER_BASE: '/customer',
+	GET_ETA: '/:restaurantId/eta',
 } as const;
 
 export const RESTAURANT_SERVICE_ROUTES = {
@@ -16,4 +18,8 @@ export const RESTAURANT_SERVICE_ROUTES = {
 export const INTERNAL_ROUTES = {
 	BASE: '/api/internal/v1',
 	USER_ACTIVE_QUEUE: '/restaurants/:restaurantId/queue/users/:userId/active',
+} as const;
+
+export const ML_ETA_SERVICE_ROUTES = {
+	PREDICT: '/eta/predict',
 } as const;

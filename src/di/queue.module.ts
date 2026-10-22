@@ -1,19 +1,24 @@
 import type { IQueueCacheService } from '@application/ports/cache/queue-cache.port.ts';
 import type { IEtaService } from '@application/ports/services/eta-service.port.ts';
+import type { IPushNotificationService } from '@application/ports/services/push-notification.port.ts';
 import type { IRestaurantServiceClient } from '@application/ports/services/restaurant-service.port.ts';
 import type { IWebSocketBroadcaster } from '@application/ports/services/websocket-broadcaster.port.ts';
 import type { IGetActiveQueueByUserUseCase } from '@application/ports/use-cases/get-active-queue-by-user.use-case.port.ts';
+import type { IGetQueueEtaUseCase } from '@application/ports/use-cases/get-queue-eta.use-case.port.ts';
 import type { IRegisterQueueUseCase } from '@application/ports/use-cases/register-queue.use-case.port.ts';
 import { GetActiveQueueByUserUseCase } from '@application/use-cases/get-active-queue-by-user.use-case.ts';
+import { GetQueueEtaUseCase } from '@application/use-cases/get-queue-eta.use-case.ts';
 import { RegisterQueueUseCase } from '@application/use-cases/register-queue.use-case.ts';
 import type { IQueueRepository } from '@domain/repositories/queue.repository.interface.ts';
 import { prisma } from '@infrastructure/database/prisma.ts';
 import { PrismaQueueRepository } from '@infrastructure/database/repositories/prisma-queue.repository.ts';
 import { MlEtaServiceClient } from '@infrastructure/external/ml-eta-service.client.ts';
 import { RestaurantServiceClient } from '@infrastructure/external/restaurant-service.client.ts';
+import { FirebasePushNotificationService } from '@infrastructure/firebase/index.ts';
 import { redisClient } from '@infrastructure/redis/redis.client.ts';
 import { RedisQueueCacheService } from '@infrastructure/redis/redis-queue-cache.service.ts';
 import { SocketBroadcaster } from '@infrastructure/websocket/socket-broadcaster.ts';
+import { CustomerQueueController } from '@presentation/http/controllers/customer-queue.controller.ts';
 import { InternalQueueController } from '@presentation/http/controllers/internal-queue.controller.ts';
 import { StaffQueueController } from '@presentation/http/controllers/staff-queue.controller.ts';
 import type { PrismaClient } from '@prisma/client';
@@ -43,6 +48,10 @@ export const queueModule = new ContainerModule(({ bind }) => {
 		.to(SocketBroadcaster)
 		.inSingletonScope();
 
+	bind<IPushNotificationService>(TYPES.Services.PushNotificationService)
+		.to(FirebasePushNotificationService)
+		.inSingletonScope();
+
 	bind<IRegisterQueueUseCase>(TYPES.UseCases.RegisterQueueUseCase)
 		.to(RegisterQueueUseCase)
 		.inSingletonScope();
@@ -51,11 +60,19 @@ export const queueModule = new ContainerModule(({ bind }) => {
 		.to(GetActiveQueueByUserUseCase)
 		.inSingletonScope();
 
-	bind<StaffQueueController>(TYPES.Controller.StaffQueueController)
+	bind<IGetQueueEtaUseCase>(TYPES.UseCases.GetQueueEtaUseCase)
+		.to(GetQueueEtaUseCase)
+		.inSingletonScope();
+
+	bind<StaffQueueController>(TYPES.Controllers.StaffQueueController)
 		.to(StaffQueueController)
 		.inSingletonScope();
 
-	bind<InternalQueueController>(TYPES.Controller.InternalQueueController)
+	bind<InternalQueueController>(TYPES.Controllers.InternalQueueController)
 		.to(InternalQueueController)
+		.inSingletonScope();
+
+	bind<CustomerQueueController>(TYPES.Controllers.CustomerQueueController)
+		.to(CustomerQueueController)
 		.inSingletonScope();
 });

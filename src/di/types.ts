@@ -1,14 +1,3 @@
-/**
- * Inversify Dependency Injection service identifier symbols.
- *
- * Categorized logically into:
- * - Database: Data persistence clients (Prisma)
- * - Redis: Cache and in-memory key-value stores
- * - Repositories: Domain repository abstractions
- * - Services: External HTTP clients and internal utility adapters
- * - UseCases: Application business logic orchestration
- * - Controller: HTTP presentation controllers
- */
 export const TYPES = {
 	Database: {
 		PrismaClient: Symbol.for('PrismaClient'),
@@ -24,14 +13,17 @@ export const TYPES = {
 		EtaService: Symbol.for('EtaService'),
 		QueueCacheService: Symbol.for('QueueCacheService'),
 		WebSocketBroadcaster: Symbol.for('WebSocketBroadcaster'),
+		PushNotificationService: Symbol.for('PushNotificationService'),
 	},
 	UseCases: {
 		RegisterQueueUseCase: Symbol.for('RegisterQueueUseCase'),
 		GetActiveQueueByUserUseCase: Symbol.for('GetActiveQueueByUserUseCase'),
+		GetQueueEtaUseCase: Symbol.for('GetQueueEtaUseCase'),
 	},
-	Controller: {
+	Controllers: {
 		StaffQueueController: Symbol.for('StaffQueueController'),
 		InternalQueueController: Symbol.for('InternalQueueController'),
+		CustomerQueueController: Symbol.for('CustomerQueueController'),
 	},
 
 	// Top-level aliases for direct access convenience
@@ -42,10 +34,13 @@ export const TYPES = {
 	EtaService: Symbol.for('EtaService'),
 	QueueCacheService: Symbol.for('QueueCacheService'),
 	WebSocketBroadcaster: Symbol.for('WebSocketBroadcaster'),
+	PushNotificationService: Symbol.for('PushNotificationService'),
 	RegisterQueueUseCase: Symbol.for('RegisterQueueUseCase'),
 	GetActiveQueueByUserUseCase: Symbol.for('GetActiveQueueByUserUseCase'),
+	GetQueueEtaUseCase: Symbol.for('GetQueueEtaUseCase'),
 	StaffQueueController: Symbol.for('StaffQueueController'),
 	InternalQueueController: Symbol.for('InternalQueueController'),
+	CustomerQueueController: Symbol.for('CustomerQueueController'),
 } as const;
 
 export type ServiceTypes = typeof TYPES;

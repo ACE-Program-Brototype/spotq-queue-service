@@ -21,6 +21,7 @@ export const config = {
 		restaurantServiceName: validatedEnv.RESTAURANT_SERVICE,
 		restaurantServiceUrl: validatedEnv.RESTAURANT_SERVICE_URL,
 		etaServiceUrl: validatedEnv.ETA_SERVICE_URL,
+		etaServiceTimeoutMs: validatedEnv.ETA_SERVICE_TIMEOUT_MS,
 		mockTableCheck: validatedEnv.MOCK_TABLE_CHECK,
 	},
 	s2s: {
@@ -40,6 +41,14 @@ export const config = {
 				? process.env.WS_USE_REDIS_ADAPTER === 'true'
 				: validatedEnv.WS_USE_REDIS_ADAPTER;
 		},
+	},
+	firebase: {
+		enabled: validatedEnv.FCM_ENABLED,
+		projectId: validatedEnv.FIREBASE_PROJECT_ID,
+		clientEmail: validatedEnv.FIREBASE_CLIENT_EMAIL,
+		privateKey: validatedEnv.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+		maxRetries: validatedEnv.FCM_MAX_RETRIES,
+		retryDelayMs: validatedEnv.FCM_RETRY_DELAY_MS,
 	},
 } as const;
 

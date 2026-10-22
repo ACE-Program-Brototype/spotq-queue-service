@@ -1,3 +1,4 @@
+import { ETA_CONSTANTS } from '@shared/constants/eta.constants.ts';
 import { z } from 'zod';
 
 const envSchema = z.object({
@@ -12,6 +13,7 @@ const envSchema = z.object({
 	RESTAURANT_SERVICE_URL: z.string().default('http://spotq-restaurant-service:3001'),
 	RESTAURANT_SERVICE: z.string().default('restaurant-service'),
 	ETA_SERVICE_URL: z.string().default('http://spotq-ml-eta-service:8000'),
+	ETA_SERVICE_TIMEOUT_MS: z.coerce.number().positive().default(ETA_CONSTANTS.DEFAULT_TIMEOUT_MS),
 	S2S_PRIVATE_KEY: z.string().optional(),
 	S2S_ORDER_PUBLIC: z.string().optional(),
 	MOCK_TABLE_CHECK: z
@@ -30,6 +32,18 @@ const envSchema = z.object({
 			return false;
 		}, z.boolean())
 		.default(false),
+	FIREBASE_PROJECT_ID: z.string().optional(),
+	FIREBASE_CLIENT_EMAIL: z.string().optional(),
+	FIREBASE_PRIVATE_KEY: z.string().optional(),
+	FCM_ENABLED: z
+		.preprocess((val) => {
+			if (typeof val === 'string') return val.toLowerCase() === 'true';
+			if (typeof val === 'boolean') return val;
+			return true;
+		}, z.boolean())
+		.default(true),
+	FCM_MAX_RETRIES: z.coerce.number().int().nonnegative().default(2),
+	FCM_RETRY_DELAY_MS: z.coerce.number().int().positive().default(500),
 });
 
 export const validateEnv = () => {
