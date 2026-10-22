@@ -328,6 +328,29 @@ describe('WebSocket Infrastructure Integration Tests', () => {
 			});
 		});
 
+		it('customer without pre-assigned ticketId cannot hijack arbitrary ticket room', (done) => {
+			const customerWithoutTicketHeaders = {
+				'x-user-id': '99999999-1111-2222-3333-444444444444',
+				'x-restaurant-id': restaurantIdA,
+				'x-user-role': 'CUSTOMER',
+			};
+			const client = createClient(customerWithoutTicketHeaders);
+			client.connect();
+
+			client.on('connect', () => {
+				client.emit(
+					WS_CLIENT_EVENTS.JOIN_TICKET,
+					{ ticketId: customerTicketId },
+					(res: { success: boolean; error?: string }) => {
+						expect(res.success).toBe(false);
+						expect(res.error).toBe(WS_ERROR_MESSAGES.UNAUTHORIZED_TICKET);
+						client.disconnect();
+						done();
+					},
+				);
+			});
+		});
+
 		it('customer can join and leave queue room', (done) => {
 			const client = createClient(customerHeaders);
 			client.connect();

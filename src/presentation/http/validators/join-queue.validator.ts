@@ -1,4 +1,4 @@
-import { PARTY_SIZE_LIMITS, QUEUE_LIMITS } from '@shared/index.ts';
+import { PARTY_SIZE_LIMITS, QUEUE_LIMITS, REGEX } from '@shared/index.ts';
 import { z } from 'zod';
 
 export const joinQueueParamsSchema = z.object({
@@ -18,7 +18,7 @@ export const joinQueueBodySchema = z.object({
 		.string()
 		.trim()
 		.regex(
-			/^\+[1-9]\d{1,14}$/,
+			REGEX.E164_PHONE,
 			'guestPhone must be a valid phone number in E.164 format (e.g., +15559876543)',
 		),
 	partySize: z

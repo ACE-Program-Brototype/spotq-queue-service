@@ -134,12 +134,19 @@ export class RegisterQueueUseCase implements IRegisterQueueUseCase {
 		const changedBy = staffUserId || userId || 'system';
 		const persisted = await this.queueRepository.createWithHistory(queueEntry, changedBy);
 
-		await this.queueCacheService.saveLiveEntry(
-			persisted.id,
-			restaurantId,
-			position,
-			estimatedWaitMinutes,
-		);
+		try {
+			await this.queueCacheService.saveLiveEntry(
+				persisted.id,
+				restaurantId,
+				position,
+				estimatedWaitMinutes,
+			);
+		} catch (error) {
+			logger.error(
+				{ err: error, queueEntryId: persisted.id },
+				'Non-blocking: Failed to cache live queue entry in Redis',
+			);
+		}
 
 		try {
 			this.socketBroadcaster.broadcastToRestaurant(

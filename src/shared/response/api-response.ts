@@ -101,7 +101,7 @@ export const ApiResponse = {
 			success: false,
 			message,
 			code,
-			...(error !== undefined ? { error } : {}),
+			error: typeof error === 'string' ? error : (error ?? code),
 			statusCode,
 		};
 	},
@@ -144,6 +144,7 @@ export function sendErrorResponse(
 		success: false,
 		message: msg,
 		code,
+		error: code,
 		...(details !== undefined ? { details } : {}),
 		statusCode,
 	});

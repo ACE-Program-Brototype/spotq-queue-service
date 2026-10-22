@@ -1,4 +1,4 @@
-import { PARTY_SIZE_LIMITS } from '@shared/index.ts';
+import { PARTY_SIZE_LIMITS, QUEUE_LIMITS, REGEX } from '@shared/index.ts';
 import { z } from 'zod';
 
 export const registerWalkInParamsSchema = z.object({
@@ -6,12 +6,19 @@ export const registerWalkInParamsSchema = z.object({
 });
 
 export const registerWalkInBodySchema = z.object({
-	guestName: z.string().trim().min(1, 'guestName is required and cannot be empty'),
+	guestName: z
+		.string()
+		.trim()
+		.min(1, 'guestName is required and cannot be empty')
+		.max(
+			QUEUE_LIMITS.GUEST_NAME.MAX,
+			`guestName must not exceed ${QUEUE_LIMITS.GUEST_NAME.MAX} characters`,
+		),
 	guestPhone: z
 		.string()
 		.trim()
 		.regex(
-			/^\+[1-9]\d{1,14}$/,
+			REGEX.E164_PHONE,
 			'guestPhone must be a valid phone number in E.164 format (e.g., +15559876543)',
 		),
 	partySize: z
@@ -27,7 +34,14 @@ export const registerWalkInBodySchema = z.object({
 			PARTY_SIZE_LIMITS.MAX,
 			`partySize must be between ${PARTY_SIZE_LIMITS.MIN} and ${PARTY_SIZE_LIMITS.MAX}`,
 		),
-	specialNotes: z.string().trim().optional(),
+	specialNotes: z
+		.string()
+		.trim()
+		.max(
+			QUEUE_LIMITS.SPECIAL_NOTES.MAX,
+			`specialNotes must not exceed ${QUEUE_LIMITS.SPECIAL_NOTES.MAX} characters`,
+		)
+		.optional(),
 });
 
 export type RegisterWalkInParams = z.infer<typeof registerWalkInParamsSchema>;

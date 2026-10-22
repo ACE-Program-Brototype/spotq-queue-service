@@ -1,3 +1,6 @@
+import { container } from '@di/container.ts';
+import { TYPES } from '@di/types.ts';
+import type { IQueueRepository } from '@domain/index.ts';
 import { logger } from '@infrastructure/logger/index.ts';
 import {
 	ADMIN_ROLE,
@@ -103,7 +106,7 @@ export function registerRoomHandlers(socket: Socket): void {
 
 	socket.on(
 		WS_CLIENT_EVENTS.JOIN_TICKET,
-		(data: { ticketId?: string } | undefined, callback?: (res: RoomAckResponse) => void) => {
+		async (data: { ticketId?: string } | undefined, callback?: (res: RoomAckResponse) => void) => {
 			const ticketId = data?.ticketId;
 
 			if (!ticketId || typeof ticketId !== 'string') {
@@ -116,11 +119,26 @@ export function registerRoomHandlers(socket: Socket): void {
 			const isAuthorizedMember = isStaff || isRestaurantOwner;
 			const isCustomer = user.role === CUSTOMER_ROLE;
 
-			if (!user.ticketId && isCustomer) {
-				user.ticketId = ticketId;
+			let isTicketOwner = user.ticketId === ticketId || user.userId === ticketId;
+
+			if (!isTicketOwner && isCustomer && user.userId) {
+				try {
+					if (container.isBound(TYPES.Repositories.QueueRepository)) {
+						const queueRepo = container.get<IQueueRepository>(TYPES.Repositories.QueueRepository);
+						const ticket = await queueRepo.findById(ticketId);
+						if (ticket && ticket.userId === user.userId) {
+							isTicketOwner = true;
+							user.ticketId = ticketId;
+						}
+					}
+				} catch (error) {
+					logger.error(
+						{ err: error, ticketId, userId: user.userId },
+						'Failed to verify ticket ownership for WebSocket room join',
+					);
+				}
 			}
 
-			const isTicketOwner = user.ticketId === ticketId || user.userId === ticketId;
 			const isAuthorized = user.role === ADMIN_ROLE || isAuthorizedMember || isTicketOwner;
 
 			if (!isAuthorized) {
