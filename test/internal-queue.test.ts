@@ -50,7 +50,7 @@ describe('Internal Queue API - GET /api/internal/v1/restaurants/:restaurantId/qu
 		expect(res.body.message).toBe(QUEUE_MESSAGES.ACTIVE_QUEUE_CHECK_SUCCESS);
 		expect(res.body.data.hasActiveQueue).toBe(true);
 		expect(res.body.data.queueEntry).toMatchObject({
-			id: '33333333-3333-3333-3333-333333333333',
+			queueEntryId: '33333333-3333-3333-3333-333333333333',
 			restaurantId,
 			userId,
 			queueNumber: 'W-002',

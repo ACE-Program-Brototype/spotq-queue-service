@@ -7,7 +7,6 @@ export interface GetActiveQueueByUserInputDto {
 
 export interface ActiveQueueDetailsDto {
 	queueEntryId: string;
-	id: string;
 	restaurantId: string;
 	userId: string | null;
 	queueNumber: string;

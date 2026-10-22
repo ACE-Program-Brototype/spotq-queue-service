@@ -33,7 +33,6 @@ export class GetActiveQueueByUserUseCase implements IGetActiveQueueByUserUseCase
 			hasActiveQueue: true,
 			queueEntry: {
 				queueEntryId: activeEntry.id,
-				id: activeEntry.id,
 				restaurantId: activeEntry.restaurantId,
 				userId: activeEntry.userId ?? null,
 				queueNumber: activeEntry.queueNumber,
