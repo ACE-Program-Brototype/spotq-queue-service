@@ -1,7 +1,4 @@
-export {
-	BullMQQueueService,
-	bullmqQueueService,
-} from './bullmq.service.ts';
+export { BullMQQueueService } from './bullmq.service.ts';
 export {
 	JOB_NAMES,
 	PUSH_NOTIFICATION_JOB_OPTIONS,

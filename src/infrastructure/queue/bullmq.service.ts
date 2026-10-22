@@ -2,9 +2,11 @@ import type { IQueueService, JobOptions, QueueJob } from '@domain/index.ts';
 import { config } from '@infrastructure/config/index.ts';
 import { logger } from '@infrastructure/logger/index.ts';
 import { Queue } from 'bullmq';
+import { injectable } from 'inversify';
 import IORedis from 'ioredis';
 import { QUEUE_EVENTS } from './queue.constants.ts';
 
+@injectable()
 export class BullMQQueueService implements IQueueService {
 	private readonly queues: Map<string, Queue> = new Map();
 	private readonly connection: IORedis;
@@ -64,5 +66,3 @@ export class BullMQQueueService implements IQueueService {
 		await this.connection.quit();
 	}
 }
-
-export const bullmqQueueService = new BullMQQueueService();

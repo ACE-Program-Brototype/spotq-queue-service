@@ -9,8 +9,8 @@ jest.mock('ioredis', () => {
 	});
 });
 
+import { queueService } from '@di/index.ts';
 import { databaseService, prisma } from '@infrastructure/database/index.ts';
-import { bullmqQueueService } from '@infrastructure/queue/index.ts';
 import { redisClient, redisService } from '@infrastructure/redis/index.ts';
 import { HEALTH_STATUS, HTTP_STATUS, MESSAGES, ROUTES } from '@shared/index.ts';
 import request from 'supertest';
@@ -26,7 +26,7 @@ describe('Queue Service Integration & Unit Tests', () => {
 	});
 
 	afterAll(async () => {
-		await bullmqQueueService.close();
+		await queueService.close();
 	});
 
 	describe('GET /health', () => {
@@ -129,19 +129,19 @@ describe('Queue Service Integration & Unit Tests', () => {
 			expect(healthy).toBe(false);
 		});
 
-		it('bullmqQueueService.isHealthy should return true when ping succeeds', async () => {
+		it('queueService.isHealthy should return true when ping succeeds', async () => {
 			// biome-ignore lint/complexity/useLiteralKeys: access private connection
-			jest.spyOn(bullmqQueueService['connection'], 'ping').mockResolvedValue('PONG');
-			const healthy = await bullmqQueueService.isHealthy();
+			jest.spyOn((queueService as any)['connection'], 'ping').mockResolvedValue('PONG');
+			const healthy = await queueService.isHealthy();
 			expect(healthy).toBe(true);
 		});
 
-		it('bullmqQueueService.isHealthy should return false when ping fails', async () => {
+		it('queueService.isHealthy should return false when ping fails', async () => {
 			jest
 				// biome-ignore lint/complexity/useLiteralKeys: access private connection
-				.spyOn(bullmqQueueService['connection'], 'ping')
+				.spyOn((queueService as any)['connection'], 'ping')
 				.mockRejectedValue(new Error('Redis error'));
-			const healthy = await bullmqQueueService.isHealthy();
+			const healthy = await queueService.isHealthy();
 			expect(healthy).toBe(false);
 		});
 	});

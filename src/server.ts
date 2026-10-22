@@ -1,10 +1,9 @@
 import 'reflect-metadata';
 import http from 'node:http';
-import { initWorkers } from '@di/index.ts';
+import { initWorkers, queueService } from '@di/index.ts';
 import { config } from '@infrastructure/config/index.ts';
 import { databaseService } from '@infrastructure/database/index.ts';
 import { logger } from '@infrastructure/logger/index.ts';
-import { bullmqQueueService } from '@infrastructure/queue/index.ts';
 import { redisService } from '@infrastructure/redis/index.ts';
 import { initSocketServer } from '@infrastructure/websocket/index.ts';
 import { MESSAGES } from '@shared/constants/index.ts';
@@ -62,7 +61,7 @@ async function bootstrap() {
 			});
 
 			await workers.closeAll();
-			await bullmqQueueService.close();
+			await queueService.close();
 			await redisService.disconnect();
 			await databaseService.disconnect();
 

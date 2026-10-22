@@ -413,6 +413,7 @@ import { container, TYPES } from '../src/di/index.ts';
 import { PrismaQueueRepository } from '../src/infrastructure/database/repositories/prisma-queue.repository.ts';
 import { MlEtaServiceClient } from '../src/infrastructure/external/ml-eta-service.client.ts';
 import { RestaurantServiceClient } from '../src/infrastructure/external/restaurant-service.client.ts';
+import { BullMQQueueService } from '../src/infrastructure/queue/index.ts';
 import { RedisQueueCacheService } from '../src/infrastructure/redis/redis-queue-cache.service.ts';
 import { SocketBroadcaster } from '../src/infrastructure/websocket/socket-broadcaster.ts';
 import { StaffQueueController } from '../src/presentation/http/controllers/staff-queue.controller.ts';
@@ -460,6 +461,12 @@ describe('Inversify DI Container Resolution Tests', () => {
 		const broadcaster = container.get<IWebSocketBroadcaster>(TYPES.Services.WebSocketBroadcaster);
 		expect(broadcaster).toBeDefined();
 		expect(broadcaster).toBeInstanceOf(SocketBroadcaster);
+	});
+
+	it('should successfully resolve BullMQQueueService from container', () => {
+		const service = container.get<IQueueService>(TYPES.Services.QueueService);
+		expect(service).toBeDefined();
+		expect(service).toBeInstanceOf(BullMQQueueService);
 	});
 });
 

@@ -18,7 +18,7 @@ import { PrismaQueueRepository } from '@infrastructure/database/repositories/pri
 import { MlEtaServiceClient } from '@infrastructure/external/ml-eta-service.client.ts';
 import { RestaurantServiceClient } from '@infrastructure/external/restaurant-service.client.ts';
 import { FirebasePushNotificationService } from '@infrastructure/firebase/index.ts';
-import { bullmqQueueService } from '@infrastructure/queue/index.ts';
+import { BullMQQueueService } from '@infrastructure/queue/index.ts';
 import { redisClient } from '@infrastructure/redis/redis.client.ts';
 import { RedisQueueCacheService } from '@infrastructure/redis/redis-queue-cache.service.ts';
 import { SocketBroadcaster } from '@infrastructure/websocket/socket-broadcaster.ts';
@@ -55,7 +55,7 @@ export const queueModule = new ContainerModule(({ bind }) => {
 		.to(FirebasePushNotificationService)
 		.inSingletonScope();
 
-	bind<IQueueService>(TYPES.Services.QueueService).toConstantValue(bullmqQueueService);
+	bind<IQueueService>(TYPES.Services.QueueService).to(BullMQQueueService).inSingletonScope();
 
 	bind<IRegisterQueueUseCase>(TYPES.UseCases.RegisterQueueUseCase)
 		.to(RegisterQueueUseCase)
