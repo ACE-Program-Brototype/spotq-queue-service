@@ -12,6 +12,7 @@ import {
 import { config } from '@infrastructure/config/index.ts';
 import { logger } from '@infrastructure/logger/index.ts';
 import { HTTP_STATUS } from '@shared/constants/http.constants.ts';
+import { QUEUE_MESSAGES } from '@shared/constants/message.constants.ts';
 import { RESTAURANT_SERVICE_ROUTES } from '@shared/constants/routes.constants.ts';
 import { generateToken, type TokenIssuerConfig } from '@spotq-org/s2s-core';
 import axios from 'axios';
@@ -237,7 +238,8 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 			);
 
 			if (!response.data || response.data.success !== true) {
-				const errorMessage = response.data?.message || 'Failed to assign tables upstream';
+				const errorMessage =
+					response.data?.message || QUEUE_MESSAGES.TABLE_ASSIGNMENT_FAILED_UPSTREAM;
 				throw new UpstreamServiceUnavailableError(errorMessage);
 			}
 		} catch (error) {
@@ -252,7 +254,7 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 
 				const upstreamMessage =
 					(error.response?.data as { message?: string })?.message ||
-					`Restaurant table assignment failed: ${error.message}`;
+					`${QUEUE_MESSAGES.TABLE_ASSIGNMENT_ERROR_PREFIX}: ${error.message}`;
 
 				logger.error(
 					{ err: error, restaurantId, tables, upstreamMessage },

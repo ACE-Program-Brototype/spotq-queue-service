@@ -2,15 +2,8 @@ import type { IAssignTableUseCase } from '@application/ports/use-cases/assign-ta
 import type { IRegisterQueueUseCase } from '@application/ports/use-cases/register-queue.use-case.port.ts';
 import type { IRingCustomerUseCase } from '@application/ports/use-cases/ring-customer.use-case.port.ts';
 import { TYPES } from '@di/types.ts';
-import { RegistrationType } from '@domain/index.ts';
-import {
-	ApiResponse,
-	ERROR_CODES,
-	HTTP_STATUS,
-	messages,
-	QUEUE_MESSAGES,
-	sendSuccessResponse,
-} from '@shared/index.ts';
+import { RegistrationType, UnauthorizedError } from '@domain/index.ts';
+import { HTTP_STATUS, messages, QUEUE_MESSAGES, sendSuccessResponse } from '@shared/index.ts';
 import type { Request, Response } from 'express';
 import { inject, injectable } from 'inversify';
 import type { AssignTablesBody, AssignTablesParams } from '../validators/assign-table.validator.ts';
@@ -57,16 +50,7 @@ export class StaffQueueController {
 		const staffUserId = req.user?.userId;
 
 		if (!restaurantId || !staffUserId) {
-			res
-				.status(HTTP_STATUS.UNAUTHORIZED)
-				.json(
-					ApiResponse.error(
-						messages.GATEWAY_UNAUTHORIZED,
-						ERROR_CODES.UNAUTHORIZED,
-						HTTP_STATUS.UNAUTHORIZED,
-					),
-				);
-			return;
+			throw new UnauthorizedError(messages.GATEWAY_UNAUTHORIZED);
 		}
 
 		const result = await this.assignTableUseCase.execute({
@@ -85,16 +69,7 @@ export class StaffQueueController {
 		const staffUserId = req.user?.userId;
 
 		if (!restaurantId || !staffUserId) {
-			res
-				.status(HTTP_STATUS.UNAUTHORIZED)
-				.json(
-					ApiResponse.error(
-						messages.GATEWAY_UNAUTHORIZED,
-						ERROR_CODES.UNAUTHORIZED,
-						HTTP_STATUS.UNAUTHORIZED,
-					),
-				);
-			return;
+			throw new UnauthorizedError(messages.GATEWAY_UNAUTHORIZED);
 		}
 
 		const result = await this.ringCustomerUseCase.execute({

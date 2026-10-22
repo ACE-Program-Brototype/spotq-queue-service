@@ -14,7 +14,7 @@ import {
 	PUSH_NOTIFICATION_JOB_OPTIONS,
 	QUEUE_NAMES,
 } from '@infrastructure/queue/index.ts';
-import { NOTIFICATION_MESSAGES } from '@shared/constants/notification.constants.ts';
+import { NOTIFICATION_MESSAGES, REGEX } from '@shared/constants/index.ts';
 import { WS_SERVER_EVENTS } from '@shared/constants/websocket.constants.ts';
 import { inject, injectable } from 'inversify';
 
@@ -41,7 +41,10 @@ export class RingCustomerUseCase implements IRingCustomerUseCase {
 
 		await this.queueRepository.save(entry);
 
-		const deepLinkBase = config.notifications.ticketDeepLinkBaseUrl?.replace(/\/$/, '');
+		const deepLinkBase = config.notifications.ticketDeepLinkBaseUrl?.replace(
+			REGEX.TRAILING_SLASH,
+			'',
+		);
 		const deepLink = deepLinkBase ? `${deepLinkBase}/${entry.id}` : undefined;
 
 		let notificationDispatched = false;
@@ -80,7 +83,7 @@ export class RingCustomerUseCase implements IRingCustomerUseCase {
 				ringCount: entry.ringCount,
 				lastRingedAt: entry.lastRingedAt?.toISOString(),
 				...(deepLink && { deepLink }),
-				message: 'Your table is ready! Please proceed to the host stand.',
+				message: NOTIFICATION_MESSAGES.TABLE_READY_ALERT,
 			});
 		} catch (error) {
 			logger.error(

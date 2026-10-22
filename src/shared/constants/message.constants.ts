@@ -56,6 +56,12 @@ export const QUEUE_MESSAGES = {
 	QUEUE_ENTRY_NOT_FOUND: 'Queue entry was not found',
 	QUEUE_ENTRY_NOT_WAITING: 'Queue entry is not currently waiting',
 	INSUFFICIENT_TABLE_CAPACITY: 'Assigned table capacity is less than party size',
+	CANNOT_RING_WALK_IN_CUSTOMER:
+		'Walk-in customer cannot be rung as they do not have a registered device',
+	UPSTREAM_SERVICE_UNAVAILABLE:
+		'Upstream service is currently unavailable. Please try again later.',
+	TABLE_ASSIGNMENT_ERROR_PREFIX: 'Restaurant table assignment failed',
+	TABLE_ASSIGNMENT_FAILED_UPSTREAM: 'Failed to assign tables upstream',
 } as const;
 
 /**

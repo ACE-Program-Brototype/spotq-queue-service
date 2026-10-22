@@ -23,6 +23,9 @@ export function mapDomainErrorToHttpStatus(
 		case 'RESTAURANT_NOT_FOUND':
 			return HTTP_STATUS.NOT_FOUND;
 
+		case 'UNAUTHORIZED':
+			return HTTP_STATUS.UNAUTHORIZED;
+
 		case 'FORBIDDEN':
 		case 'RESTAURANT_BLOCKED':
 		case 'SUBSCRIPTION_REQUIRED':
