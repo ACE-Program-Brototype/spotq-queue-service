@@ -10,6 +10,7 @@ import { RegisterQueueUseCase } from '../src/application/use-cases/register-queu
 import {
 	ActiveQueueEntryExistsError,
 	QueueEntry,
+	RegistrationType,
 	RestaurantBlockedError,
 	RestaurantNotAcceptingQueueError,
 	SubscriptionRequiredError,
@@ -214,7 +215,7 @@ describe('RegisterQueueUseCase Unit Tests', () => {
 		// 4. Persistence verification
 		expect(mockQueueRepository.createWithHistory).toHaveBeenCalledTimes(1);
 		const createdEntry = mockQueueRepository.createWithHistory.mock.calls[0][0];
-		expect(createdEntry.registrationType).toBe('WALK_IN');
+		expect(createdEntry.registrationType).toBe(RegistrationType.WALK_IN);
 		expect(createdEntry.queueNumber).toBe('W-013'); // 12 + 1
 		expect(createdEntry.phone).toBe('+15559876543');
 
@@ -239,7 +240,7 @@ describe('RegisterQueueUseCase Unit Tests', () => {
 					guestPhone: '+15559876543',
 					partySize: 4,
 					specialNotes: 'Prefers booth seating',
-					registrationType: 'WALK_IN',
+					registrationType: RegistrationType.WALK_IN,
 					position: 6,
 					estimatedWaitMinutes: 25,
 					status: 'WAITING',
@@ -256,7 +257,7 @@ describe('RegisterQueueUseCase Unit Tests', () => {
 			guestPhone: '+15559876543',
 			partySize: 4,
 			specialNotes: 'Prefers booth seating',
-			registrationType: 'WALK_IN',
+			registrationType: RegistrationType.WALK_IN,
 			position: 6,
 			estimatedWaitMinutes: 25,
 			status: 'WAITING',
@@ -271,19 +272,19 @@ describe('RegisterQueueUseCase Unit Tests', () => {
 			guestName: 'Sarah Connor',
 			guestPhone: '+15551234567',
 			partySize: 2,
-			registrationType: 'ONLINE' as const,
+			registrationType: RegistrationType.ONLINE,
 		};
 
 		const result = await useCase.execute(onlineInput);
 
 		expect(result.position).toBe(6);
-		expect(result.registrationType).toBe('ONLINE');
+		expect(result.registrationType).toBe(RegistrationType.ONLINE);
 		expect(result.userId).toBe('user-777');
 		expect(mockQueueRepository.createWithHistory).toHaveBeenCalledTimes(1);
 		const createdEntry = mockQueueRepository.createWithHistory.mock.calls[0][0];
 		expect(createdEntry.queueNumber).toBe('Q-013');
 		expect(createdEntry.userId).toBe('user-777');
-		expect(createdEntry.registrationType).toBe('ONLINE');
+		expect(createdEntry.registrationType).toBe(RegistrationType.ONLINE);
 	});
 });
 
