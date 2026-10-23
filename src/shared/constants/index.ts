@@ -6,5 +6,6 @@ export * from './message.constants.ts';
 export * from './notification.constants.ts';
 export * from './regex.constants.ts';
 export * from './routes.constants.ts';
+export * from './services.constants.ts';
 export * from './subscription.constants.ts';
 export * from './websocket.constants.ts';
