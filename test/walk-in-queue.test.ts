@@ -410,6 +410,7 @@ describe('POST /staff/restaurants/:restaurantId/queue/walk-in HTTP Tests', () =>
 });
 
 import { container, TYPES } from '../src/di/index.ts';
+import type { IQueueService } from '../src/domain/index.ts';
 import { PrismaQueueRepository } from '../src/infrastructure/database/repositories/prisma-queue.repository.ts';
 import { MlEtaServiceClient } from '../src/infrastructure/external/ml-eta-service.client.ts';
 import { RestaurantServiceClient } from '../src/infrastructure/external/restaurant-service.client.ts';
