@@ -7,4 +7,4 @@ export const pushNotificationService = container.get<IPushNotificationService>(
 	TYPES.Services.PushNotificationService,
 );
 
-export const queueService = container.get<IQueueService>(TYPES.Services.QueueService);
+export const bullmqQueueService = container.get<IQueueService>(TYPES.Services.QueueService);

@@ -237,7 +237,7 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 				},
 			);
 
-			if (!response.data || response.data.success !== true) {
+			if (response.data?.success !== true) {
 				const errorMessage =
 					response.data?.message || QUEUE_MESSAGES.TABLE_ASSIGNMENT_FAILED_UPSTREAM;
 				throw new UpstreamServiceUnavailableError(errorMessage);
