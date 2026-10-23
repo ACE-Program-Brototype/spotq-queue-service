@@ -48,6 +48,7 @@ export const QUEUE_MESSAGES = {
 	SUBSCRIPTION_REQUIRED:
 		'Restaurant requires an active QUEUE_PRO subscription to access queue services.',
 	RESTAURANT_NOT_FOUND: 'Restaurant was not found.',
+	ACTIVE_QUEUE_CHECK_SUCCESS: 'Active queue check completed successfully',
 } as const;
 
 /**
@@ -58,6 +59,16 @@ export const AUTH_MESSAGES = {
 	FORBIDDEN_STAFF_ONLY: 'Forbidden: Only authorized STAFF or ADMIN can manage the restaurant queue',
 	UNAUTHORIZED_RESTAURANT_ACCESS:
 		'Staff member does not have permission to manage this restaurant queue',
+	S2S_ORDER_KEY_MISSING:
+		'S2S authentication is misconfigured: public key for order-service is missing',
+} as const;
+
+/**
+ * Validation error messages.
+ */
+export const VALIDATION_MESSAGES = {
+	INVALID_RESTAURANT_ID_UUID: 'restaurantId must be a valid UUID',
+	INVALID_USER_ID_UUID: 'userId must be a valid UUID',
 } as const;
 
 /**
@@ -73,6 +84,7 @@ export const messages = {
 	...MESSAGES,
 	...QUEUE_MESSAGES,
 	...AUTH_MESSAGES,
+	...VALIDATION_MESSAGES,
 } as const;
 
 export type Message = (typeof MESSAGES)[keyof typeof MESSAGES];

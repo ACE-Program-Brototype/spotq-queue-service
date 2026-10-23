@@ -3,8 +3,10 @@ import type { IEtaService } from '@application/ports/services/eta-service.port.t
 import type { IPushNotificationService } from '@application/ports/services/push-notification.port.ts';
 import type { IRestaurantServiceClient } from '@application/ports/services/restaurant-service.port.ts';
 import type { IWebSocketBroadcaster } from '@application/ports/services/websocket-broadcaster.port.ts';
+import type { IGetActiveQueueByUserUseCase } from '@application/ports/use-cases/get-active-queue-by-user.use-case.port.ts';
 import type { IGetQueueEtaUseCase } from '@application/ports/use-cases/get-queue-eta.use-case.port.ts';
 import type { IRegisterQueueUseCase } from '@application/ports/use-cases/register-queue.use-case.port.ts';
+import { GetActiveQueueByUserUseCase } from '@application/use-cases/get-active-queue-by-user.use-case.ts';
 import { GetQueueEtaUseCase } from '@application/use-cases/get-queue-eta.use-case.ts';
 import { RegisterQueueUseCase } from '@application/use-cases/register-queue.use-case.ts';
 import type { IQueueRepository } from '@domain/repositories/queue.repository.interface.ts';
@@ -17,6 +19,7 @@ import { redisClient } from '@infrastructure/redis/redis.client.ts';
 import { RedisQueueCacheService } from '@infrastructure/redis/redis-queue-cache.service.ts';
 import { SocketBroadcaster } from '@infrastructure/websocket/socket-broadcaster.ts';
 import { CustomerQueueController } from '@presentation/http/controllers/customer-queue.controller.ts';
+import { InternalQueueController } from '@presentation/http/controllers/internal-queue.controller.ts';
 import { StaffQueueController } from '@presentation/http/controllers/staff-queue.controller.ts';
 import type { PrismaClient } from '@prisma/client';
 import { ContainerModule } from 'inversify';
@@ -53,12 +56,20 @@ export const queueModule = new ContainerModule(({ bind }) => {
 		.to(RegisterQueueUseCase)
 		.inSingletonScope();
 
-	bind<StaffQueueController>(TYPES.Controllers.StaffQueueController)
-		.to(StaffQueueController)
+	bind<IGetActiveQueueByUserUseCase>(TYPES.UseCases.GetActiveQueueByUserUseCase)
+		.to(GetActiveQueueByUserUseCase)
 		.inSingletonScope();
 
 	bind<IGetQueueEtaUseCase>(TYPES.UseCases.GetQueueEtaUseCase)
 		.to(GetQueueEtaUseCase)
+		.inSingletonScope();
+
+	bind<StaffQueueController>(TYPES.Controllers.StaffQueueController)
+		.to(StaffQueueController)
+		.inSingletonScope();
+
+	bind<InternalQueueController>(TYPES.Controllers.InternalQueueController)
+		.to(InternalQueueController)
 		.inSingletonScope();
 
 	bind<CustomerQueueController>(TYPES.Controllers.CustomerQueueController)

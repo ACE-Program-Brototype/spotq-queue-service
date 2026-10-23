@@ -27,6 +27,7 @@ export const config = {
 	s2s: {
 		serviceName: validatedEnv.SERVICE_NAME,
 		privateKey: validatedEnv.S2S_PRIVATE_KEY,
+		orderPublicKey: validatedEnv.S2S_ORDER_PUBLIC,
 	},
 	websocket: {
 		get path() {
