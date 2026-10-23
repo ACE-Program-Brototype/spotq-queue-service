@@ -173,9 +173,7 @@ export class PrismaQueueRepository
 				where: {
 					restaurantId,
 					userId,
-					status: {
-						in: [QueueStatus.WAITING, QueueStatus.RINGING, QueueStatus.ACCEPTED],
-					},
+					status: QueueStatus.WAITING,
 				},
 				orderBy: {
 					joinedAt: 'desc',

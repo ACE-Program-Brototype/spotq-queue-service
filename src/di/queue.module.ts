@@ -4,13 +4,11 @@ import type { IPushNotificationService } from '@application/ports/services/push-
 import type { IRestaurantServiceClient } from '@application/ports/services/restaurant-service.port.ts';
 import type { IWebSocketBroadcaster } from '@application/ports/services/websocket-broadcaster.port.ts';
 import type { IAssignTableUseCase } from '@application/ports/use-cases/assign-table.use-case.port.ts';
+import type { IGetActiveQueueByUserUseCase } from '@application/ports/use-cases/get-active-queue-by-user.use-case.port.ts';
 import type { IGetQueueEtaUseCase } from '@application/ports/use-cases/get-queue-eta.use-case.port.ts';
 import type { IRegisterQueueUseCase } from '@application/ports/use-cases/register-queue.use-case.port.ts';
 import type { IRingCustomerUseCase } from '@application/ports/use-cases/ring-customer.use-case.port.ts';
 import { AssignTableUseCase } from '@application/use-cases/assign-table.use-case.ts';
-import type { IGetActiveQueueByUserUseCase } from '@application/ports/use-cases/get-active-queue-by-user.use-case.port.ts';
-import type { IGetQueueEtaUseCase } from '@application/ports/use-cases/get-queue-eta.use-case.port.ts';
-import type { IRegisterQueueUseCase } from '@application/ports/use-cases/register-queue.use-case.port.ts';
 import { GetActiveQueueByUserUseCase } from '@application/use-cases/get-active-queue-by-user.use-case.ts';
 import { GetQueueEtaUseCase } from '@application/use-cases/get-queue-eta.use-case.ts';
 import { RegisterQueueUseCase } from '@application/use-cases/register-queue.use-case.ts';
@@ -74,8 +72,6 @@ export const queueModule = new ContainerModule(({ bind }) => {
 		.to(RingCustomerUseCase)
 		.inSingletonScope();
 
-	bind<StaffQueueController>(TYPES.Controllers.StaffQueueController)
-		.to(StaffQueueController)
 	bind<IGetActiveQueueByUserUseCase>(TYPES.UseCases.GetActiveQueueByUserUseCase)
 		.to(GetActiveQueueByUserUseCase)
 		.inSingletonScope();

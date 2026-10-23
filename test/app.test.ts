@@ -130,16 +130,30 @@ describe('Queue Service Integration & Unit Tests', () => {
 		});
 
 		it('bullmqQueueService.isHealthy should return true when ping succeeds', async () => {
-			// biome-ignore lint/complexity/useLiteralKeys: access private connection
-			jest.spyOn((bullmqQueueService as any)['connection'], 'ping').mockResolvedValue('PONG');
+			jest
+				.spyOn(
+					(
+						bullmqQueueService as unknown as {
+							connection: { ping: () => Promise<string> };
+						}
+					).connection,
+					'ping',
+				)
+				.mockResolvedValue('PONG');
 			const healthy = await bullmqQueueService.isHealthy();
 			expect(healthy).toBe(true);
 		});
 
 		it('bullmqQueueService.isHealthy should return false when ping fails', async () => {
 			jest
-				// biome-ignore lint/complexity/useLiteralKeys: access private connection
-				.spyOn((bullmqQueueService as any)['connection'], 'ping')
+				.spyOn(
+					(
+						bullmqQueueService as unknown as {
+							connection: { ping: () => Promise<string> };
+						}
+					).connection,
+					'ping',
+				)
 				.mockRejectedValue(new Error('Redis error'));
 			const healthy = await bullmqQueueService.isHealthy();
 			expect(healthy).toBe(false);
