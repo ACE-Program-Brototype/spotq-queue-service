@@ -1,5 +1,5 @@
 import type { Response } from 'express';
-import { HTTP_STATUS, type HttpStatus } from '../constants/http.constants.ts';
+import { HTTP_STATUS } from '../constants/http.constants.ts';
 import { messages } from '../constants/message.constants.ts';
 
 /**
@@ -135,7 +135,7 @@ export function sendErrorResponse(
 	if (errorOrMessage.includes(' ') && messageOrCode && !messageOrCode.includes(' ')) {
 		msg = errorOrMessage;
 		code = messageOrCode;
-	} else if (messageOrCode && messageOrCode.includes(' ')) {
+	} else if (messageOrCode?.includes(' ')) {
 		code = errorOrMessage;
 		msg = messageOrCode;
 	}

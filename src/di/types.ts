@@ -14,11 +14,14 @@ export const TYPES = {
 		QueueCacheService: Symbol.for('QueueCacheService'),
 		WebSocketBroadcaster: Symbol.for('WebSocketBroadcaster'),
 		PushNotificationService: Symbol.for('PushNotificationService'),
+		QueueService: Symbol.for('QueueService'),
 	},
 	UseCases: {
 		RegisterQueueUseCase: Symbol.for('RegisterQueueUseCase'),
 		GetActiveQueueByUserUseCase: Symbol.for('GetActiveQueueByUserUseCase'),
 		GetQueueEtaUseCase: Symbol.for('GetQueueEtaUseCase'),
+		AssignTableUseCase: Symbol.for('AssignTableUseCase'),
+		RingCustomerUseCase: Symbol.for('RingCustomerUseCase'),
 	},
 	Controllers: {
 		StaffQueueController: Symbol.for('StaffQueueController'),

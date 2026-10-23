@@ -48,6 +48,20 @@ export const QUEUE_MESSAGES = {
 	SUBSCRIPTION_REQUIRED:
 		'Restaurant requires an active QUEUE_PRO subscription to access queue services.',
 	RESTAURANT_NOT_FOUND: 'Restaurant was not found.',
+	TABLE_ASSIGN_SUCCESS: 'Table assigned successfully',
+	TABLE_ASSIGN_FAILED: 'Failed to assign table',
+	CUSTOMER_RING_SUCCESS: 'Customer notified and rung successfully',
+	INVALID_TABLES: 'At least one table must be selected',
+	DUPLICATE_TABLE_ID: 'Duplicate table ID detected in assignment list',
+	QUEUE_ENTRY_NOT_FOUND: 'Queue entry was not found',
+	QUEUE_ENTRY_NOT_WAITING: 'Queue entry is not currently waiting',
+	INSUFFICIENT_TABLE_CAPACITY: 'Assigned table capacity is less than party size',
+	CANNOT_RING_WALK_IN_CUSTOMER:
+		'Walk-in customer cannot be rung as they do not have a registered device',
+	UPSTREAM_SERVICE_UNAVAILABLE:
+		'Upstream service is currently unavailable. Please try again later.',
+	TABLE_ASSIGNMENT_ERROR_PREFIX: 'Restaurant table assignment failed',
+	TABLE_ASSIGNMENT_FAILED_UPSTREAM: 'Failed to assign tables upstream',
 	ACTIVE_QUEUE_CHECK_SUCCESS: 'Active queue check completed successfully',
 } as const;
 

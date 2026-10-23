@@ -44,6 +44,7 @@ const envSchema = z.object({
 		.default(true),
 	FCM_MAX_RETRIES: z.coerce.number().int().nonnegative().default(2),
 	FCM_RETRY_DELAY_MS: z.coerce.number().int().positive().default(500),
+	TICKET_DEEP_LINK_BASE_URL: z.string().optional(),
 });
 
 export const validateEnv = () => {

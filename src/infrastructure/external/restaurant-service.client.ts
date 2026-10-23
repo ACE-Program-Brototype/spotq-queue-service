@@ -1,4 +1,5 @@
 import type {
+	AssignTableItem,
 	IRestaurantServiceClient,
 	RestaurantStatusResult,
 	TableAvailabilityResult,
@@ -11,6 +12,7 @@ import {
 import { config } from '@infrastructure/config/index.ts';
 import { logger } from '@infrastructure/logger/index.ts';
 import { HTTP_STATUS } from '@shared/constants/http.constants.ts';
+import { QUEUE_MESSAGES } from '@shared/constants/message.constants.ts';
 import { RESTAURANT_SERVICE_ROUTES } from '@shared/constants/routes.constants.ts';
 import { generateToken, type TokenIssuerConfig } from '@spotq-org/s2s-core';
 import axios from 'axios';
@@ -98,7 +100,7 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 				headers: this.getInternalHeaders(),
 			});
 
-			if (!response.data || response.data.success !== true || !response.data.data) {
+			if (response.data?.success !== true || !response.data.data) {
 				const errorMessage =
 					response.data?.message || 'Failed to retrieve restaurant validation status';
 				throw new UpstreamServiceUnavailableError(errorMessage);
@@ -177,7 +179,7 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 				headers: this.getInternalHeaders(),
 			});
 
-			if (!response.data || response.data.success !== true || !response.data.data) {
+			if (response.data?.success !== true || !response.data.data) {
 				const errorMessage =
 					response.data?.message || 'Failed to retrieve table availability status';
 				throw new UpstreamServiceUnavailableError(errorMessage);
@@ -216,6 +218,62 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 			logger.error(
 				{ err: error, restaurantId, partySize },
 				'Unexpected error during table availability check',
+			);
+			throw new UpstreamServiceUnavailableError(
+				'Unexpected error communicating with restaurant service',
+			);
+		}
+	}
+
+	async assignTables(restaurantId: string, tables: AssignTableItem[]): Promise<void> {
+		try {
+			const url = `${this.baseUrl}${RESTAURANT_SERVICE_ROUTES.ASSIGN_TABLE(restaurantId)}`;
+			const response = await axios.patch<IApiResponseEnvelope<null>>(
+				url,
+				{ tables },
+				{
+					timeout: RestaurantServiceClient.REQUEST_TIMEOUT_MS,
+					headers: this.getInternalHeaders(),
+				},
+			);
+
+			if (response.data?.success !== true) {
+				const errorMessage =
+					response.data?.message || QUEUE_MESSAGES.TABLE_ASSIGNMENT_FAILED_UPSTREAM;
+				throw new UpstreamServiceUnavailableError(errorMessage);
+			}
+		} catch (error) {
+			if (error instanceof DomainError) {
+				throw error;
+			}
+
+			if (axios.isAxiosError(error)) {
+				if (error.response?.status === 404) {
+					throw new RestaurantNotFoundError(restaurantId);
+				}
+
+				const upstreamMessage =
+					(error.response?.data as { message?: string })?.message ||
+					`${QUEUE_MESSAGES.TABLE_ASSIGNMENT_ERROR_PREFIX}: ${error.message}`;
+
+				logger.error(
+					{ err: error, restaurantId, tables, upstreamMessage },
+					'Failed to call spotq-restaurant-service table assignment API via axios',
+				);
+
+				const statusCode =
+					error.response?.status && error.response.status >= 400 && error.response.status < 500
+						? error.response.status
+						: HTTP_STATUS.SERVICE_UNAVAILABLE;
+
+				throw new UpstreamServiceUnavailableError(upstreamMessage, {
+					upstreamStatusCode: statusCode,
+				});
+			}
+
+			logger.error(
+				{ err: error, restaurantId, tables },
+				'Unexpected error during table assignment',
 			);
 			throw new UpstreamServiceUnavailableError(
 				'Unexpected error communicating with restaurant service',

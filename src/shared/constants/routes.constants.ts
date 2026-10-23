@@ -4,6 +4,8 @@ export const ROUTES = {
 	METRICS: '/metrics',
 	STAFF_BASE: '/staff',
 	REGISTER_WALK_IN: '/restaurants/:restaurantId/queue/walk-in',
+	ASSIGN_TABLE: '/queue/:queueEntryId/assign-tables',
+	RING_CUSTOMER: '/queue/:queueEntryId/ring',
 	CUSTOMER_BASE: '/customer',
 	GET_ETA: '/:restaurantId/eta',
 } as const;
@@ -13,6 +15,8 @@ export const RESTAURANT_SERVICE_ROUTES = {
 		`/api/internal/v1/restaurants/${encodeURIComponent(restaurantId)}/validation`,
 	TABLE_AVAILABILITY: (restaurantId: string) =>
 		`/api/internal/v1/restaurants/${encodeURIComponent(restaurantId)}/tables/availability`,
+	ASSIGN_TABLE: (restaurantId: string) =>
+		`/api/internal/v1/restaurants/${encodeURIComponent(restaurantId)}/tables/assign`,
 } as const;
 
 export const INTERNAL_ROUTES = {
