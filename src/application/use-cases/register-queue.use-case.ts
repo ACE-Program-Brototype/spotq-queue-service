@@ -3,6 +3,7 @@ import type {
 	RegisterQueueOutputDTO,
 } from '@application/dtos/register-queue.dto.ts';
 import { validateRestaurantActiveSubscription } from '@application/helpers/index.ts';
+import { RegisterQueueMapper } from '@application/mappers/register-queue.mapper.ts';
 import type { IQueueCacheService } from '@application/ports/cache/queue-cache.port.ts';
 import type { IEtaService } from '@application/ports/services/eta-service.port.ts';
 import type { IRestaurantServiceClient } from '@application/ports/services/restaurant-service.port.ts';
@@ -11,6 +12,7 @@ import type { IRegisterQueueUseCase } from '@application/ports/use-cases/registe
 import { TYPES } from '@di/types.ts';
 import {
 	ActiveQueueEntryExistsError,
+	ActiveUserQueueEntryExistsError,
 	type IQueueRepository,
 	QueueEntry,
 	RegistrationType,
@@ -80,17 +82,28 @@ export class RegisterQueueUseCase implements IRegisterQueueUseCase {
 			throw new TableAvailableError(tableCheck.availableCount);
 		}
 
-		const existingActive = await this.queueRepository.findActiveByPhone(restaurantId, guestPhone);
-		if (existingActive) {
+		const [existingActivePhone, existingActiveUser] = await Promise.all([
+			this.queueRepository.findActiveByPhone(restaurantId, guestPhone),
+			userId
+				? this.queueRepository.findActiveByUserId(restaurantId, userId)
+				: Promise.resolve(null),
+		]);
+
+		if (existingActivePhone) {
 			throw new ActiveQueueEntryExistsError(guestPhone);
 		}
 
-		const [activeAheadCount, totalPeopleAhead, countToday] = await Promise.all([
-			this.queueRepository.countActiveAhead(restaurantId),
-			this.queueRepository.sumPartySizeActiveAhead(restaurantId),
+		if (existingActiveUser) {
+			throw new ActiveUserQueueEntryExistsError();
+		}
+
+		const [metrics, countToday] = await Promise.all([
+			this.queueRepository.getActiveQueueMetrics(restaurantId),
 			this.queueRepository.countToday(restaurantId),
 		]);
 
+		const activeAheadCount = metrics.queueDepth;
+		const totalPeopleAhead = metrics.totalPeopleAhead;
 		const position = activeAheadCount + 1;
 
 		const resolvedType =
@@ -114,6 +127,7 @@ export class RegisterQueueUseCase implements IRegisterQueueUseCase {
 			queueNumber,
 			partySize,
 			specialNotes,
+			fid: input.fid ?? null,
 			registrationType: resolvedType,
 			position,
 			estimatedWaitMinutes,
@@ -122,12 +136,19 @@ export class RegisterQueueUseCase implements IRegisterQueueUseCase {
 		const changedBy = staffUserId || userId || 'system';
 		const persisted = await this.queueRepository.createWithHistory(queueEntry, changedBy);
 
-		await this.queueCacheService.saveLiveEntry(
-			persisted.id,
-			restaurantId,
-			position,
-			estimatedWaitMinutes,
-		);
+		try {
+			await this.queueCacheService.saveLiveEntry(
+				persisted.id,
+				restaurantId,
+				position,
+				estimatedWaitMinutes,
+			);
+		} catch (error) {
+			logger.error(
+				{ err: error, queueEntryId: persisted.id },
+				'Non-blocking: Failed to cache live queue entry in Redis',
+			);
+		}
 
 		try {
 			this.socketBroadcaster.broadcastToRestaurant(
@@ -157,19 +178,6 @@ export class RegisterQueueUseCase implements IRegisterQueueUseCase {
 			);
 		}
 
-		return {
-			queueEntryId: persisted.id,
-			restaurantId: persisted.restaurantId,
-			userId: persisted.userId ?? null,
-			guestName: persisted.guestName,
-			guestPhone: persisted.phone,
-			partySize: persisted.partySize,
-			specialNotes: persisted.specialNotes ?? null,
-			registrationType: persisted.registrationType,
-			position: persisted.position ?? position,
-			estimatedWaitMinutes: persisted.estimatedWaitMinutes ?? estimatedWaitMinutes,
-			status: persisted.status,
-			joinedAt: persisted.joinedAt.toISOString(),
-		};
+		return RegisterQueueMapper.toOutputDTO(persisted, position, estimatedWaitMinutes);
 	}
 }

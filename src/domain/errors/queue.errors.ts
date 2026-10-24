@@ -34,6 +34,15 @@ export class ActiveQueueEntryExistsError extends DomainError {
 }
 
 /**
+ * Thrown when an authenticated customer already holds an active ticket in the queue.
+ */
+export class ActiveUserQueueEntryExistsError extends DomainError {
+	constructor() {
+		super(QUEUE_MESSAGES.ACTIVE_USER_ENTRY_EXISTS, 'ACTIVE_QUEUE_ENTRY_EXISTS');
+	}
+}
+
+/**
  * Thrown when a requested queue ticket or entry does not exist.
  */
 export class QueueEntryNotFoundError extends DomainError {

@@ -8,6 +8,7 @@ export const ROUTES = {
 	RING_CUSTOMER: '/queue/:queueEntryId/ring',
 	CUSTOMER_BASE: '/customer',
 	GET_ETA: '/:restaurantId/eta',
+	JOIN_QUEUE: '/restaurants/:restaurantId/queue/join',
 } as const;
 
 export const RESTAURANT_SERVICE_ROUTES = {

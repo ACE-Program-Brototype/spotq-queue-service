@@ -1,3 +1,4 @@
 export const REGEX = {
-	TRAILING_SLASH: /\/$/,
+	E164_PHONE: /^\+[1-9]\d{1,14}$/,
+	TRAILING_SLASH: /\/+$/,
 } as const;
