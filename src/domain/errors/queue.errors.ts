@@ -1,4 +1,4 @@
-import { AUTH_MESSAGES, QUEUE_MESSAGES } from '@shared/constants/message.constants.ts';
+import { AUTH_MESSAGES, messages, QUEUE_MESSAGES } from '@shared/constants/message.constants.ts';
 import { SUBSCRIPTION_PLAN } from '@shared/constants/subscription.constants.ts';
 import { DomainError } from './domain.error.ts';
 
@@ -112,10 +112,46 @@ export class RestaurantNotFoundError extends DomainError {
  * Thrown when an external upstream dependency (e.g., restaurant service) is unreachable or fails.
  */
 export class UpstreamServiceUnavailableError extends DomainError {
-	constructor(
-		message: string = 'Upstream service is currently unavailable. Please try again later.',
-		details?: unknown,
-	) {
+	constructor(message: string = QUEUE_MESSAGES.UPSTREAM_SERVICE_UNAVAILABLE, details?: unknown) {
 		super(message, 'UPSTREAM_SERVICE_UNAVAILABLE', details);
+	}
+}
+
+export class QueueEntryNotWaitingError extends DomainError {
+	constructor(queueEntryId: string, currentStatus: string) {
+		super(
+			`${QUEUE_MESSAGES.QUEUE_ENTRY_NOT_WAITING} (ID: ${queueEntryId}, current status: ${currentStatus})`,
+			'QUEUE_ENTRY_NOT_WAITING',
+			{ queueEntryId, currentStatus },
+		);
+	}
+}
+
+export class InsufficientTableCapacityError extends DomainError {
+	constructor(partySize: number, totalCapacity: number) {
+		super(
+			`${QUEUE_MESSAGES.INSUFFICIENT_TABLE_CAPACITY} (Required: ${partySize}, Assigned: ${totalCapacity})`,
+			'INSUFFICIENT_TABLE_CAPACITY',
+			{ partySize, totalCapacity },
+		);
+	}
+}
+
+export class CannotRingWalkInCustomerError extends DomainError {
+	constructor(queueEntryId: string) {
+		super(
+			`${QUEUE_MESSAGES.CANNOT_RING_WALK_IN_CUSTOMER} (ID: ${queueEntryId})`,
+			'CANNOT_RING_WALK_IN_CUSTOMER',
+			{ queueEntryId },
+		);
+	}
+}
+
+/**
+ * Thrown when authentication credentials or gateway identity context are missing or invalid.
+ */
+export class UnauthorizedError extends DomainError {
+	constructor(message: string = messages.GATEWAY_UNAUTHORIZED) {
+		super(message, 'UNAUTHORIZED');
 	}
 }

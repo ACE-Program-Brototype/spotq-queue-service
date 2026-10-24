@@ -49,8 +49,11 @@ describe('RegisterQueueUseCase Unit Tests', () => {
 			getActiveQueueMetrics: jest.fn().mockResolvedValue({ queueDepth: 5, totalPeopleAhead: 16 }),
 			countToday: jest.fn().mockResolvedValue(12),
 			findActiveByPhone: jest.fn().mockResolvedValue(null),
-			findActiveByUser: jest.fn().mockResolvedValue(null),
+			findActiveByUserId: jest.fn().mockResolvedValue(null),
 			createWithHistory: jest
+				.fn()
+				.mockImplementation((entry: QueueEntry) => Promise.resolve(entry)),
+			assignTablesWithHistory: jest
 				.fn()
 				.mockImplementation((entry: QueueEntry) => Promise.resolve(entry)),
 		};
@@ -63,6 +66,7 @@ describe('RegisterQueueUseCase Unit Tests', () => {
 				isTableAvailable: false,
 				availableCount: 0,
 			}),
+			assignTables: jest.fn().mockResolvedValue(undefined),
 			getRestaurantStatus: jest.fn().mockResolvedValue({
 				restaurantId: 'rest-1234',
 				restaurantName: 'Grand Bistro',
@@ -408,9 +412,11 @@ describe('POST /staff/restaurants/:restaurantId/queue/walk-in HTTP Tests', () =>
 });
 
 import { container, TYPES } from '../src/di/index.ts';
+import type { IQueueService } from '../src/domain/index.ts';
 import { PrismaQueueRepository } from '../src/infrastructure/database/repositories/prisma-queue.repository.ts';
 import { MlEtaServiceClient } from '../src/infrastructure/external/ml-eta-service.client.ts';
 import { RestaurantServiceClient } from '../src/infrastructure/external/restaurant-service.client.ts';
+import { BullMQQueueService } from '../src/infrastructure/queue/index.ts';
 import { RedisQueueCacheService } from '../src/infrastructure/redis/redis-queue-cache.service.ts';
 import { SocketBroadcaster } from '../src/infrastructure/websocket/socket-broadcaster.ts';
 import { StaffQueueController } from '../src/presentation/http/controllers/staff-queue.controller.ts';
@@ -458,6 +464,12 @@ describe('Inversify DI Container Resolution Tests', () => {
 		const broadcaster = container.get<IWebSocketBroadcaster>(TYPES.Services.WebSocketBroadcaster);
 		expect(broadcaster).toBeDefined();
 		expect(broadcaster).toBeInstanceOf(SocketBroadcaster);
+	});
+
+	it('should successfully resolve BullMQQueueService from container', () => {
+		const service = container.get<IQueueService>(TYPES.Services.QueueService);
+		expect(service).toBeDefined();
+		expect(service).toBeInstanceOf(BullMQQueueService);
 	});
 });
 

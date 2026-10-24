@@ -27,6 +27,7 @@ export const config = {
 	s2s: {
 		serviceName: validatedEnv.SERVICE_NAME,
 		privateKey: validatedEnv.S2S_PRIVATE_KEY,
+		orderPublicKey: validatedEnv.S2S_ORDER_PUBLIC,
 	},
 	websocket: {
 		get path() {
@@ -48,6 +49,9 @@ export const config = {
 		privateKey: validatedEnv.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
 		maxRetries: validatedEnv.FCM_MAX_RETRIES,
 		retryDelayMs: validatedEnv.FCM_RETRY_DELAY_MS,
+	},
+	notifications: {
+		ticketDeepLinkBaseUrl: validatedEnv.TICKET_DEEP_LINK_BASE_URL,
 	},
 } as const;
 

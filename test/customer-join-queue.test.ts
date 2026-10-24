@@ -163,10 +163,11 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 				getActiveQueueMetrics: jest.fn().mockResolvedValue({ queueDepth: 2, totalPeopleAhead: 6 }),
 				countToday: jest.fn().mockResolvedValue(5),
 				findActiveByPhone: jest.fn().mockResolvedValue(null),
-				findActiveByUser: jest.fn().mockResolvedValue(null),
+				findActiveByUserId: jest.fn().mockResolvedValue(null),
 				createWithHistory: jest
 					.fn()
 					.mockImplementation((entry: QueueEntry) => Promise.resolve(entry)),
+				assignTablesWithHistory: jest.fn(),
 			};
 
 			mockRestaurantServiceClient = {
@@ -186,6 +187,7 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 					subscriptionPlanCode: 'QUEUE_PRO',
 					status: 'ACTIVE',
 				}),
+				assignTables: jest.fn().mockResolvedValue(undefined),
 			};
 
 			mockEtaService = {
@@ -214,7 +216,7 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 		});
 
 		it('should reject with ActiveUserQueueEntryExistsError when customer with userId is already queued', async () => {
-			mockQueueRepository.findActiveByUser.mockResolvedValueOnce(
+			mockQueueRepository.findActiveByUserId.mockResolvedValueOnce(
 				QueueEntry.create({
 					restaurantId: validRestaurantId,
 					userId: validUserId,

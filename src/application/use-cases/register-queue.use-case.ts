@@ -84,7 +84,9 @@ export class RegisterQueueUseCase implements IRegisterQueueUseCase {
 
 		const [existingActivePhone, existingActiveUser] = await Promise.all([
 			this.queueRepository.findActiveByPhone(restaurantId, guestPhone),
-			userId ? this.queueRepository.findActiveByUser(restaurantId, userId) : Promise.resolve(null),
+			userId
+				? this.queueRepository.findActiveByUserId(restaurantId, userId)
+				: Promise.resolve(null),
 		]);
 
 		if (existingActivePhone) {

@@ -35,9 +35,7 @@ export class PrismaQueueRepository
 			const records = await this.prismaClient.queueEntry.findMany({
 				where: {
 					restaurantId,
-					status: {
-						in: [QueueStatus.WAITING, QueueStatus.RINGING],
-					},
+					status: QueueStatus.WAITING,
 				},
 				orderBy: {
 					joinedAt: 'asc',
@@ -58,9 +56,7 @@ export class PrismaQueueRepository
 			return this.prismaClient.queueEntry.count({
 				where: {
 					restaurantId,
-					status: {
-						in: [QueueStatus.WAITING, QueueStatus.RINGING],
-					},
+					status: QueueStatus.WAITING,
 				},
 			});
 		});
@@ -78,9 +74,7 @@ export class PrismaQueueRepository
 			const aggregate = await this.prismaClient.queueEntry.aggregate({
 				where: {
 					restaurantId,
-					status: {
-						in: [QueueStatus.WAITING, QueueStatus.RINGING],
-					},
+					status: QueueStatus.WAITING,
 				},
 				_sum: {
 					partySize: true,
@@ -104,9 +98,7 @@ export class PrismaQueueRepository
 			const aggregate = await this.prismaClient.queueEntry.aggregate({
 				where: {
 					restaurantId,
-					status: {
-						in: [QueueStatus.WAITING, QueueStatus.RINGING],
-					},
+					status: QueueStatus.WAITING,
 				},
 				_count: {
 					_all: true,
@@ -158,9 +150,7 @@ export class PrismaQueueRepository
 				where: {
 					restaurantId,
 					phone,
-					status: {
-						in: [QueueStatus.WAITING, QueueStatus.RINGING, QueueStatus.ACCEPTED],
-					},
+					status: QueueStatus.WAITING,
 				},
 			});
 			return record ? this.mapper.toDomain(record) : null;
@@ -168,21 +158,25 @@ export class PrismaQueueRepository
 	}
 
 	/**
-	 * Queries whether an authenticated customer with the specified userId currently has an active ticket.
+	 * Queries whether a registered user currently has an active ticket.
 	 *
 	 * @param restaurantId - Restaurant UUID
-	 * @param userId - Customer user UUID
+	 * @param userId - User UUID
 	 * @returns Active QueueEntry or null
 	 */
-	public async findActiveByUser(restaurantId: string, userId: string): Promise<QueueEntry | null> {
+	public async findActiveByUserId(
+		restaurantId: string,
+		userId: string,
+	): Promise<QueueEntry | null> {
 		return this.run(async () => {
 			const record = await this.prismaClient.queueEntry.findFirst({
 				where: {
 					restaurantId,
 					userId,
-					status: {
-						in: [QueueStatus.WAITING, QueueStatus.RINGING, QueueStatus.ACCEPTED],
-					},
+					status: QueueStatus.WAITING,
+				},
+				orderBy: {
+					joinedAt: 'desc',
 				},
 			});
 			return record ? this.mapper.toDomain(record) : null;
@@ -220,6 +214,48 @@ export class PrismaQueueRepository
 			});
 
 			return this.mapper.toDomain(createdRecord);
+		});
+	}
+
+	public async assignTablesWithHistory(
+		queueEntry: QueueEntry,
+		tableIds: string[],
+		assignedBy: string,
+		previousStatus: QueueStatus,
+	): Promise<QueueEntry> {
+		return this.run(async () => {
+			const persistenceData = this.mapper.toPersistence(queueEntry);
+
+			const updatedRecord = await this.prismaClient.$transaction(async (tx) => {
+				const client = tx as Prisma.TransactionClient;
+
+				await client.tableAssignment.createMany({
+					data: tableIds.map((tableId) => ({
+						queueEntryId: queueEntry.id,
+						tableId,
+						assignedBy,
+						assignedAt: queueEntry.seatedAt ?? new Date(),
+					})),
+				});
+
+				const updated = await client.queueEntry.update({
+					where: { id: queueEntry.id },
+					data: persistenceData,
+				});
+
+				await client.queueStatusHistory.create({
+					data: {
+						queueEntryId: queueEntry.id,
+						previousStatus,
+						currentStatus: queueEntry.status,
+						changedBy: assignedBy,
+					},
+				});
+
+				return updated;
+			});
+
+			return this.mapper.toDomain(updatedRecord);
 		});
 	}
 }
