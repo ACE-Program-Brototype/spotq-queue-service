@@ -176,6 +176,6 @@ export class RegisterQueueUseCase implements IRegisterQueueUseCase {
 			);
 		}
 
-		return RegisterQueueMapper.toOutputDTO(persisted, position, estimatedWaitMinutes);
+		return RegisterQueueMapper.toOutputDTO(persisted);
 	}
 }
