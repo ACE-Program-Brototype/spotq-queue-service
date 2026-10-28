@@ -39,7 +39,9 @@ describe('Internal Queue API - GET /api/internal/v1/restaurants/:restaurantId/qu
 			registrationType: RegistrationType.ONLINE,
 		});
 
-		const findSpy = jest.spyOn(queueRepository, 'findActiveByUserId').mockResolvedValue(mockEntry);
+		const findSpy = jest
+			.spyOn(queueRepository, 'findActiveByUserIdAndRestaurantId')
+			.mockResolvedValue(mockEntry);
 
 		const res = await request(app)
 			.get(`/api/internal/v1/restaurants/${restaurantId}/queue/users/${userId}/active`)
@@ -63,7 +65,9 @@ describe('Internal Queue API - GET /api/internal/v1/restaurants/:restaurantId/qu
 	});
 
 	it('should return 200 with hasActiveQueue: false when no queue entry exists', async () => {
-		const findSpy = jest.spyOn(queueRepository, 'findActiveByUserId').mockResolvedValue(null);
+		const findSpy = jest
+			.spyOn(queueRepository, 'findActiveByUserIdAndRestaurantId')
+			.mockResolvedValue(null);
 
 		const res = await request(app)
 			.get(`/api/internal/v1/restaurants/${restaurantId}/queue/users/${userId}/active`)
@@ -78,7 +82,7 @@ describe('Internal Queue API - GET /api/internal/v1/restaurants/:restaurantId/qu
 	});
 
 	it('should return 400 when restaurantId or userId is not a valid UUID', async () => {
-		const findSpy = jest.spyOn(queueRepository, 'findActiveByUserId');
+		const findSpy = jest.spyOn(queueRepository, 'findActiveByUserIdAndRestaurantId');
 
 		const res = await request(app)
 			.get('/api/internal/v1/restaurants/invalid-uuid/queue/users/invalid-uuid/active')

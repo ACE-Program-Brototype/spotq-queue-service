@@ -65,7 +65,7 @@ describe('AssignTableUseCase', () => {
 			getActiveQueueMetrics: jest.fn(),
 			countToday: jest.fn(),
 			findActiveByPhone: jest.fn(),
-			findActiveByUserId: jest.fn(),
+			findActiveByUserIdAndRestaurantId: jest.fn(),
 			createWithHistory: jest.fn(),
 			assignTablesWithHistory: jest.fn(),
 		};

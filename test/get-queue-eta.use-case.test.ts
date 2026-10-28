@@ -56,7 +56,7 @@ describe('GetQueueEtaUseCase Unit Tests', () => {
 			}),
 			countToday: jest.fn(),
 			findActiveByPhone: jest.fn(),
-			findActiveByUserId: jest.fn(),
+			findActiveByUserIdAndRestaurantId: jest.fn(),
 			createWithHistory: jest.fn(),
 			assignTablesWithHistory: jest.fn(),
 		};

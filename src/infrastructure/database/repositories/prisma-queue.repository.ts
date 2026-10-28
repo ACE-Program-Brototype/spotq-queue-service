@@ -164,7 +164,7 @@ export class PrismaQueueRepository
 	 * @param userId - User UUID
 	 * @returns Active QueueEntry or null
 	 */
-	public async findActiveByUserId(
+	public async findActiveByUserIdAndRestaurantId(
 		restaurantId: string,
 		userId: string,
 	): Promise<QueueEntry | null> {
