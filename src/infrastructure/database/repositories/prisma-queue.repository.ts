@@ -274,6 +274,13 @@ export class PrismaQueueRepository
 			const hasPartySizeFilter =
 				filters.minPartySize !== undefined || filters.maxPartySize !== undefined;
 
+			const partySizeFilter = hasPartySizeFilter
+				? {
+						...(filters.minPartySize !== undefined && { gte: filters.minPartySize }),
+						...(filters.maxPartySize !== undefined && { lte: filters.maxPartySize }),
+					}
+				: undefined;
+
 			const [totalWaiting, records] = await this.prismaClient.$transaction([
 				this.prismaClient.queueEntry.count({
 					where: {
@@ -285,9 +292,7 @@ export class PrismaQueueRepository
 					where: {
 						restaurantId,
 						status: filters.status,
-						partySize: hasPartySizeFilter
-							? { gte: filters.minPartySize, lte: filters.maxPartySize }
-							: undefined,
+						partySize: partySizeFilter,
 					},
 					include: {
 						tableAssignments: {

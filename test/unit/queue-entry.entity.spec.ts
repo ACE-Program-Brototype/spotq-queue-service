@@ -25,8 +25,8 @@ describe('QueueEntry Entity Unit Tests', () => {
 			fid: null,
 			joinedAt: overrides.joinedAt ?? new Date(now.getTime() - 25 * 60 * 1000), // 25 minutes ago
 			seatedAt: overrides.seatedAt ?? null,
-			createdAt: now,
-			updatedAt: now,
+			createdAt: overrides.createdAt ?? now,
+			updatedAt: overrides.updatedAt ?? now,
 		});
 	};
 
@@ -54,6 +54,21 @@ describe('QueueEntry Entity Unit Tests', () => {
 			const duration = entry.calculateWaitDurationMinutes(laterReferenceTime);
 
 			expect(duration).toBe(20);
+		});
+
+		it('should calculate wait duration using updatedAt for terminal entries (e.g. CANCELLED)', () => {
+			const joinedAt = new Date('2026-10-28T10:00:00.000Z');
+			const cancelledAt = new Date('2026-10-28T10:15:00.000Z');
+			const laterReferenceTime = new Date('2026-10-28T18:00:00.000Z');
+			const entry = createTestEntry({
+				status: QueueStatus.CANCELLED,
+				joinedAt,
+				updatedAt: cancelledAt,
+			});
+
+			const duration = entry.calculateWaitDurationMinutes(laterReferenceTime);
+
+			expect(duration).toBe(15);
 		});
 
 		it('should return 0 when referenceTime is before joinedAt', () => {

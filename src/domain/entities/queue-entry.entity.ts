@@ -231,18 +231,24 @@ export class QueueEntry {
 	}
 
 	/**
-	 * Calculates the duration this party has spent waiting in minutes.
+	 * Computes dynamic waiting duration in minutes.
 	 * If the party is seated, calculates elapsed time from join to seat.
+	 * If the party is in a terminal state (cancelled, skipped, no-show), calculates elapsed time from join to updatedAt.
 	 * Otherwise, calculates elapsed time from join until referenceTime (defaults to now).
 	 *
 	 * @param referenceTime - Date to measure wait duration against (defaults to current time)
 	 * @returns Non-negative wait duration in whole minutes
 	 */
 	public calculateWaitDurationMinutes(referenceTime: Date = new Date()): number {
-		const endTime =
-			this.props.status === QueueStatus.SEATED && this.props.seatedAt
-				? this.props.seatedAt
-				: referenceTime;
+		let endTime: Date;
+
+		if (this.props.status === QueueStatus.SEATED) {
+			endTime = this.props.seatedAt ?? this.props.updatedAt;
+		} else if (this.props.status !== QueueStatus.WAITING) {
+			endTime = this.props.updatedAt;
+		} else {
+			endTime = referenceTime;
+		}
 
 		return Math.max(
 			0,
