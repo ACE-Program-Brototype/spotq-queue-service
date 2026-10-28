@@ -1,5 +1,11 @@
 import { TYPES } from '@di/types.ts';
-import { type IQueueRepository, type QueueEntry, QueueStatus } from '@domain/index.ts';
+import {
+	ActiveQueueEntryExistsError,
+	ActiveUserQueueEntryExistsError,
+	type IQueueRepository,
+	type QueueEntry,
+	QueueStatus,
+} from '@domain/index.ts';
 import type { Prisma, PrismaClient, QueueEntry as PrismaQueueEntry } from '@prisma/client';
 import { inject, injectable } from 'inversify';
 import { QueueEntryMapper } from '../mappers/queue-entry.mapper.ts';
@@ -263,6 +269,30 @@ export class PrismaQueueRepository
 
 			const createdRecord = await this.prismaClient.$transaction(async (tx) => {
 				const client = tx as Prisma.TransactionClient;
+
+				if (persistenceData.userId) {
+					const existingUser = await client.queueEntry.findFirst({
+						where: {
+							userId: persistenceData.userId,
+							status: QueueStatus.WAITING,
+						},
+					});
+					if (existingUser) {
+						throw new ActiveUserQueueEntryExistsError();
+					}
+				}
+
+				const existingPhone = await client.queueEntry.findFirst({
+					where: {
+						restaurantId: persistenceData.restaurantId,
+						phone: persistenceData.phone,
+						status: QueueStatus.WAITING,
+					},
+				});
+				if (existingPhone) {
+					throw new ActiveQueueEntryExistsError(persistenceData.phone);
+				}
+
 				const created = await client.queueEntry.create({
 					data: persistenceData,
 				});
