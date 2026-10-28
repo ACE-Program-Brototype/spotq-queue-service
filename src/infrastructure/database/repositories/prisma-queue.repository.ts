@@ -158,7 +158,7 @@ export class PrismaQueueRepository
 	}
 
 	/**
-	 * Queries whether a registered user currently has an active ticket.
+	 * Queries whether a registered user currently has an active ticket by userId And RestaurantId.
 	 *
 	 * @param restaurantId - Restaurant UUID
 	 * @param userId - User UUID
@@ -181,6 +181,16 @@ export class PrismaQueueRepository
 			});
 			return record ? this.mapper.toDomain(record) : null;
 		});
+	}
+
+	/**
+	 * Queries where a registered user currently have a active ticket.
+	 *
+	 * @param userId User UUID
+	 * @returns Active Queue Entry or null
+	 */
+	public async findActiveByUserId(userId: string): Promise<QueueEntry | null> {
+		return this.findOne({ where: { userId, status: QueueStatus.WAITING } });
 	}
 
 	/**
