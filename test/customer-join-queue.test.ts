@@ -520,6 +520,7 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 				userId: validUserId,
 				guestName: 'Alex Mercer',
 				guestPhone: '+15551234567',
+				queueNumber: 'Q-001',
 				partySize: 2,
 				specialNotes: 'Quiet booth if possible',
 				registrationType: RegistrationType.ONLINE,
@@ -542,6 +543,7 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 					queueEntryId: 'ticket-uuid-success',
 					restaurantId: validRestaurantId,
 					userId: validUserId,
+					queueNumber: 'Q-001',
 					position: 3,
 					estimatedWaitMinutes: 15,
 					websocket: {

@@ -259,6 +259,7 @@ describe('RegisterQueueUseCase Unit Tests', () => {
 			userId: null,
 			guestName: 'David Miller',
 			guestPhone: '+15559876543',
+			queueNumber: 'W-013',
 			partySize: 4,
 			specialNotes: 'Prefers booth seating',
 			registrationType: RegistrationType.WALK_IN,

@@ -24,6 +24,7 @@ export const RegisterQueueMapper = {
 			userId: entry.userId ?? null,
 			guestName: entry.guestName,
 			guestPhone: entry.phone,
+			queueNumber: entry.queueNumber,
 			partySize: entry.partySize,
 			specialNotes: entry.specialNotes ?? null,
 			registrationType: entry.registrationType,

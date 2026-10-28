@@ -18,6 +18,7 @@ export interface RegisterQueueOutputDTO {
 	userId?: string | null;
 	guestName: string;
 	guestPhone: string;
+	queueNumber: string;
 	partySize: number;
 	specialNotes?: string | null;
 	registrationType: RegistrationType;
