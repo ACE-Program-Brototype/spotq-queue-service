@@ -22,7 +22,7 @@ export const RESTAURANT_SERVICE_ROUTES = {
 export const INTERNAL_ROUTES = {
 	BASE: '/api/internal/v1',
 	USER_ACTIVE_QUEUE: '/restaurants/:restaurantId/queue/users/:userId/active',
-	GET_CUSTOMER_STATUS: '/queue-entries/status',
+	GET_CUSTOMER_STATUS: '/queue-entries/:userId/status',
 } as const;
 
 export const ML_ETA_SERVICE_ROUTES = {

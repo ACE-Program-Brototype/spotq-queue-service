@@ -5,7 +5,7 @@ import { HTTP_STATUS, messages, QUEUE_MESSAGES, sendSuccessResponse } from '@sha
 import type { Request, Response } from 'express';
 import { inject, injectable } from 'inversify';
 import type { GetUserActiveQueueParams } from '../validators/get-user-active-queue.validator.ts';
-import type { GetCustomerQueueStatusBody } from '../validators/internal/get-customer-queue-status.validator.ts';
+import type { GetCustomerQueueStatusParams } from '../validators/internal/get-customer-queue-status.validator.ts';
 
 @injectable()
 export class InternalQueueController {
@@ -28,7 +28,7 @@ export class InternalQueueController {
 	};
 
 	getCustomerQueueStatus = async (req: Request, res: Response): Promise<void> => {
-		const { userId } = req.body as GetCustomerQueueStatusBody;
+		const { userId } = req.params as GetCustomerQueueStatusParams;
 
 		const result = await this.getCustomerQueueStatusUseCase.execute({ userId });
 
