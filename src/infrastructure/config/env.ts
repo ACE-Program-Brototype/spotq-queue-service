@@ -28,6 +28,7 @@ export const config = {
 		serviceName: validatedEnv.SERVICE_NAME,
 		privateKey: validatedEnv.S2S_PRIVATE_KEY,
 		orderPublicKey: validatedEnv.S2S_ORDER_PUBLIC,
+		restaurantPublicKey: validatedEnv.S2S_RESTAURANT_PUBLIC,
 	},
 	websocket: {
 		get path() {
