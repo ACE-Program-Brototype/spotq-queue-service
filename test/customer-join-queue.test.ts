@@ -241,6 +241,38 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 				}),
 			).rejects.toThrow(ActiveUserQueueEntryExistsError);
 
+			expect(mockQueueRepository.findActiveByUserId).toHaveBeenCalledWith(validUserId);
+			expect(mockQueueRepository.createWithHistory).not.toHaveBeenCalled();
+		});
+
+		it('should reject with ActiveUserQueueEntryExistsError when customer already has an active queue entry at another restaurant', async () => {
+			const anotherRestaurantId = 'c2eebc99-9c0b-4ef8-bb6d-6bb9bd380a33';
+			mockQueueRepository.findActiveByUserId.mockResolvedValueOnce(
+				QueueEntry.create({
+					restaurantId: anotherRestaurantId,
+					userId: validUserId,
+					guestName: 'Alex Mercer',
+					phone: '+15551234567',
+					queueNumber: 'Q-004',
+					partySize: 2,
+					position: 2,
+					estimatedWaitMinutes: 10,
+					registrationType: RegistrationType.ONLINE,
+				}),
+			);
+
+			await expect(
+				useCase.execute({
+					restaurantId: validRestaurantId,
+					userId: validUserId,
+					guestName: 'Alex Mercer',
+					guestPhone: '+15559998877',
+					partySize: 2,
+					registrationType: RegistrationType.ONLINE,
+				}),
+			).rejects.toThrow(ActiveUserQueueEntryExistsError);
+
+			expect(mockQueueRepository.findActiveByUserId).toHaveBeenCalledWith(validUserId);
 			expect(mockQueueRepository.createWithHistory).not.toHaveBeenCalled();
 		});
 
