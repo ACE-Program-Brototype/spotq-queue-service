@@ -1,5 +1,7 @@
 import http from 'node:http';
 import type { AddressInfo } from 'node:net';
+import { container, TYPES } from '@di/index.ts';
+import type { IQueueRepository } from '@domain/repositories/queue.repository.interface.ts';
 import { initSocketServer } from '@infrastructure/websocket/socket.server.ts';
 import type { SocketBroadcaster } from '@infrastructure/websocket/socket-broadcaster.ts';
 import {
@@ -15,6 +17,9 @@ describe('WebSocket Infrastructure Integration Tests', () => {
 	let serverPort: number;
 	let closeWsServer: () => Promise<void>;
 	let broadcaster: SocketBroadcaster;
+	const mockQueueRepo = {
+		findById: jest.fn(),
+	};
 
 	const restaurantIdA = '11111111-1111-1111-1111-111111111111';
 	const restaurantIdB = '22222222-2222-2222-2222-222222222222';
@@ -52,6 +57,16 @@ describe('WebSocket Infrastructure Integration Tests', () => {
 	};
 
 	beforeAll(async () => {
+		if (container.isBound(TYPES.Repositories.QueueRepository)) {
+			container
+				.rebind(TYPES.Repositories.QueueRepository)
+				.toConstantValue(mockQueueRepo as unknown as IQueueRepository);
+		} else {
+			container
+				.bind(TYPES.Repositories.QueueRepository)
+				.toConstantValue(mockQueueRepo as unknown as IQueueRepository);
+		}
+
 		httpServer = http.createServer();
 		const wsResult = await initSocketServer(httpServer, {
 			useRedisAdapter: false, // In-memory adapter for unit testing
@@ -68,7 +83,14 @@ describe('WebSocket Infrastructure Integration Tests', () => {
 		});
 	});
 
+	beforeEach(() => {
+		jest.clearAllMocks();
+	});
+
 	afterAll(async () => {
+		if (container.isBound(TYPES.Repositories.QueueRepository)) {
+			container.unbind(TYPES.Repositories.QueueRepository);
+		}
 		await closeWsServer();
 		await new Promise<void>((resolve) => {
 			httpServer.close(() => resolve());
@@ -334,6 +356,11 @@ describe('WebSocket Infrastructure Integration Tests', () => {
 				'x-restaurant-id': restaurantIdA,
 				'x-user-role': 'CUSTOMER',
 			};
+			mockQueueRepo.findById.mockResolvedValueOnce({
+				id: customerTicketId,
+				restaurantId: restaurantIdA,
+				userId: customerUserId, // Mismatched userId
+			});
 			const client = createClient(customerWithoutTicketHeaders);
 			client.connect();
 
@@ -341,6 +368,56 @@ describe('WebSocket Infrastructure Integration Tests', () => {
 				client.emit(
 					WS_CLIENT_EVENTS.JOIN_TICKET,
 					{ ticketId: customerTicketId },
+					(res: { success: boolean; error?: string }) => {
+						expect(res.success).toBe(false);
+						expect(res.error).toBe(WS_ERROR_MESSAGES.UNAUTHORIZED_TICKET);
+						client.disconnect();
+						done();
+					},
+				);
+			});
+		});
+
+		it('staff can join ticket room belonging to their restaurant', (done) => {
+			const ticketForRestaurantA = 'aaaa1111-aaaa-1111-aaaa-111111111111';
+			mockQueueRepo.findById.mockResolvedValueOnce({
+				id: ticketForRestaurantA,
+				restaurantId: restaurantIdA,
+				userId: 'any-user-id',
+			});
+
+			const client = createClient(staffHeaders);
+			client.connect();
+
+			client.on('connect', () => {
+				client.emit(
+					WS_CLIENT_EVENTS.JOIN_TICKET,
+					{ ticketId: ticketForRestaurantA },
+					(res: { success: boolean; room?: string }) => {
+						expect(res.success).toBe(true);
+						expect(res.room).toBe(WEBSOCKET_ROOMS.ticket(ticketForRestaurantA));
+						client.disconnect();
+						done();
+					},
+				);
+			});
+		});
+
+		it('staff cannot join ticket room belonging to another restaurant (cross-tenant rejected)', (done) => {
+			const ticketForRestaurantB = 'bbbb2222-bbbb-2222-bbbb-222222222222';
+			mockQueueRepo.findById.mockResolvedValueOnce({
+				id: ticketForRestaurantB,
+				restaurantId: restaurantIdB,
+				userId: 'any-user-id',
+			});
+
+			const client = createClient(staffHeaders);
+			client.connect();
+
+			client.on('connect', () => {
+				client.emit(
+					WS_CLIENT_EVENTS.JOIN_TICKET,
+					{ ticketId: ticketForRestaurantB },
 					(res: { success: boolean; error?: string }) => {
 						expect(res.success).toBe(false);
 						expect(res.error).toBe(WS_ERROR_MESSAGES.UNAUTHORIZED_TICKET);

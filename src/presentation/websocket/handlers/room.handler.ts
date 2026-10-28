@@ -119,27 +119,36 @@ export function registerRoomHandlers(socket: Socket): void {
 			const isAuthorizedMember = isStaff || isRestaurantOwner;
 			const isCustomer = user.role === CUSTOMER_ROLE;
 
-			let isTicketOwner = user.ticketId === ticketId || user.userId === ticketId;
+			let isAuthorized = user.role === ADMIN_ROLE;
 
-			if (!isTicketOwner && isCustomer && user.userId) {
-				try {
-					if (container.isBound(TYPES.Repositories.QueueRepository)) {
+			if (!isAuthorized) {
+				if (isCustomer && user.ticketId === ticketId) {
+					isAuthorized = true;
+				} else if (container.isBound(TYPES.Repositories.QueueRepository)) {
+					try {
 						const queueRepo = container.get<IQueueRepository>(TYPES.Repositories.QueueRepository);
 						const ticket = await queueRepo.findById(ticketId);
-						if (ticket && ticket.userId === user.userId) {
-							isTicketOwner = true;
-							user.ticketId = ticketId;
+
+						if (ticket) {
+							if (
+								isAuthorizedMember &&
+								user.restaurantId &&
+								ticket.restaurantId === user.restaurantId
+							) {
+								isAuthorized = true;
+							} else if (isCustomer && user.userId && ticket.userId === user.userId) {
+								isAuthorized = true;
+								user.ticketId = ticketId;
+							}
 						}
+					} catch (error) {
+						logger.error(
+							{ err: error, ticketId, userId: user.userId },
+							'Failed to verify ticket authorization for WebSocket room join',
+						);
 					}
-				} catch (error) {
-					logger.error(
-						{ err: error, ticketId, userId: user.userId },
-						'Failed to verify ticket ownership for WebSocket room join',
-					);
 				}
 			}
-
-			const isAuthorized = user.role === ADMIN_ROLE || isAuthorizedMember || isTicketOwner;
 
 			if (!isAuthorized) {
 				logger.warn(
