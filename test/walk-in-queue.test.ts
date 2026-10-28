@@ -50,6 +50,7 @@ describe('RegisterQueueUseCase Unit Tests', () => {
 			countToday: jest.fn().mockResolvedValue(12),
 			findActiveByPhone: jest.fn().mockResolvedValue(null),
 			findActiveByUserId: jest.fn().mockResolvedValue(null),
+			findActiveByRestaurantAndUserId: jest.fn().mockResolvedValue(null),
 			createWithHistory: jest
 				.fn()
 				.mockImplementation((entry: QueueEntry) => Promise.resolve(entry)),

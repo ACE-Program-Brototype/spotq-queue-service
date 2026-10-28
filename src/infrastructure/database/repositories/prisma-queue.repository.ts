@@ -158,31 +158,44 @@ export class PrismaQueueRepository
 	}
 
 	/**
-	 * Queries whether a registered user currently has an active ticket across any restaurant,
-	 * or scoped to a specific restaurant when both restaurantId and userId are provided.
+	 * Queries whether a registered user currently has an active ticket across any restaurant.
 	 *
-	 * @param userIdOrRestaurantId - User UUID (when checking globally) or Restaurant UUID (when checking per restaurant)
-	 * @param maybeUserId - Optional User UUID when restaurantId is passed as first argument
+	 * @param userId - User UUID
 	 * @returns Active QueueEntry or null
 	 */
-	public async findActiveByUserId(
-		userIdOrRestaurantId: string,
-		maybeUserId?: string,
+	public async findActiveByUserId(userId: string): Promise<QueueEntry | null> {
+		return this.run(async () => {
+			const record = await this.prismaClient.queueEntry.findFirst({
+				where: {
+					userId,
+					status: QueueStatus.WAITING,
+				},
+				orderBy: {
+					joinedAt: 'desc',
+				},
+			});
+			return record ? this.mapper.toDomain(record) : null;
+		});
+	}
+
+	/**
+	 * Queries whether a registered user currently has an active ticket scoped to a specific restaurant.
+	 *
+	 * @param restaurantId - Restaurant UUID
+	 * @param userId - User UUID
+	 * @returns Active QueueEntry or null
+	 */
+	public async findActiveByRestaurantAndUserId(
+		restaurantId: string,
+		userId: string,
 	): Promise<QueueEntry | null> {
 		return this.run(async () => {
-			const where = maybeUserId
-				? {
-						restaurantId: userIdOrRestaurantId,
-						userId: maybeUserId,
-						status: QueueStatus.WAITING,
-					}
-				: {
-						userId: userIdOrRestaurantId,
-						status: QueueStatus.WAITING,
-					};
-
 			const record = await this.prismaClient.queueEntry.findFirst({
-				where,
+				where: {
+					restaurantId,
+					userId,
+					status: QueueStatus.WAITING,
+				},
 				orderBy: {
 					joinedAt: 'desc',
 				},

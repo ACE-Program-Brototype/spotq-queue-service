@@ -78,6 +78,7 @@ describe('RingCustomerUseCase Unit Tests', () => {
 			countToday: jest.fn(),
 			findActiveByPhone: jest.fn(),
 			findActiveByUserId: jest.fn(),
+			findActiveByRestaurantAndUserId: jest.fn(),
 			createWithHistory: jest.fn(),
 			assignTablesWithHistory: jest.fn(),
 		};

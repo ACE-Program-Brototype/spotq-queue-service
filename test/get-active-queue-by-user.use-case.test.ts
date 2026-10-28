@@ -18,6 +18,7 @@ describe('GetActiveQueueByUserUseCase', () => {
 			countToday: jest.fn(),
 			findActiveByPhone: jest.fn(),
 			findActiveByUserId: jest.fn(),
+			findActiveByRestaurantAndUserId: jest.fn(),
 			createWithHistory: jest.fn(),
 			findById: jest.fn(),
 			create: jest.fn(),
@@ -42,7 +43,7 @@ describe('GetActiveQueueByUserUseCase', () => {
 			registrationType: RegistrationType.ONLINE,
 		});
 
-		mockQueueRepository.findActiveByUserId.mockResolvedValue(activeQueue);
+		mockQueueRepository.findActiveByRestaurantAndUserId.mockResolvedValue(activeQueue);
 
 		const result = await useCase.execute({ restaurantId, userId });
 
@@ -52,16 +53,22 @@ describe('GetActiveQueueByUserUseCase', () => {
 		expect(result.queueEntry?.queueNumber).toBe('W-001');
 		expect(result.queueEntry?.userId).toBe(userId);
 		expect(result.queueEntry?.status).toBe(QueueStatus.WAITING);
-		expect(mockQueueRepository.findActiveByUserId).toHaveBeenCalledWith(restaurantId, userId);
+		expect(mockQueueRepository.findActiveByRestaurantAndUserId).toHaveBeenCalledWith(
+			restaurantId,
+			userId,
+		);
 	});
 
 	it('should return hasActiveQueue: false and null queueEntry when no active queue exists', async () => {
-		mockQueueRepository.findActiveByUserId.mockResolvedValue(null);
+		mockQueueRepository.findActiveByRestaurantAndUserId.mockResolvedValue(null);
 
 		const result = await useCase.execute({ restaurantId, userId });
 
 		expect(result.hasActiveQueue).toBe(false);
 		expect(result.queueEntry).toBeNull();
-		expect(mockQueueRepository.findActiveByUserId).toHaveBeenCalledWith(restaurantId, userId);
+		expect(mockQueueRepository.findActiveByRestaurantAndUserId).toHaveBeenCalledWith(
+			restaurantId,
+			userId,
+		);
 	});
 });

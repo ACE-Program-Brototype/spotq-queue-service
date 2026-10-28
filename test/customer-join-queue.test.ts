@@ -164,6 +164,7 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 				countToday: jest.fn().mockResolvedValue(5),
 				findActiveByPhone: jest.fn().mockResolvedValue(null),
 				findActiveByUserId: jest.fn().mockResolvedValue(null),
+				findActiveByRestaurantAndUserId: jest.fn().mockResolvedValue(null),
 				createWithHistory: jest
 					.fn()
 					.mockImplementation((entry: QueueEntry) => Promise.resolve(entry)),
