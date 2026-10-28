@@ -22,6 +22,9 @@ export const TYPES = {
 		GetQueueEtaUseCase: Symbol.for('GetQueueEtaUseCase'),
 		AssignTableUseCase: Symbol.for('AssignTableUseCase'),
 		RingCustomerUseCase: Symbol.for('RingCustomerUseCase'),
+		Internal: {
+			GetCustomerQueueStatusUseCase: Symbol.for('GetCustomerQueueStatusUseCase'),
+		},
 	},
 	Controllers: {
 		StaffQueueController: Symbol.for('StaffQueueController'),
