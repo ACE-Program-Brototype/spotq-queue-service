@@ -190,7 +190,7 @@ export class PrismaQueueRepository
 	 * @returns Active Queue Entry or null
 	 */
 	public async findActiveByUserId(userId: string): Promise<QueueEntry | null> {
-		return this.findOne({ where: { userId, status: QueueStatus.WAITING } });
+		return this.findOne({ userId, status: QueueStatus.WAITING });
 	}
 
 	/**
