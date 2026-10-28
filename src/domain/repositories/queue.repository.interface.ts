@@ -7,6 +7,22 @@ export interface ActiveQueueMetrics {
 	totalPeopleAhead: number;
 }
 
+export interface StaffQueueQueryFilters {
+	status?: QueueStatus;
+	minPartySize?: number;
+	maxPartySize?: number;
+}
+
+export interface StaffQueueSnapshotItem {
+	entry: QueueEntry;
+	assignedTableId: string | null;
+}
+
+export interface StaffQueueSnapshotResult {
+	totalWaiting: number;
+	entries: StaffQueueSnapshotItem[];
+}
+
 export interface IQueueRepository extends IBaseRepository<QueueEntry, string> {
 	findActiveEntries(restaurantId: string): Promise<QueueEntry[]>;
 	countActiveAhead(restaurantId: string): Promise<number>;
@@ -24,4 +40,8 @@ export interface IQueueRepository extends IBaseRepository<QueueEntry, string> {
 		assignedBy: string,
 		previousStatus: QueueStatus,
 	): Promise<QueueEntry>;
+	getStaffQueueSnapshot(
+		restaurantId: string,
+		filters: StaffQueueQueryFilters,
+	): Promise<StaffQueueSnapshotResult>;
 }

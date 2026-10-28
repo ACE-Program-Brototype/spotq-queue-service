@@ -80,6 +80,7 @@ describe('RingCustomerUseCase Unit Tests', () => {
 			findActiveByUserId: jest.fn(),
 			createWithHistory: jest.fn(),
 			assignTablesWithHistory: jest.fn(),
+			getStaffQueueSnapshot: jest.fn(),
 		};
 
 		mockQueueService = {
