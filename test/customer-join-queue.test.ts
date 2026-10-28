@@ -161,6 +161,9 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 				countActiveAhead: jest.fn().mockResolvedValue(2),
 				sumPartySizeActiveAhead: jest.fn().mockResolvedValue(6),
 				getActiveQueueMetrics: jest.fn().mockResolvedValue({ queueDepth: 2, totalPeopleAhead: 6 }),
+				getRegistrationMetrics: jest
+					.fn()
+					.mockResolvedValue({ queueDepth: 2, totalPeopleAhead: 6, countToday: 5 }),
 				countToday: jest.fn().mockResolvedValue(5),
 				findActiveByPhone: jest.fn().mockResolvedValue(null),
 				findActiveByUserId: jest.fn().mockResolvedValue(null),

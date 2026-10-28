@@ -95,13 +95,10 @@ export class RegisterQueueUseCase implements IRegisterQueueUseCase {
 			throw new ActiveUserQueueEntryExistsError();
 		}
 
-		const [metrics, countToday] = await Promise.all([
-			this.queueRepository.getActiveQueueMetrics(restaurantId),
-			this.queueRepository.countToday(restaurantId),
-		]);
+		const { queueDepth, totalPeopleAhead, countToday } =
+			await this.queueRepository.getRegistrationMetrics(restaurantId);
 
-		const activeAheadCount = metrics.queueDepth;
-		const totalPeopleAhead = metrics.totalPeopleAhead;
+		const activeAheadCount = queueDepth;
 		const position = activeAheadCount + 1;
 
 		const resolvedType =

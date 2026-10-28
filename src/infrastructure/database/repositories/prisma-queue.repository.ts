@@ -116,6 +116,51 @@ export class PrismaQueueRepository
 	}
 
 	/**
+	 * Atomically calculates active queue metrics and today's registration count
+	 * within a single batch transaction to conserve connection pool resources and ensure consistency.
+	 *
+	 * @param restaurantId - Restaurant UUID
+	 * @returns Point-in-time snapshot of queueDepth, totalPeopleAhead, and countToday
+	 */
+	public async getRegistrationMetrics(
+		restaurantId: string,
+	): Promise<{ queueDepth: number; totalPeopleAhead: number; countToday: number }> {
+		const startOfDay = new Date();
+		startOfDay.setHours(0, 0, 0, 0);
+
+		return this.run(async () => {
+			const [aggregate, countToday] = await this.prismaClient.$transaction([
+				this.prismaClient.queueEntry.aggregate({
+					where: {
+						restaurantId,
+						status: QueueStatus.WAITING,
+					},
+					_count: {
+						_all: true,
+					},
+					_sum: {
+						partySize: true,
+					},
+				}),
+				this.prismaClient.queueEntry.count({
+					where: {
+						restaurantId,
+						createdAt: {
+							gte: startOfDay,
+						},
+					},
+				}),
+			]);
+
+			return {
+				queueDepth: aggregate._count._all,
+				totalPeopleAhead: aggregate._sum.partySize ?? 0,
+				countToday,
+			};
+		});
+	}
+
+	/**
 	 * Counts total queue entries registered today for generating daily sequential queue numbers (e.g. W-001).
 	 *
 	 * @param restaurantId - Restaurant UUID

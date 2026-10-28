@@ -16,6 +16,7 @@ describe('GetActiveQueueByUserUseCase', () => {
 			countActiveAhead: jest.fn(),
 			sumPartySizeActiveAhead: jest.fn(),
 			countToday: jest.fn(),
+			getRegistrationMetrics: jest.fn(),
 			findActiveByPhone: jest.fn(),
 			findActiveByUserId: jest.fn(),
 			findActiveByRestaurantAndUserId: jest.fn(),

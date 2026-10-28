@@ -55,6 +55,7 @@ describe('GetQueueEtaUseCase Unit Tests', () => {
 				totalPeopleAhead: 10,
 			}),
 			countToday: jest.fn(),
+			getRegistrationMetrics: jest.fn(),
 			findActiveByPhone: jest.fn(),
 			findActiveByUserId: jest.fn(),
 			findActiveByRestaurantAndUserId: jest.fn(),

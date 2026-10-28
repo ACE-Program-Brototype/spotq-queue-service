@@ -47,6 +47,9 @@ describe('RegisterQueueUseCase Unit Tests', () => {
 			countActiveAhead: jest.fn().mockResolvedValue(5),
 			sumPartySizeActiveAhead: jest.fn().mockResolvedValue(16),
 			getActiveQueueMetrics: jest.fn().mockResolvedValue({ queueDepth: 5, totalPeopleAhead: 16 }),
+			getRegistrationMetrics: jest
+				.fn()
+				.mockResolvedValue({ queueDepth: 5, totalPeopleAhead: 16, countToday: 12 }),
 			countToday: jest.fn().mockResolvedValue(12),
 			findActiveByPhone: jest.fn().mockResolvedValue(null),
 			findActiveByUserId: jest.fn().mockResolvedValue(null),
