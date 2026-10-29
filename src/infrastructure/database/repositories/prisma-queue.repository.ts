@@ -1,6 +1,13 @@
 import { TYPES } from '@di/types.ts';
-import { type IQueueRepository, type QueueEntry, QueueStatus } from '@domain/index.ts';
+import {
+	type IQueueRepository,
+	type QueueEntry,
+	QueueStatus,
+	type StaffQueueQueryFilters,
+	type StaffQueueSnapshotResult,
+} from '@domain/index.ts';
 import type { Prisma, PrismaClient, QueueEntry as PrismaQueueEntry } from '@prisma/client';
+import { QUEUE_QUERY_CONSTANTS } from '@shared/constants/queue.constants.ts';
 import { inject, injectable } from 'inversify';
 import { QueueEntryMapper } from '../mappers/queue-entry.mapper.ts';
 import { PrismaBaseRepository } from './prisma-base.repository.ts';
@@ -256,6 +263,59 @@ export class PrismaQueueRepository
 			});
 
 			return this.mapper.toDomain(updatedRecord);
+		});
+	}
+
+	public async getStaffQueueSnapshot(
+		restaurantId: string,
+		filters: StaffQueueQueryFilters,
+	): Promise<StaffQueueSnapshotResult> {
+		return this.run(async () => {
+			const hasPartySizeFilter =
+				filters.minPartySize !== undefined || filters.maxPartySize !== undefined;
+
+			const partySizeFilter = hasPartySizeFilter
+				? {
+						...(filters.minPartySize !== undefined && { gte: filters.minPartySize }),
+						...(filters.maxPartySize !== undefined && { lte: filters.maxPartySize }),
+					}
+				: undefined;
+
+			const [totalWaiting, records] = await this.prismaClient.$transaction([
+				this.prismaClient.queueEntry.count({
+					where: {
+						restaurantId,
+						status: QueueStatus.WAITING,
+					},
+				}),
+				this.prismaClient.queueEntry.findMany({
+					where: {
+						restaurantId,
+						status: filters.status,
+						partySize: partySizeFilter,
+					},
+					include: {
+						tableAssignments: {
+							where: {
+								releasedAt: null,
+							},
+							orderBy: QUEUE_QUERY_CONSTANTS.LATEST_ACTIVE_TABLE_ASSIGNMENT.ORDER_BY,
+							take: QUEUE_QUERY_CONSTANTS.LATEST_ACTIVE_TABLE_ASSIGNMENT.TAKE,
+						},
+					},
+					orderBy: [...QUEUE_QUERY_CONSTANTS.DEFAULT_STAFF_SNAPSHOT_ORDER_BY],
+				}),
+			]);
+
+			const entries = records.map((record) => ({
+				entry: this.mapper.toDomain(record),
+				assignedTableId: record.tableAssignments[0]?.tableId ?? null,
+			}));
+
+			return {
+				totalWaiting,
+				entries,
+			};
 		});
 	}
 }

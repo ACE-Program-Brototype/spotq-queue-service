@@ -3,11 +3,16 @@ import {
 	staffAuthMiddleware,
 	validateBody,
 	validateParams,
+	validateQuery,
 } from '@presentation/http/middleware/index.ts';
 import {
 	assignTablesBodySchema,
 	assignTablesParamsSchema,
 } from '@presentation/http/validators/assign-table.validator.ts';
+import {
+	getStaffQueueParamsSchema,
+	getStaffQueueQuerySchema,
+} from '@presentation/http/validators/get-staff-queue.validator.ts';
 import {
 	registerWalkInBodySchema,
 	registerWalkInParamsSchema,
@@ -22,6 +27,14 @@ import { Router } from 'express';
  * Controllers are injected from the Inversify IoC container.
  */
 const staffQueueRouter = Router();
+
+staffQueueRouter.get(
+	ROUTES.STAFF_QUEUE,
+	staffAuthMiddleware,
+	validateParams(getStaffQueueParamsSchema),
+	validateQuery(getStaffQueueQuerySchema),
+	staffQueueController.getLiveQueue,
+);
 
 staffQueueRouter.post(
 	ROUTES.REGISTER_WALK_IN,

@@ -1,3 +1,4 @@
+import { QUEUE_CONSTANTS } from '@shared/constants/queue.constants.ts';
 import { QueueStatus, RegistrationType } from '../enums/queue.enums.ts';
 import {
 	CannotRingWalkInCustomerError,
@@ -227,6 +228,50 @@ export class QueueEntry {
 		this.props.ringCount += 1;
 		this.props.lastRingedAt = new Date();
 		this.props.updatedAt = new Date();
+	}
+
+	/**
+	 * Computes dynamic waiting duration in minutes.
+	 * If the party is seated, calculates elapsed time from join to seat.
+	 * If the party is in a terminal state (cancelled, skipped, no-show), calculates elapsed time from join to updatedAt.
+	 * Otherwise, calculates elapsed time from join until referenceTime (defaults to now).
+	 *
+	 * @param referenceTime - Date to measure wait duration against (defaults to current time)
+	 * @returns Non-negative wait duration in whole minutes
+	 */
+	public calculateWaitDurationMinutes(referenceTime: Date = new Date()): number {
+		let endTime: Date;
+
+		if (this.props.status === QueueStatus.SEATED) {
+			endTime = this.props.seatedAt ?? this.props.updatedAt;
+		} else if (this.props.status !== QueueStatus.WAITING) {
+			endTime = this.props.updatedAt;
+		} else {
+			endTime = referenceTime;
+		}
+
+		return Math.max(
+			0,
+			Math.floor(
+				(endTime.getTime() - this.props.joinedAt.getTime()) / QUEUE_CONSTANTS.MS_PER_MINUTE,
+			),
+		);
+	}
+
+	/**
+	 * Computes the response deadline Date if this entry has been rung.
+	 *
+	 * @param timeoutMs - Allowed response timeout in ms (defaults to DEFAULT_RESPONSE_TIMEOUT_MS)
+	 * @returns Response deadline Date or null if not rung
+	 */
+	public calculateResponseDeadline(
+		timeoutMs: number = QUEUE_CONSTANTS.DEFAULT_RESPONSE_TIMEOUT_MS,
+	): Date | null {
+		if (!this.props.lastRingedAt) {
+			return null;
+		}
+
+		return new Date(this.props.lastRingedAt.getTime() + timeoutMs);
 	}
 
 	public toJSON(): QueueEntryProps {

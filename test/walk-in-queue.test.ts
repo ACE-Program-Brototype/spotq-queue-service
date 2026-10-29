@@ -55,6 +55,7 @@ describe('RegisterQueueUseCase Unit Tests', () => {
 			assignTablesWithHistory: jest
 				.fn()
 				.mockImplementation((entry: QueueEntry) => Promise.resolve(entry)),
+			getStaffQueueSnapshot: jest.fn(),
 		};
 
 		mockRestaurantServiceClient = {

@@ -68,6 +68,7 @@ describe('AssignTableUseCase', () => {
 			findActiveByUserId: jest.fn(),
 			createWithHistory: jest.fn(),
 			assignTablesWithHistory: jest.fn(),
+			getStaffQueueSnapshot: jest.fn(),
 		};
 
 		mockRestaurantServiceClient = {
