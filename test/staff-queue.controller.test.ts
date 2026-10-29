@@ -8,16 +8,19 @@ describe('StaffQueueController Unit Tests', () => {
 	let mockRegisterQueueUseCase: { execute: jest.Mock };
 	let mockAssignTableUseCase: { execute: jest.Mock };
 	let mockRingCustomerUseCase: { execute: jest.Mock };
+	let mockGetStaffQueueUseCase: { execute: jest.Mock };
 	let mockRes: Partial<Response>;
 
 	beforeEach(() => {
 		mockRegisterQueueUseCase = { execute: jest.fn() };
 		mockAssignTableUseCase = { execute: jest.fn() };
 		mockRingCustomerUseCase = { execute: jest.fn() };
+		mockGetStaffQueueUseCase = { execute: jest.fn() };
 		controller = new StaffQueueController(
 			mockRegisterQueueUseCase as never,
 			mockAssignTableUseCase as never,
 			mockRingCustomerUseCase as never,
+			mockGetStaffQueueUseCase as never,
 		);
 
 		mockRes = {
@@ -147,6 +150,37 @@ describe('StaffQueueController Unit Tests', () => {
 				staffUserId: 'staff-1',
 			});
 			expect(mockRes.status).toHaveBeenCalledWith(HTTP_STATUS.OK);
+		});
+	});
+
+	describe('getLiveQueue', () => {
+		it('should call getStaffQueueUseCase and return 200 with queue data', async () => {
+			const req = {
+				params: { restaurantId: '11111111-1111-1111-1111-111111111111' },
+				query: { status: 'WAITING', partySizeBucket: 'small' },
+			} as unknown as Request;
+
+			const mockResult = {
+				restaurantId: '11111111-1111-1111-1111-111111111111',
+				totalWaiting: 1,
+				entries: [],
+			};
+			mockGetStaffQueueUseCase.execute.mockResolvedValue(mockResult);
+
+			await controller.getLiveQueue(req, mockRes as Response);
+
+			expect(mockGetStaffQueueUseCase.execute).toHaveBeenCalledWith({
+				restaurantId: '11111111-1111-1111-1111-111111111111',
+				status: 'WAITING',
+				partySizeBucket: 'small',
+			});
+			expect(mockRes.status).toHaveBeenCalledWith(HTTP_STATUS.OK);
+			expect(mockRes.json).toHaveBeenCalledWith(
+				expect.objectContaining({
+					success: true,
+					data: mockResult,
+				}),
+			);
 		});
 	});
 });

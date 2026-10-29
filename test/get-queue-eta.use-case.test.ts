@@ -61,6 +61,7 @@ describe('GetQueueEtaUseCase Unit Tests', () => {
 			findActiveByRestaurantAndUserId: jest.fn(),
 			createWithHistory: jest.fn(),
 			assignTablesWithHistory: jest.fn(),
+			getStaffQueueSnapshot: jest.fn(),
 		};
 
 		mockRestaurantServiceClient = {

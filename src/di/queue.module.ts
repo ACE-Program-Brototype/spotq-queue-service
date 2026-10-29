@@ -6,11 +6,13 @@ import type { IWebSocketBroadcaster } from '@application/ports/services/websocke
 import type { IAssignTableUseCase } from '@application/ports/use-cases/assign-table.use-case.port.ts';
 import type { IGetActiveQueueByUserUseCase } from '@application/ports/use-cases/get-active-queue-by-user.use-case.port.ts';
 import type { IGetQueueEtaUseCase } from '@application/ports/use-cases/get-queue-eta.use-case.port.ts';
+import type { IGetStaffQueueUseCase } from '@application/ports/use-cases/get-staff-queue.use-case.port.ts';
 import type { IRegisterQueueUseCase } from '@application/ports/use-cases/register-queue.use-case.port.ts';
 import type { IRingCustomerUseCase } from '@application/ports/use-cases/ring-customer.use-case.port.ts';
 import { AssignTableUseCase } from '@application/use-cases/assign-table.use-case.ts';
 import { GetActiveQueueByUserUseCase } from '@application/use-cases/get-active-queue-by-user.use-case.ts';
 import { GetQueueEtaUseCase } from '@application/use-cases/get-queue-eta.use-case.ts';
+import { GetStaffQueueUseCase } from '@application/use-cases/get-staff-queue.use-case.ts';
 import { RegisterQueueUseCase } from '@application/use-cases/register-queue.use-case.ts';
 import { RingCustomerUseCase } from '@application/use-cases/ring-customer.use-case.ts';
 import type { IQueueService } from '@domain/index.ts';
@@ -78,6 +80,10 @@ export const queueModule = new ContainerModule(({ bind }) => {
 
 	bind<IGetQueueEtaUseCase>(TYPES.UseCases.GetQueueEtaUseCase)
 		.to(GetQueueEtaUseCase)
+		.inSingletonScope();
+
+	bind<IGetStaffQueueUseCase>(TYPES.UseCases.GetStaffQueueUseCase)
+		.to(GetStaffQueueUseCase)
 		.inSingletonScope();
 
 	bind<StaffQueueController>(TYPES.Controllers.StaffQueueController)

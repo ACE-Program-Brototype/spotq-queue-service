@@ -22,6 +22,7 @@ export const TYPES = {
 		GetQueueEtaUseCase: Symbol.for('GetQueueEtaUseCase'),
 		AssignTableUseCase: Symbol.for('AssignTableUseCase'),
 		RingCustomerUseCase: Symbol.for('RingCustomerUseCase'),
+		GetStaffQueueUseCase: Symbol.for('GetStaffQueueUseCase'),
 	},
 	Controllers: {
 		StaffQueueController: Symbol.for('StaffQueueController'),
@@ -41,6 +42,7 @@ export const TYPES = {
 	RegisterQueueUseCase: Symbol.for('RegisterQueueUseCase'),
 	GetActiveQueueByUserUseCase: Symbol.for('GetActiveQueueByUserUseCase'),
 	GetQueueEtaUseCase: Symbol.for('GetQueueEtaUseCase'),
+	GetStaffQueueUseCase: Symbol.for('GetStaffQueueUseCase'),
 	StaffQueueController: Symbol.for('StaffQueueController'),
 	InternalQueueController: Symbol.for('InternalQueueController'),
 	CustomerQueueController: Symbol.for('CustomerQueueController'),

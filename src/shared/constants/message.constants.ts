@@ -65,6 +65,7 @@ export const QUEUE_MESSAGES = {
 	TABLE_ASSIGNMENT_ERROR_PREFIX: 'Restaurant table assignment failed',
 	TABLE_ASSIGNMENT_FAILED_UPSTREAM: 'Failed to assign tables upstream',
 	ACTIVE_QUEUE_CHECK_SUCCESS: 'Active queue check completed successfully',
+	QUEUE_RETRIEVED_SUCCESS: 'Restaurant queue retrieved successfully',
 } as const;
 
 /**

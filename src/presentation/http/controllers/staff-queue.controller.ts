@@ -1,4 +1,5 @@
 import type { IAssignTableUseCase } from '@application/ports/use-cases/assign-table.use-case.port.ts';
+import type { IGetStaffQueueUseCase } from '@application/ports/use-cases/get-staff-queue.use-case.port.ts';
 import type { IRegisterQueueUseCase } from '@application/ports/use-cases/register-queue.use-case.port.ts';
 import type { IRingCustomerUseCase } from '@application/ports/use-cases/ring-customer.use-case.port.ts';
 import { TYPES } from '@di/types.ts';
@@ -7,6 +8,10 @@ import { HTTP_STATUS, messages, QUEUE_MESSAGES, sendSuccessResponse } from '@sha
 import type { Request, Response } from 'express';
 import { inject, injectable } from 'inversify';
 import type { AssignTablesBody, AssignTablesParams } from '../validators/assign-table.validator.ts';
+import type {
+	GetStaffQueueParams,
+	GetStaffQueueQuery,
+} from '../validators/get-staff-queue.validator.ts';
 import type {
 	RegisterWalkInBody,
 	RegisterWalkInParams,
@@ -22,7 +27,22 @@ export class StaffQueueController {
 		private readonly assignTableUseCase: IAssignTableUseCase,
 		@inject(TYPES.UseCases.RingCustomerUseCase)
 		private readonly ringCustomerUseCase: IRingCustomerUseCase,
+		@inject(TYPES.UseCases.GetStaffQueueUseCase)
+		private readonly getStaffQueueUseCase: IGetStaffQueueUseCase,
 	) {}
+
+	getLiveQueue = async (req: Request, res: Response): Promise<void> => {
+		const { restaurantId } = req.params as unknown as GetStaffQueueParams;
+		const { status, partySizeBucket } = req.query as unknown as GetStaffQueueQuery;
+
+		const result = await this.getStaffQueueUseCase.execute({
+			restaurantId,
+			status,
+			partySizeBucket,
+		});
+
+		sendSuccessResponse(res, result, QUEUE_MESSAGES.QUEUE_RETRIEVED_SUCCESS, HTTP_STATUS.OK);
+	};
 
 	registerWalkIn = async (req: Request, res: Response): Promise<void> => {
 		const { restaurantId } = req.params as unknown as RegisterWalkInParams;
