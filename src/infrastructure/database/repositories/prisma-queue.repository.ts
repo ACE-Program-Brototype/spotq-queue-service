@@ -1,5 +1,7 @@
 import { TYPES } from '@di/types.ts';
 import {
+	ActiveQueueEntryExistsError,
+	ActiveUserQueueEntryExistsError,
 	type IQueueRepository,
 	type QueueEntry,
 	QueueStatus,
@@ -123,6 +125,51 @@ export class PrismaQueueRepository
 	}
 
 	/**
+	 * Atomically calculates active queue metrics and today's registration count
+	 * within a single batch transaction to conserve connection pool resources and ensure consistency.
+	 *
+	 * @param restaurantId - Restaurant UUID
+	 * @returns Point-in-time snapshot of queueDepth, totalPeopleAhead, and countToday
+	 */
+	public async getRegistrationMetrics(
+		restaurantId: string,
+	): Promise<{ queueDepth: number; totalPeopleAhead: number; countToday: number }> {
+		const startOfDay = new Date();
+		startOfDay.setHours(0, 0, 0, 0);
+
+		return this.run(async () => {
+			const [aggregate, countToday] = await this.prismaClient.$transaction([
+				this.prismaClient.queueEntry.aggregate({
+					where: {
+						restaurantId,
+						status: QueueStatus.WAITING,
+					},
+					_count: {
+						_all: true,
+					},
+					_sum: {
+						partySize: true,
+					},
+				}),
+				this.prismaClient.queueEntry.count({
+					where: {
+						restaurantId,
+						createdAt: {
+							gte: startOfDay,
+						},
+					},
+				}),
+			]);
+
+			return {
+				queueDepth: aggregate._count._all,
+				totalPeopleAhead: aggregate._sum.partySize ?? 0,
+				countToday,
+			};
+		});
+	}
+
+	/**
 	 * Counts total queue entries registered today for generating daily sequential queue numbers (e.g. W-001).
 	 *
 	 * @param restaurantId - Restaurant UUID
@@ -165,13 +212,34 @@ export class PrismaQueueRepository
 	}
 
 	/**
-	 * Queries whether a registered user currently has an active ticket.
+	 * Queries whether a registered user currently has an active ticket across any restaurant.
+	 *
+	 * @param userId - User UUID
+	 * @returns Active QueueEntry or null
+	 */
+	public async findActiveByUserId(userId: string): Promise<QueueEntry | null> {
+		return this.run(async () => {
+			const record = await this.prismaClient.queueEntry.findFirst({
+				where: {
+					userId,
+					status: QueueStatus.WAITING,
+				},
+				orderBy: {
+					joinedAt: 'desc',
+				},
+			});
+			return record ? this.mapper.toDomain(record) : null;
+		});
+	}
+
+	/**
+	 * Queries whether a registered user currently has an active ticket scoped to a specific restaurant.
 	 *
 	 * @param restaurantId - Restaurant UUID
 	 * @param userId - User UUID
 	 * @returns Active QueueEntry or null
 	 */
-	public async findActiveByUserId(
+	public async findActiveByRestaurantAndUserId(
 		restaurantId: string,
 		userId: string,
 	): Promise<QueueEntry | null> {
@@ -204,6 +272,30 @@ export class PrismaQueueRepository
 
 			const createdRecord = await this.prismaClient.$transaction(async (tx) => {
 				const client = tx as Prisma.TransactionClient;
+
+				if (persistenceData.userId) {
+					const existingUser = await client.queueEntry.findFirst({
+						where: {
+							userId: persistenceData.userId,
+							status: QueueStatus.WAITING,
+						},
+					});
+					if (existingUser) {
+						throw new ActiveUserQueueEntryExistsError();
+					}
+				}
+
+				const existingPhone = await client.queueEntry.findFirst({
+					where: {
+						restaurantId: persistenceData.restaurantId,
+						phone: persistenceData.phone,
+						status: QueueStatus.WAITING,
+					},
+				});
+				if (existingPhone) {
+					throw new ActiveQueueEntryExistsError(persistenceData.phone);
+				}
+
 				const created = await client.queueEntry.create({
 					data: persistenceData,
 				});

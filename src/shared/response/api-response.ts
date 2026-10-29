@@ -101,7 +101,7 @@ export const ApiResponse = {
 			success: false,
 			message,
 			code,
-			error: typeof error === 'string' ? error : code,
+			error: typeof error === 'string' ? error : (error ?? code),
 			statusCode,
 		};
 	},
@@ -120,7 +120,7 @@ export function sendSuccessResponse<T>(
 }
 
 /**
- * Helper to send error HTTP responses with unified code and error string fields.
+ * Helper to send error HTTP responses with unified code and status.
  */
 export function sendErrorResponse(
 	res: Response,
@@ -145,7 +145,7 @@ export function sendErrorResponse(
 		message: msg,
 		code,
 		error: code,
-		details,
+		...(details !== undefined ? { details } : {}),
 		statusCode,
 	});
 }

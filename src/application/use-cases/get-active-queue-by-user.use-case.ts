@@ -17,7 +17,7 @@ export class GetActiveQueueByUserUseCase implements IGetActiveQueueByUserUseCase
 	public async execute(
 		input: GetActiveQueueByUserInputDto,
 	): Promise<GetActiveQueueByUserResponseDto> {
-		const activeEntry = await this.queueRepository.findActiveByUserId(
+		const activeEntry = await this.queueRepository.findActiveByRestaurantAndUserId(
 			input.restaurantId,
 			input.userId,
 		);
