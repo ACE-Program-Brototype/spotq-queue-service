@@ -16,7 +16,6 @@ export class GetCustomerQueueStatusUseCase implements IGetCustomerQueueStatusUse
 	async execute(
 		input: GetCustomerQueueStatusInputDTO,
 	): Promise<GetCustomerQueueStatusOutputDTO | null> {
-		console.log(input);
 		const queueEntry = await this.queueRepository.findActiveByUserId(input.userId);
 
 		if (!queueEntry) {
