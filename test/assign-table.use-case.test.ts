@@ -68,7 +68,6 @@ describe('AssignTableUseCase', () => {
 			findActiveByPhone: jest.fn(),
 			findActiveByUserIdAndRestaurantId: jest.fn(),
 			findActiveByUserId: jest.fn(),
-			findActiveByRestaurantAndUserId: jest.fn(),
 			createWithHistory: jest.fn(),
 			assignTablesWithHistory: jest.fn(),
 			getStaffQueueSnapshot: jest.fn(),

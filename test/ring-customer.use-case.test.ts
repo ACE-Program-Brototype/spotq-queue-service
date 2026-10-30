@@ -80,7 +80,6 @@ describe('RingCustomerUseCase Unit Tests', () => {
 			findActiveByPhone: jest.fn(),
 			findActiveByUserIdAndRestaurantId: jest.fn(),
 			findActiveByUserId: jest.fn(),
-			findActiveByRestaurantAndUserId: jest.fn(),
 			createWithHistory: jest.fn(),
 			assignTablesWithHistory: jest.fn(),
 			getStaffQueueSnapshot: jest.fn(),

@@ -54,7 +54,6 @@ describe('RegisterQueueUseCase Unit Tests', () => {
 			findActiveByPhone: jest.fn().mockResolvedValue(null),
 			findActiveByUserIdAndRestaurantId: jest.fn().mockResolvedValue(null),
 			findActiveByUserId: jest.fn().mockResolvedValue(null),
-			findActiveByRestaurantAndUserId: jest.fn().mockResolvedValue(null),
 			createWithHistory: jest
 				.fn()
 				.mockImplementation((entry: QueueEntry) => Promise.resolve(entry)),
