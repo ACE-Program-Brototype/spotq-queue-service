@@ -24,6 +24,7 @@ export interface StaffQueueSnapshotResult {
 }
 
 export interface IQueueRepository extends IBaseRepository<QueueEntry, string> {
+	findActiveByUserId(userId: string): Promise<QueueEntry | null>;
 	findActiveEntries(restaurantId: string): Promise<QueueEntry[]>;
 	countActiveAhead(restaurantId: string): Promise<number>;
 	sumPartySizeActiveAhead(restaurantId: string): Promise<number>;
@@ -35,8 +36,10 @@ export interface IQueueRepository extends IBaseRepository<QueueEntry, string> {
 	): Promise<{ queueDepth: number; totalPeopleAhead: number; countToday: number }>;
 	countToday(restaurantId: string): Promise<number>;
 	findActiveByPhone(restaurantId: string, phone: string): Promise<QueueEntry | null>;
-	findActiveByUserId(userId: string): Promise<QueueEntry | null>;
-	findActiveByRestaurantAndUserId(restaurantId: string, userId: string): Promise<QueueEntry | null>;
+	findActiveByUserIdAndRestaurantId(
+		restaurantId: string,
+		userId: string,
+	): Promise<QueueEntry | null>;
 	createWithHistory(queueEntry: QueueEntry, changedBy?: string): Promise<QueueEntry>;
 	assignTablesWithHistory(
 		queueEntry: QueueEntry,

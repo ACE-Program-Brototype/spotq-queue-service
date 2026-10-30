@@ -212,7 +212,7 @@ export class PrismaQueueRepository
 	}
 
 	/**
-	 * Queries whether a registered user currently has an active ticket across any restaurant.
+	 * Queries whether a registered user currently has an active ticket by userId And RestaurantId.
 	 *
 	 * @param userId - User UUID
 	 * @returns Active QueueEntry or null
@@ -239,7 +239,7 @@ export class PrismaQueueRepository
 	 * @param userId - User UUID
 	 * @returns Active QueueEntry or null
 	 */
-	public async findActiveByRestaurantAndUserId(
+	public async findActiveByUserIdAndRestaurantId(
 		restaurantId: string,
 		userId: string,
 	): Promise<QueueEntry | null> {

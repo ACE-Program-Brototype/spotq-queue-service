@@ -1,8 +1,7 @@
 import { config } from '@infrastructure/config/env.ts';
 import { internalS2SAuthMiddleware } from '@presentation/http/middleware/internal-s2s-auth.middleware.ts';
-import { ERROR_CODES } from '@shared/constants/error-code.constants.ts';
-import { HTTP_STATUS } from '@shared/constants/http.constants.ts';
-import { AUTH_MESSAGES } from '@shared/constants/message.constants.ts';
+import { SERVICES } from '@shared/constants/services.constants.ts';
+import { authMiddleware } from '@spotq-org/s2s-core';
 import type { NextFunction, Request, Response } from 'express';
 
 jest.mock('@spotq-org/s2s-core', () => ({
@@ -14,37 +13,33 @@ jest.mock('@spotq-org/s2s-core', () => ({
 
 describe('internalS2SAuthMiddleware', () => {
 	const originalOrderKey = config.s2s.orderPublicKey;
+	const originalRestaurantKey = config.s2s.restaurantPublicKey;
 
 	afterEach(() => {
 		// biome-ignore lint/suspicious/noExplicitAny: test cleanup of readonly config
 		(config.s2s as any).orderPublicKey = originalOrderKey;
+		// biome-ignore lint/suspicious/noExplicitAny: test cleanup of readonly config
+		(config.s2s as any).restaurantPublicKey = originalRestaurantKey;
 		jest.clearAllMocks();
 	});
 
-	it('should fail closed with 500 if orderPublicKey is not configured', () => {
-		// biome-ignore lint/suspicious/noExplicitAny: simulate missing config
-		(config.s2s as any).orderPublicKey = '';
+	it('should configure s2s-core with public keys for both caller services and the queue audience', () => {
+		const orderPublicKey = 'order-test-public-key';
+		const restaurantPublicKey = 'restaurant-test-public-key';
+		// biome-ignore lint/suspicious/noExplicitAny: set test public keys
+		(config.s2s as any).orderPublicKey = orderPublicKey;
+		// biome-ignore lint/suspicious/noExplicitAny: set test public keys
+		(config.s2s as any).restaurantPublicKey = restaurantPublicKey;
 
-		const middleware = internalS2SAuthMiddleware();
-		const req = {} as Request;
-		const jsonMock = jest.fn();
-		const statusMock = jest.fn().mockReturnValue({ json: jsonMock });
-		const res = { status: statusMock } as unknown as Response;
-		const next = jest.fn();
+		internalS2SAuthMiddleware();
 
-		middleware(req, res, next);
-
-		expect(statusMock).toHaveBeenCalledWith(HTTP_STATUS.INTERNAL_SERVER_ERROR);
-		expect(jsonMock).toHaveBeenCalledWith(
-			expect.objectContaining({
-				success: false,
-				statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
-				code: ERROR_CODES.INTERNAL_SERVER_ERROR,
-				message: AUTH_MESSAGES.S2S_ORDER_KEY_MISSING,
-				retryable: false,
-			}),
-		);
-		expect(next).not.toHaveBeenCalled();
+		expect(authMiddleware).toHaveBeenCalledWith({
+			expectedAudience: SERVICES.QUEUE_SERVICE,
+			publicKeys: {
+				[SERVICES.ORDER_SERVICE]: orderPublicKey,
+				[SERVICES.RESTAURANT_SERVICE]: restaurantPublicKey,
+			},
+		});
 	});
 
 	it('should copy x-consumer-service to x-caller-service header and delegate to s2s-core when key is configured', () => {

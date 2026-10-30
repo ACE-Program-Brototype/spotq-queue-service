@@ -51,7 +51,7 @@ describe('GetStaffQueueUseCase Unit Tests', () => {
 			countToday: jest.fn(),
 			findActiveByPhone: jest.fn(),
 			findActiveByUserId: jest.fn(),
-			findActiveByRestaurantAndUserId: jest.fn(),
+			findActiveByUserIdAndRestaurantId: jest.fn(),
 			getRegistrationMetrics: jest.fn(),
 			createWithHistory: jest.fn(),
 			assignTablesWithHistory: jest.fn(),
