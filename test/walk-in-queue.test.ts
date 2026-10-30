@@ -377,7 +377,7 @@ describe('POST /staff/restaurants/:restaurantId/queue/walk-in HTTP Tests', () =>
 				partySize: 25, // Max is 20
 			});
 
-		expect(res.status).toBe(400);
+		expect(res.status).toBe(422);
 		expect(res.body.success).toBe(false);
 		expect(res.body.code).toBe('VALIDATION_ERROR');
 	});
@@ -394,7 +394,7 @@ describe('POST /staff/restaurants/:restaurantId/queue/walk-in HTTP Tests', () =>
 				partySize: 2,
 			});
 
-		expect(res.status).toBe(400);
+		expect(res.status).toBe(422);
 		expect(res.body.success).toBe(false);
 		expect(res.body.code).toBe('VALIDATION_ERROR');
 	});
@@ -411,7 +411,7 @@ describe('POST /staff/restaurants/:restaurantId/queue/walk-in HTTP Tests', () =>
 				partySize: 2,
 			});
 
-		expect(res.status).toBe(400);
+		expect(res.status).toBe(422);
 		expect(res.body.success).toBe(false);
 		expect(res.body.code).toBe('INVALID_PARAMETERS');
 	});

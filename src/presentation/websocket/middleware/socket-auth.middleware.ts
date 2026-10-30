@@ -56,12 +56,10 @@ export function socketAuthMiddleware(socket: Socket, next: (err?: Error) => void
 	const role = (headerRole || 'CUSTOMER').toUpperCase();
 	const isStaffOrOwner = role === 'STAFF' || role === 'RESTAURANT_OWNER';
 
-	const requestTicketId = headerTicketId || getParamValue(query?.ticketId);
-	const requestRestaurantId = getParamValue(query?.restaurantId);
-
+	const requestTicketId = headerTicketId ?? getParamValue(query?.ticketId);
 	const effectiveRestaurantId = isStaffOrOwner
 		? headerRestaurantId
-		: headerRestaurantId || requestRestaurantId;
+		: (headerRestaurantId ?? getParamValue(query?.restaurantId));
 
 	const user: AuthenticatedSocketUser = {
 		userId: headerUserId,

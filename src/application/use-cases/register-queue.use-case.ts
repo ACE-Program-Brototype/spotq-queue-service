@@ -20,7 +20,7 @@ import {
 	TableAvailableError,
 } from '@domain/index.ts';
 import { logger } from '@infrastructure/logger/index.ts';
-import { WS_SERVER_EVENTS } from '@shared/index.ts';
+import { AUDIT_CONSTANTS, WS_SERVER_EVENTS } from '@shared/index.ts';
 import { inject, injectable } from 'inversify';
 
 @injectable()
@@ -105,8 +105,7 @@ export class RegisterQueueUseCase implements IRegisterQueueUseCase {
 			(registrationType as RegistrationType) ??
 			(userId && !staffUserId ? RegistrationType.ONLINE : RegistrationType.WALK_IN);
 
-		const prefix = resolvedType === RegistrationType.ONLINE ? 'Q-' : 'W-';
-		const queueNumber = `${prefix}${String(countToday + 1).padStart(3, '0')}`;
+		const queueNumber = QueueEntry.generateQueueNumber(resolvedType, countToday + 1);
 
 		const estimatedWaitMinutes = await this.etaService.predictEta(
 			restaurantId,
@@ -128,7 +127,7 @@ export class RegisterQueueUseCase implements IRegisterQueueUseCase {
 			estimatedWaitMinutes,
 		});
 
-		const changedBy = staffUserId || userId || 'system';
+		const changedBy = staffUserId || userId || AUDIT_CONSTANTS.SYSTEM;
 		const persisted = await this.queueRepository.createWithHistory(queueEntry, changedBy);
 
 		try {

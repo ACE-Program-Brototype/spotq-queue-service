@@ -5,7 +5,7 @@ import type {
 import { TYPES } from '@di/types.ts';
 import { logger } from '@infrastructure/logger/index.ts';
 import { inject, injectable } from 'inversify';
-import type { RedisClientType } from 'redis';
+import type Redis from 'ioredis';
 
 @injectable()
 export class RedisQueueCacheService implements IQueueCacheService {
@@ -14,7 +14,7 @@ export class RedisQueueCacheService implements IQueueCacheService {
 
 	constructor(
 		@inject(TYPES.Redis.Client)
-		private readonly client: RedisClientType,
+		private readonly client: Redis,
 	) {}
 
 	private getKey(queueEntryId: string): string {
@@ -37,9 +37,7 @@ export class RedisQueueCacheService implements IQueueCacheService {
 				updatedAt: new Date().toISOString(),
 			};
 
-			await this.client.set(key, JSON.stringify(state), {
-				EX: RedisQueueCacheService.TTL_SECONDS,
-			});
+			await this.client.set(key, JSON.stringify(state), 'EX', RedisQueueCacheService.TTL_SECONDS);
 
 			logger.debug({ queueEntryId, position, currentEta }, 'Live queue entry state saved in Redis');
 		} catch (error) {

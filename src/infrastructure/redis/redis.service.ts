@@ -1,22 +1,24 @@
+import { TYPES } from '@di/types.ts';
 import type { IHealthCheckable } from '@domain/index.ts';
-import type { RedisClientType } from 'redis';
+import { inject, injectable } from 'inversify';
+import type Redis from 'ioredis';
 import { redisClient } from './redis.client.ts';
 
+@injectable()
 export class RedisService implements IHealthCheckable {
-	private readonly client: RedisClientType;
-
-	constructor(client: RedisClientType = redisClient) {
-		this.client = client;
-	}
+	constructor(
+		@inject(TYPES.Redis.Client)
+		private readonly client: Redis = redisClient,
+	) {}
 
 	async connect(): Promise<void> {
-		if (!this.client.isOpen) {
+		if (this.client.status !== 'ready' && this.client.status !== 'connecting') {
 			await this.client.connect();
 		}
 	}
 
 	async disconnect(): Promise<void> {
-		if (this.client.isOpen) {
+		if (this.client.status === 'ready' || this.client.status === 'connecting') {
 			await this.client.quit();
 		}
 	}
@@ -34,5 +36,3 @@ export class RedisService implements IHealthCheckable {
 		return this.isHealthy();
 	}
 }
-
-export const redisService = new RedisService(redisClient);

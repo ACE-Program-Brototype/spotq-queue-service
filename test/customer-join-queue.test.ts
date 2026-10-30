@@ -352,7 +352,7 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 				.set('x-user-id', validUserId)
 				.send(validBody);
 
-			expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST);
+			expect(res.status).toBe(HTTP_STATUS.UNPROCESSABLE_ENTITY);
 			expect(res.body.success).toBe(false);
 			expect(res.body.code).toBe('INVALID_PARAMETERS');
 		});
@@ -366,7 +366,7 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 					guestPhone: '5551234567', // Missing + country code
 				});
 
-			expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST);
+			expect(res.status).toBe(HTTP_STATUS.UNPROCESSABLE_ENTITY);
 			expect(res.body.success).toBe(false);
 			expect(res.body.code).toBe('VALIDATION_ERROR');
 		});
@@ -380,7 +380,7 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 					partySize: PARTY_SIZE_LIMITS.MIN - 1,
 				});
 
-			expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST);
+			expect(res.status).toBe(HTTP_STATUS.UNPROCESSABLE_ENTITY);
 			expect(res.body.success).toBe(false);
 			expect(res.body.code).toBe('VALIDATION_ERROR');
 		});
@@ -394,7 +394,7 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 					partySize: PARTY_SIZE_LIMITS.MAX + 1,
 				});
 
-			expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST);
+			expect(res.status).toBe(HTTP_STATUS.UNPROCESSABLE_ENTITY);
 			expect(res.body.success).toBe(false);
 			expect(res.body.code).toBe('VALIDATION_ERROR');
 		});
@@ -408,7 +408,7 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 					guestName: '   ',
 				});
 
-			expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST);
+			expect(res.status).toBe(HTTP_STATUS.UNPROCESSABLE_ENTITY);
 			expect(res.body.success).toBe(false);
 			expect(res.body.code).toBe('VALIDATION_ERROR');
 		});
@@ -422,7 +422,7 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 					guestName: 'A'.repeat(101),
 				});
 
-			expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST);
+			expect(res.status).toBe(HTTP_STATUS.UNPROCESSABLE_ENTITY);
 			expect(res.body.success).toBe(false);
 			expect(res.body.code).toBe('VALIDATION_ERROR');
 		});
@@ -436,7 +436,7 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 					specialNotes: 'N'.repeat(501),
 				});
 
-			expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST);
+			expect(res.status).toBe(HTTP_STATUS.UNPROCESSABLE_ENTITY);
 			expect(res.body.success).toBe(false);
 			expect(res.body.code).toBe('VALIDATION_ERROR');
 		});

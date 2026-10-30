@@ -47,7 +47,11 @@ export class StaffQueueController {
 	registerWalkIn = async (req: Request, res: Response): Promise<void> => {
 		const { restaurantId } = req.params as unknown as RegisterWalkInParams;
 		const { guestName, guestPhone, partySize, specialNotes } = req.body as RegisterWalkInBody;
-		const staffUserId = req.userId || req.user?.userId || 'unknown-staff';
+		const staffUserId = req.userId;
+
+		if (!staffUserId) {
+			throw new UnauthorizedError(messages.GATEWAY_UNAUTHORIZED);
+		}
 
 		const result = await this.registerQueueUseCase.execute({
 			restaurantId,
@@ -67,7 +71,7 @@ export class StaffQueueController {
 		const { tables } = req.body as AssignTablesBody;
 
 		const restaurantId = req.user?.restaurantId;
-		const staffUserId = req.user?.userId;
+		const staffUserId = req.userId;
 
 		if (!restaurantId || !staffUserId) {
 			throw new UnauthorizedError(messages.GATEWAY_UNAUTHORIZED);
@@ -86,7 +90,7 @@ export class StaffQueueController {
 	ringCustomer = async (req: Request, res: Response): Promise<void> => {
 		const { queueEntryId } = req.params as unknown as RingCustomerParams;
 		const restaurantId = req.user?.restaurantId;
-		const staffUserId = req.user?.userId;
+		const staffUserId = req.userId;
 
 		if (!restaurantId || !staffUserId) {
 			throw new UnauthorizedError(messages.GATEWAY_UNAUTHORIZED);

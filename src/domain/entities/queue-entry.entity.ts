@@ -74,6 +74,18 @@ export class QueueEntry {
 	private constructor(private readonly props: QueueEntryProps) {}
 
 	/**
+	 * Generates a domain-compliant queue display number based on registration channel and sequence.
+	 * Online: 'Q-001', Walk-in: 'W-001'
+	 */
+	public static generateQueueNumber(
+		registrationType: RegistrationType,
+		sequenceNumber: number,
+	): string {
+		const prefix = registrationType === RegistrationType.ONLINE ? 'Q-' : 'W-';
+		return `${prefix}${String(sequenceNumber).padStart(3, '0')}`;
+	}
+
+	/**
 	 * Factory method to instantiate a new queue entry (online or walk-in).
 	 *
 	 * @param props - Queue initialization properties

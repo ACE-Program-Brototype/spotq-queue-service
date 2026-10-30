@@ -1,5 +1,5 @@
 import { AUTH_MESSAGES, messages, QUEUE_MESSAGES } from '@shared/constants/message.constants.ts';
-import { SUBSCRIPTION_PLAN } from '@shared/constants/subscription.constants.ts';
+import { SUBSCRIPTION_PLAN_CODES } from '@shared/constants/subscription.constants.ts';
 import { DomainError } from './domain.error.ts';
 
 /**
@@ -90,7 +90,7 @@ export class SubscriptionRequiredError extends DomainError {
 		super(
 			`${QUEUE_MESSAGES.SUBSCRIPTION_REQUIRED} (Current plan: ${currentPlan ?? 'NONE'})`,
 			'SUBSCRIPTION_REQUIRED',
-			{ restaurantId, currentPlan, requiredPlan: SUBSCRIPTION_PLAN.QUEUE_PRO },
+			{ restaurantId, currentPlan, requiredPlan: SUBSCRIPTION_PLAN_CODES.QUEUE_PRO },
 		);
 	}
 }

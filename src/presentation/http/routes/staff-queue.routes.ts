@@ -1,9 +1,11 @@
-import { staffQueueController } from '@di/controllers.resolutions.ts';
+import { container } from '@di/container.ts';
+import { TYPES } from '@di/types.ts';
+import type { StaffQueueController } from '@presentation/http/controllers/staff-queue.controller.ts';
 import {
 	staffAuthMiddleware,
-	validateBody,
-	validateParams,
 	validateQuery,
+	validateRequestBody,
+	validateRequestParams,
 } from '@presentation/http/middleware/index.ts';
 import {
 	assignTablesBodySchema,
@@ -27,11 +29,14 @@ import { Router } from 'express';
  * Controllers are injected from the Inversify IoC container.
  */
 const staffQueueRouter = Router();
+const staffQueueController = container.get<StaffQueueController>(
+	TYPES.Controllers.StaffQueueController,
+);
 
 staffQueueRouter.get(
 	ROUTES.STAFF_QUEUE,
 	staffAuthMiddleware,
-	validateParams(getStaffQueueParamsSchema),
+	validateRequestParams(getStaffQueueParamsSchema),
 	validateQuery(getStaffQueueQuerySchema),
 	staffQueueController.getLiveQueue,
 );
@@ -39,23 +44,23 @@ staffQueueRouter.get(
 staffQueueRouter.post(
 	ROUTES.REGISTER_WALK_IN,
 	staffAuthMiddleware,
-	validateParams(registerWalkInParamsSchema),
-	validateBody(registerWalkInBodySchema),
+	validateRequestParams(registerWalkInParamsSchema),
+	validateRequestBody(registerWalkInBodySchema),
 	staffQueueController.registerWalkIn,
 );
 
 staffQueueRouter.patch(
 	ROUTES.ASSIGN_TABLE,
 	staffAuthMiddleware,
-	validateParams(assignTablesParamsSchema),
-	validateBody(assignTablesBodySchema),
+	validateRequestParams(assignTablesParamsSchema),
+	validateRequestBody(assignTablesBodySchema),
 	staffQueueController.assignTables,
 );
 
 staffQueueRouter.post(
 	ROUTES.RING_CUSTOMER,
 	staffAuthMiddleware,
-	validateParams(ringCustomerParamsSchema),
+	validateRequestParams(ringCustomerParamsSchema),
 	staffQueueController.ringCustomer,
 );
 

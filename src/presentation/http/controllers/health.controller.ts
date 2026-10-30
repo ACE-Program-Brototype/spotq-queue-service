@@ -1,13 +1,15 @@
+import { TYPES } from '@di/types.ts';
 import type { IHealthService } from '@domain/index.ts';
 import { HEALTH_STATUS, HTTP_STATUS } from '@shared/constants/index.ts';
 import type { Request, Response } from 'express';
+import { inject, injectable } from 'inversify';
 
+@injectable()
 export class HealthController {
-	private readonly healthService: IHealthService;
-
-	constructor(healthService: IHealthService) {
-		this.healthService = healthService;
-	}
+	constructor(
+		@inject(TYPES.Services.HealthService)
+		private readonly healthService: IHealthService,
+	) {}
 
 	check = async (_req: Request, res: Response): Promise<void> => {
 		const result = await this.healthService.check();
