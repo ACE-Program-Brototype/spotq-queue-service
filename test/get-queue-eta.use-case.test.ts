@@ -55,11 +55,14 @@ describe('GetQueueEtaUseCase Unit Tests', () => {
 				totalPeopleAhead: 10,
 			}),
 			countToday: jest.fn(),
+			getRegistrationMetrics: jest.fn(),
 			findActiveByPhone: jest.fn(),
 			findActiveByUserIdAndRestaurantId: jest.fn(),
 			findActiveByUserId: jest.fn(),
+			findActiveByRestaurantAndUserId: jest.fn(),
 			createWithHistory: jest.fn(),
 			assignTablesWithHistory: jest.fn(),
+			getStaffQueueSnapshot: jest.fn(),
 		};
 
 		mockRestaurantServiceClient = {

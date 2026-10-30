@@ -1,6 +1,15 @@
 import { TYPES } from '@di/types.ts';
-import { type IQueueRepository, type QueueEntry, QueueStatus } from '@domain/index.ts';
+import {
+	ActiveQueueEntryExistsError,
+	ActiveUserQueueEntryExistsError,
+	type IQueueRepository,
+	type QueueEntry,
+	QueueStatus,
+	type StaffQueueQueryFilters,
+	type StaffQueueSnapshotResult,
+} from '@domain/index.ts';
 import type { Prisma, PrismaClient, QueueEntry as PrismaQueueEntry } from '@prisma/client';
+import { QUEUE_QUERY_CONSTANTS } from '@shared/constants/queue.constants.ts';
 import { inject, injectable } from 'inversify';
 import { QueueEntryMapper } from '../mappers/queue-entry.mapper.ts';
 import { PrismaBaseRepository } from './prisma-base.repository.ts';
@@ -116,6 +125,51 @@ export class PrismaQueueRepository
 	}
 
 	/**
+	 * Atomically calculates active queue metrics and today's registration count
+	 * within a single batch transaction to conserve connection pool resources and ensure consistency.
+	 *
+	 * @param restaurantId - Restaurant UUID
+	 * @returns Point-in-time snapshot of queueDepth, totalPeopleAhead, and countToday
+	 */
+	public async getRegistrationMetrics(
+		restaurantId: string,
+	): Promise<{ queueDepth: number; totalPeopleAhead: number; countToday: number }> {
+		const startOfDay = new Date();
+		startOfDay.setHours(0, 0, 0, 0);
+
+		return this.run(async () => {
+			const [aggregate, countToday] = await this.prismaClient.$transaction([
+				this.prismaClient.queueEntry.aggregate({
+					where: {
+						restaurantId,
+						status: QueueStatus.WAITING,
+					},
+					_count: {
+						_all: true,
+					},
+					_sum: {
+						partySize: true,
+					},
+				}),
+				this.prismaClient.queueEntry.count({
+					where: {
+						restaurantId,
+						createdAt: {
+							gte: startOfDay,
+						},
+					},
+				}),
+			]);
+
+			return {
+				queueDepth: aggregate._count._all,
+				totalPeopleAhead: aggregate._sum.partySize ?? 0,
+				countToday,
+			};
+		});
+	}
+
+	/**
 	 * Counts total queue entries registered today for generating daily sequential queue numbers (e.g. W-001).
 	 *
 	 * @param restaurantId - Restaurant UUID
@@ -160,6 +214,27 @@ export class PrismaQueueRepository
 	/**
 	 * Queries whether a registered user currently has an active ticket by userId And RestaurantId.
 	 *
+	 * @param userId - User UUID
+	 * @returns Active QueueEntry or null
+	 */
+	public async findActiveByUserId(userId: string): Promise<QueueEntry | null> {
+		return this.run(async () => {
+			const record = await this.prismaClient.queueEntry.findFirst({
+				where: {
+					userId,
+					status: QueueStatus.WAITING,
+				},
+				orderBy: {
+					joinedAt: 'desc',
+				},
+			});
+			return record ? this.mapper.toDomain(record) : null;
+		});
+	}
+
+	/**
+	 * Queries whether a registered user currently has an active ticket scoped to a specific restaurant.
+	 *
 	 * @param restaurantId - Restaurant UUID
 	 * @param userId - User UUID
 	 * @returns Active QueueEntry or null
@@ -184,16 +259,6 @@ export class PrismaQueueRepository
 	}
 
 	/**
-	 * Queries where a registered user currently have a active ticket.
-	 *
-	 * @param userId User UUID
-	 * @returns Active Queue Entry or null
-	 */
-	public async findActiveByUserId(userId: string): Promise<QueueEntry | null> {
-		return this.findOne({ userId, status: QueueStatus.WAITING });
-	}
-
-	/**
 	 * Atomically creates a queue entry and an initial queue status audit history entry
 	 * within a single database transaction.
 	 *
@@ -207,6 +272,30 @@ export class PrismaQueueRepository
 
 			const createdRecord = await this.prismaClient.$transaction(async (tx) => {
 				const client = tx as Prisma.TransactionClient;
+
+				if (persistenceData.userId) {
+					const existingUser = await client.queueEntry.findFirst({
+						where: {
+							userId: persistenceData.userId,
+							status: QueueStatus.WAITING,
+						},
+					});
+					if (existingUser) {
+						throw new ActiveUserQueueEntryExistsError();
+					}
+				}
+
+				const existingPhone = await client.queueEntry.findFirst({
+					where: {
+						restaurantId: persistenceData.restaurantId,
+						phone: persistenceData.phone,
+						status: QueueStatus.WAITING,
+					},
+				});
+				if (existingPhone) {
+					throw new ActiveQueueEntryExistsError(persistenceData.phone);
+				}
+
 				const created = await client.queueEntry.create({
 					data: persistenceData,
 				});
@@ -266,6 +355,59 @@ export class PrismaQueueRepository
 			});
 
 			return this.mapper.toDomain(updatedRecord);
+		});
+	}
+
+	public async getStaffQueueSnapshot(
+		restaurantId: string,
+		filters: StaffQueueQueryFilters,
+	): Promise<StaffQueueSnapshotResult> {
+		return this.run(async () => {
+			const hasPartySizeFilter =
+				filters.minPartySize !== undefined || filters.maxPartySize !== undefined;
+
+			const partySizeFilter = hasPartySizeFilter
+				? {
+						...(filters.minPartySize !== undefined && { gte: filters.minPartySize }),
+						...(filters.maxPartySize !== undefined && { lte: filters.maxPartySize }),
+					}
+				: undefined;
+
+			const [totalWaiting, records] = await this.prismaClient.$transaction([
+				this.prismaClient.queueEntry.count({
+					where: {
+						restaurantId,
+						status: QueueStatus.WAITING,
+					},
+				}),
+				this.prismaClient.queueEntry.findMany({
+					where: {
+						restaurantId,
+						status: filters.status,
+						partySize: partySizeFilter,
+					},
+					include: {
+						tableAssignments: {
+							where: {
+								releasedAt: null,
+							},
+							orderBy: QUEUE_QUERY_CONSTANTS.LATEST_ACTIVE_TABLE_ASSIGNMENT.ORDER_BY,
+							take: QUEUE_QUERY_CONSTANTS.LATEST_ACTIVE_TABLE_ASSIGNMENT.TAKE,
+						},
+					},
+					orderBy: [...QUEUE_QUERY_CONSTANTS.DEFAULT_STAFF_SNAPSHOT_ORDER_BY],
+				}),
+			]);
+
+			const entries = records.map((record) => ({
+				entry: this.mapper.toDomain(record),
+				assignedTableId: record.tableAssignments[0]?.tableId ?? null,
+			}));
+
+			return {
+				totalWaiting,
+				entries,
+			};
 		});
 	}
 }

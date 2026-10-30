@@ -6,8 +6,10 @@ export const ROUTES = {
 	REGISTER_WALK_IN: '/restaurants/:restaurantId/queue/walk-in',
 	ASSIGN_TABLE: '/queue/:queueEntryId/assign-tables',
 	RING_CUSTOMER: '/queue/:queueEntryId/ring',
+	STAFF_QUEUE: '/restaurants/:restaurantId',
 	CUSTOMER_BASE: '/customer',
 	GET_ETA: '/:restaurantId/eta',
+	JOIN_QUEUE: '/restaurants/:restaurantId/queue/join',
 } as const;
 
 export const RESTAURANT_SERVICE_ROUTES = {

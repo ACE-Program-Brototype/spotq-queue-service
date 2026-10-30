@@ -75,12 +75,15 @@ describe('RingCustomerUseCase Unit Tests', () => {
 			countActiveAhead: jest.fn(),
 			sumPartySizeActiveAhead: jest.fn(),
 			getActiveQueueMetrics: jest.fn(),
+			getRegistrationMetrics: jest.fn(),
 			countToday: jest.fn(),
 			findActiveByPhone: jest.fn(),
 			findActiveByUserIdAndRestaurantId: jest.fn(),
 			findActiveByUserId: jest.fn(),
+			findActiveByRestaurantAndUserId: jest.fn(),
 			createWithHistory: jest.fn(),
 			assignTablesWithHistory: jest.fn(),
+			getStaffQueueSnapshot: jest.fn(),
 		};
 
 		mockQueueService = {

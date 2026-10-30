@@ -10,6 +10,7 @@ import { RegisterQueueUseCase } from '../src/application/use-cases/register-queu
 import {
 	ActiveQueueEntryExistsError,
 	QueueEntry,
+	RegistrationType,
 	RestaurantBlockedError,
 	RestaurantNotAcceptingQueueError,
 	SubscriptionRequiredError,
@@ -46,16 +47,21 @@ describe('RegisterQueueUseCase Unit Tests', () => {
 			countActiveAhead: jest.fn().mockResolvedValue(5),
 			sumPartySizeActiveAhead: jest.fn().mockResolvedValue(16),
 			getActiveQueueMetrics: jest.fn().mockResolvedValue({ queueDepth: 5, totalPeopleAhead: 16 }),
+			getRegistrationMetrics: jest
+				.fn()
+				.mockResolvedValue({ queueDepth: 5, totalPeopleAhead: 16, countToday: 12 }),
 			countToday: jest.fn().mockResolvedValue(12),
 			findActiveByPhone: jest.fn().mockResolvedValue(null),
 			findActiveByUserIdAndRestaurantId: jest.fn().mockResolvedValue(null),
 			findActiveByUserId: jest.fn().mockResolvedValue(null),
+			findActiveByRestaurantAndUserId: jest.fn().mockResolvedValue(null),
 			createWithHistory: jest
 				.fn()
 				.mockImplementation((entry: QueueEntry) => Promise.resolve(entry)),
 			assignTablesWithHistory: jest
 				.fn()
 				.mockImplementation((entry: QueueEntry) => Promise.resolve(entry)),
+			getStaffQueueSnapshot: jest.fn(),
 		};
 
 		mockRestaurantServiceClient = {
@@ -219,7 +225,7 @@ describe('RegisterQueueUseCase Unit Tests', () => {
 		// 4. Persistence verification
 		expect(mockQueueRepository.createWithHistory).toHaveBeenCalledTimes(1);
 		const createdEntry = mockQueueRepository.createWithHistory.mock.calls[0][0];
-		expect(createdEntry.registrationType).toBe('WALK_IN');
+		expect(createdEntry.registrationType).toBe(RegistrationType.WALK_IN);
 		expect(createdEntry.queueNumber).toBe('W-013'); // 12 + 1
 		expect(createdEntry.phone).toBe('+15559876543');
 
@@ -244,7 +250,7 @@ describe('RegisterQueueUseCase Unit Tests', () => {
 					guestPhone: '+15559876543',
 					partySize: 4,
 					specialNotes: 'Prefers booth seating',
-					registrationType: 'WALK_IN',
+					registrationType: RegistrationType.WALK_IN,
 					position: 6,
 					estimatedWaitMinutes: 25,
 					status: 'WAITING',
@@ -259,9 +265,10 @@ describe('RegisterQueueUseCase Unit Tests', () => {
 			userId: null,
 			guestName: 'David Miller',
 			guestPhone: '+15559876543',
+			queueNumber: 'W-013',
 			partySize: 4,
 			specialNotes: 'Prefers booth seating',
-			registrationType: 'WALK_IN',
+			registrationType: RegistrationType.WALK_IN,
 			position: 6,
 			estimatedWaitMinutes: 25,
 			status: 'WAITING',
@@ -276,19 +283,19 @@ describe('RegisterQueueUseCase Unit Tests', () => {
 			guestName: 'Sarah Connor',
 			guestPhone: '+15551234567',
 			partySize: 2,
-			registrationType: 'ONLINE' as const,
+			registrationType: RegistrationType.ONLINE,
 		};
 
 		const result = await useCase.execute(onlineInput);
 
 		expect(result.position).toBe(6);
-		expect(result.registrationType).toBe('ONLINE');
+		expect(result.registrationType).toBe(RegistrationType.ONLINE);
 		expect(result.userId).toBe('user-777');
 		expect(mockQueueRepository.createWithHistory).toHaveBeenCalledTimes(1);
 		const createdEntry = mockQueueRepository.createWithHistory.mock.calls[0][0];
 		expect(createdEntry.queueNumber).toBe('Q-013');
 		expect(createdEntry.userId).toBe('user-777');
-		expect(createdEntry.registrationType).toBe('ONLINE');
+		expect(createdEntry.registrationType).toBe(RegistrationType.ONLINE);
 	});
 });
 
@@ -308,7 +315,7 @@ describe('POST /staff/restaurants/:restaurantId/queue/walk-in HTTP Tests', () =>
 
 		expect(res.status).toBe(401);
 		expect(res.body.success).toBe(false);
-		expect(res.body.error).toBe('UNAUTHORIZED');
+		expect(res.body.code).toBe('UNAUTHORIZED');
 	});
 
 	it('should return 403 Forbidden if user role is not STAFF or ADMIN', async () => {
@@ -324,7 +331,7 @@ describe('POST /staff/restaurants/:restaurantId/queue/walk-in HTTP Tests', () =>
 
 		expect(res.status).toBe(403);
 		expect(res.body.success).toBe(false);
-		expect(res.body.error).toBe('FORBIDDEN');
+		expect(res.body.code).toBe('FORBIDDEN');
 	});
 
 	it('should return 403 Forbidden if staff attempts to manage another restaurant', async () => {
@@ -356,7 +363,7 @@ describe('POST /staff/restaurants/:restaurantId/queue/walk-in HTTP Tests', () =>
 
 		expect(res.status).toBe(403);
 		expect(res.body.success).toBe(false);
-		expect(res.body.error).toBe('FORBIDDEN');
+		expect(res.body.code).toBe('FORBIDDEN');
 	});
 
 	it('should return 400 Bad Request if partySize is out of range', async () => {
@@ -373,7 +380,7 @@ describe('POST /staff/restaurants/:restaurantId/queue/walk-in HTTP Tests', () =>
 
 		expect(res.status).toBe(400);
 		expect(res.body.success).toBe(false);
-		expect(res.body.error).toBe('VALIDATION_ERROR');
+		expect(res.body.code).toBe('VALIDATION_ERROR');
 	});
 
 	it('should return 400 Bad Request if guestPhone is not valid E.164 format', async () => {
@@ -390,7 +397,7 @@ describe('POST /staff/restaurants/:restaurantId/queue/walk-in HTTP Tests', () =>
 
 		expect(res.status).toBe(400);
 		expect(res.body.success).toBe(false);
-		expect(res.body.error).toBe('VALIDATION_ERROR');
+		expect(res.body.code).toBe('VALIDATION_ERROR');
 	});
 
 	it('should return 400 Bad Request if restaurantId is not a valid UUIDv4', async () => {
@@ -407,7 +414,7 @@ describe('POST /staff/restaurants/:restaurantId/queue/walk-in HTTP Tests', () =>
 
 		expect(res.status).toBe(400);
 		expect(res.body.success).toBe(false);
-		expect(res.body.error).toBe('INVALID_PARAMETERS');
+		expect(res.body.code).toBe('INVALID_PARAMETERS');
 	});
 });
 
