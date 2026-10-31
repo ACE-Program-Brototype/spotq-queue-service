@@ -30,6 +30,20 @@ describe('QueueEntry Entity Unit Tests', () => {
 		});
 	};
 
+	describe('generateQueueNumber', () => {
+		it('should generate Q-prefix for ONLINE registration formatted with 3 zero-padded digits', () => {
+			expect(QueueEntry.generateQueueNumber(RegistrationType.ONLINE, 1)).toBe('Q-001');
+			expect(QueueEntry.generateQueueNumber(RegistrationType.ONLINE, 42)).toBe('Q-042');
+			expect(QueueEntry.generateQueueNumber(RegistrationType.ONLINE, 123)).toBe('Q-123');
+		});
+
+		it('should generate W-prefix for WALK_IN registration formatted with 3 zero-padded digits', () => {
+			expect(QueueEntry.generateQueueNumber(RegistrationType.WALK_IN, 1)).toBe('W-001');
+			expect(QueueEntry.generateQueueNumber(RegistrationType.WALK_IN, 99)).toBe('W-099');
+			expect(QueueEntry.generateQueueNumber(RegistrationType.WALK_IN, 999)).toBe('W-999');
+		});
+	});
+
 	describe('calculateWaitDurationMinutes', () => {
 		it('should calculate elapsed wait time from joinedAt to referenceTime when WAITING', () => {
 			const joinedAt = new Date('2026-10-28T10:00:00.000Z');

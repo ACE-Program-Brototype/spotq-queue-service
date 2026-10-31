@@ -1,9 +1,9 @@
 import { customerQueueController } from '@di/controllers.resolutions.ts';
 import {
 	customerAuthMiddleware,
-	validateBody,
-	validateParams,
-	validateQuery,
+	validateRequestBody,
+	validateRequestParams,
+	validateRequestQuery,
 } from '@presentation/http/middleware/index.ts';
 import {
 	getEtaParamsSchema,
@@ -21,16 +21,16 @@ const customerQueueRouter = Router();
 customerQueueRouter.get(
 	ROUTES.GET_ETA,
 	customerAuthMiddleware,
-	validateParams(getEtaParamsSchema),
-	validateQuery(getEtaQuerySchema),
+	validateRequestParams(getEtaParamsSchema),
+	validateRequestQuery(getEtaQuerySchema),
 	customerQueueController.getEta,
 );
 
 customerQueueRouter.post(
 	ROUTES.JOIN_QUEUE,
 	customerAuthMiddleware,
-	validateParams(joinQueueParamsSchema),
-	validateBody(joinQueueBodySchema),
+	validateRequestParams(joinQueueParamsSchema),
+	validateRequestBody(joinQueueBodySchema),
 	customerQueueController.joinQueue,
 );
 

@@ -2,9 +2,9 @@ import type { IEtaService } from '../src/application/ports/services/eta-service.
 import type { IRestaurantServiceClient } from '../src/application/ports/services/restaurant-service.port.ts';
 import { GetQueueEtaUseCase } from '../src/application/use-cases/get-queue-eta.use-case.ts';
 import {
+	QueueProSubscriptionRequiredError,
 	RestaurantBlockedError,
 	RestaurantNotAcceptingQueueError,
-	SubscriptionRequiredError,
 } from '../src/domain/index.ts';
 import type { IQueueRepository } from '../src/domain/repositories/queue.repository.interface.ts';
 import { SUBSCRIPTION_PLAN } from '../src/shared/index.ts';
@@ -92,13 +92,13 @@ describe('GetQueueEtaUseCase Unit Tests', () => {
 		expect(mockRestaurantServiceClient.checkAvailability).not.toHaveBeenCalled();
 	});
 
-	it('should throw SubscriptionRequiredError if subscription is not active', async () => {
+	it('should throw QueueProSubscriptionRequiredError if subscription is not active', async () => {
 		mockRestaurantServiceClient.getRestaurantStatus.mockResolvedValueOnce({
 			...validRestaurantStatus,
 			isSubscriptionActive: false,
 		});
 
-		await expect(useCase.execute(defaultInput)).rejects.toThrow(SubscriptionRequiredError);
+		await expect(useCase.execute(defaultInput)).rejects.toThrow(QueueProSubscriptionRequiredError);
 	});
 
 	it('should throw RestaurantNotAcceptingQueueError if restaurant is closed', async () => {

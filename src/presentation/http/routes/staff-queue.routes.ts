@@ -1,9 +1,9 @@
 import { staffQueueController } from '@di/controllers.resolutions.ts';
 import {
 	staffAuthMiddleware,
-	validateBody,
-	validateParams,
-	validateQuery,
+	validateRequestBody,
+	validateRequestParams,
+	validateRequestQuery,
 } from '@presentation/http/middleware/index.ts';
 import {
 	assignTablesBodySchema,
@@ -31,31 +31,31 @@ const staffQueueRouter = Router();
 staffQueueRouter.get(
 	ROUTES.STAFF_QUEUE,
 	staffAuthMiddleware,
-	validateParams(getStaffQueueParamsSchema),
-	validateQuery(getStaffQueueQuerySchema),
+	validateRequestParams(getStaffQueueParamsSchema),
+	validateRequestQuery(getStaffQueueQuerySchema),
 	staffQueueController.getLiveQueue,
 );
 
 staffQueueRouter.post(
 	ROUTES.REGISTER_WALK_IN,
 	staffAuthMiddleware,
-	validateParams(registerWalkInParamsSchema),
-	validateBody(registerWalkInBodySchema),
+	validateRequestParams(registerWalkInParamsSchema),
+	validateRequestBody(registerWalkInBodySchema),
 	staffQueueController.registerWalkIn,
 );
 
 staffQueueRouter.patch(
 	ROUTES.ASSIGN_TABLE,
 	staffAuthMiddleware,
-	validateParams(assignTablesParamsSchema),
-	validateBody(assignTablesBodySchema),
+	validateRequestParams(assignTablesParamsSchema),
+	validateRequestBody(assignTablesBodySchema),
 	staffQueueController.assignTables,
 );
 
 staffQueueRouter.post(
 	ROUTES.RING_CUSTOMER,
 	staffAuthMiddleware,
-	validateParams(ringCustomerParamsSchema),
+	validateRequestParams(ringCustomerParamsSchema),
 	staffQueueController.ringCustomer,
 );
 

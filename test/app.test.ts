@@ -9,9 +9,9 @@ jest.mock('ioredis', () => {
 	});
 });
 
-import { bullmqQueueService } from '@di/index.ts';
-import { databaseService, prisma } from '@infrastructure/database/index.ts';
-import { redisClient, redisService } from '@infrastructure/redis/index.ts';
+import { bullmqQueueService, databaseService, redisService } from '@di/index.ts';
+import { prisma } from '@infrastructure/database/index.ts';
+import { redisClient } from '@infrastructure/redis/index.ts';
 import { HEALTH_STATUS, HTTP_STATUS, MESSAGES, ROUTES } from '@shared/index.ts';
 import request from 'supertest';
 import app from '../src/app.ts';
@@ -30,9 +30,10 @@ describe('Queue Service Integration & Unit Tests', () => {
 	});
 
 	describe('GET /health', () => {
-		it('should return 200 and status UP when both DB and Redis are healthy', async () => {
+		it('should return 200 and status UP when DB, Redis, and BullMQ are healthy', async () => {
 			jest.spyOn(databaseService, 'isHealthy').mockResolvedValue(true);
 			jest.spyOn(redisService, 'isHealthy').mockResolvedValue(true);
+			jest.spyOn(bullmqQueueService, 'isHealthy').mockResolvedValue(true);
 
 			const res = await request(app).get(ROUTES.HEALTH);
 
@@ -44,6 +45,7 @@ describe('Queue Service Integration & Unit Tests', () => {
 						application: HEALTH_STATUS.UP,
 						database: HEALTH_STATUS.UP,
 						redis: HEALTH_STATUS.UP,
+						bullmq: HEALTH_STATUS.UP,
 					}),
 				}),
 			);
@@ -52,6 +54,7 @@ describe('Queue Service Integration & Unit Tests', () => {
 		it('should return 503 and status DOWN when database is unhealthy', async () => {
 			jest.spyOn(databaseService, 'isHealthy').mockResolvedValue(false);
 			jest.spyOn(redisService, 'isHealthy').mockResolvedValue(true);
+			jest.spyOn(bullmqQueueService, 'isHealthy').mockResolvedValue(true);
 
 			const res = await request(app).get(ROUTES.HEALTH);
 
@@ -63,6 +66,7 @@ describe('Queue Service Integration & Unit Tests', () => {
 						application: HEALTH_STATUS.UP,
 						database: HEALTH_STATUS.DOWN,
 						redis: HEALTH_STATUS.UP,
+						bullmq: HEALTH_STATUS.UP,
 					}),
 				}),
 			);
@@ -71,6 +75,7 @@ describe('Queue Service Integration & Unit Tests', () => {
 		it('should return 503 and status DOWN when Redis is unhealthy', async () => {
 			jest.spyOn(databaseService, 'isHealthy').mockResolvedValue(true);
 			jest.spyOn(redisService, 'isHealthy').mockResolvedValue(false);
+			jest.spyOn(bullmqQueueService, 'isHealthy').mockResolvedValue(true);
 
 			const res = await request(app).get(ROUTES.HEALTH);
 
@@ -82,6 +87,28 @@ describe('Queue Service Integration & Unit Tests', () => {
 						application: HEALTH_STATUS.UP,
 						database: HEALTH_STATUS.UP,
 						redis: HEALTH_STATUS.DOWN,
+						bullmq: HEALTH_STATUS.UP,
+					}),
+				}),
+			);
+		});
+
+		it('should return 503 and status DOWN when BullMQ is unhealthy', async () => {
+			jest.spyOn(databaseService, 'isHealthy').mockResolvedValue(true);
+			jest.spyOn(redisService, 'isHealthy').mockResolvedValue(true);
+			jest.spyOn(bullmqQueueService, 'isHealthy').mockResolvedValue(false);
+
+			const res = await request(app).get(ROUTES.HEALTH);
+
+			expect(res.status).toBe(HTTP_STATUS.SERVICE_UNAVAILABLE);
+			expect(res.body).toEqual(
+				expect.objectContaining({
+					status: HEALTH_STATUS.DOWN,
+					checks: expect.objectContaining({
+						application: HEALTH_STATUS.UP,
+						database: HEALTH_STATUS.UP,
+						redis: HEALTH_STATUS.UP,
+						bullmq: HEALTH_STATUS.DOWN,
 					}),
 				}),
 			);
@@ -117,15 +144,15 @@ describe('Queue Service Integration & Unit Tests', () => {
 			expect(healthy).toBe(false);
 		});
 
-		it('redisService.health should return true when Redis ping succeeds', async () => {
+		it('redisService.isHealthy should return true when Redis ping succeeds', async () => {
 			jest.spyOn(redisClient, 'ping').mockResolvedValue('PONG');
-			const healthy = await redisService.health();
+			const healthy = await redisService.isHealthy();
 			expect(healthy).toBe(true);
 		});
 
-		it('redisService.health should return false when Redis ping fails', async () => {
+		it('redisService.isHealthy should return false when Redis ping fails', async () => {
 			jest.spyOn(redisClient, 'ping').mockRejectedValue(new Error('Redis error'));
-			const healthy = await redisService.health();
+			const healthy = await redisService.isHealthy();
 			expect(healthy).toBe(false);
 		});
 

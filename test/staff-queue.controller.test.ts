@@ -58,6 +58,7 @@ describe('StaffQueueController Unit Tests', () => {
 			const req = {
 				params: { queueEntryId: 'entry-123' },
 				body: { tables: [{ tableId: 't-1', tableName: 'T1', count: 4 }] },
+				userId: 'staff-1',
 				user: { userId: 'staff-1' },
 			} as unknown as Request;
 
@@ -82,6 +83,7 @@ describe('StaffQueueController Unit Tests', () => {
 			const req = {
 				params: { queueEntryId: 'entry-123' },
 				body: { tables: [{ tableId: 't-1', tableName: 'T1', count: 4 }] },
+				userId: 'staff-1',
 				user: { restaurantId: 'rest-1', userId: 'staff-1' },
 			} as unknown as Request;
 
@@ -114,6 +116,7 @@ describe('StaffQueueController Unit Tests', () => {
 		it('should throw UnauthorizedError when restaurantId is missing', async () => {
 			const req = {
 				params: { queueEntryId: 'entry-123' },
+				userId: 'staff-1',
 				user: { userId: 'staff-1' },
 			} as unknown as Request;
 
@@ -136,6 +139,7 @@ describe('StaffQueueController Unit Tests', () => {
 		it('should call ringCustomerUseCase and return 200 on valid credentials', async () => {
 			const req = {
 				params: { queueEntryId: 'entry-123' },
+				userId: 'staff-1',
 				user: { restaurantId: 'rest-1', userId: 'staff-1' },
 			} as unknown as Request;
 

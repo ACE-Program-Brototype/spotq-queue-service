@@ -58,10 +58,18 @@ export const WS_ERROR_MESSAGES = {
 	MISSING_IDENTITY: 'Authentication failed: Missing user or ticket identity',
 } as const;
 
-export const STAFF_ROLES: ReadonlySet<string> = new Set(['STAFF']);
+export const STAFF_ROLE = 'STAFF';
 export const RESTAURANT_OWNER_ROLE = 'RESTAURANT_OWNER';
 export const ADMIN_ROLE = 'ADMIN';
 export const CUSTOMER_ROLE = 'CUSTOMER';
+export const STAFF_ROLES: ReadonlySet<string> = new Set([STAFF_ROLE]);
+
+export const USER_ROLES = {
+	STAFF: STAFF_ROLE,
+	RESTAURANT_OWNER: RESTAURANT_OWNER_ROLE,
+	ADMIN: ADMIN_ROLE,
+	CUSTOMER: CUSTOMER_ROLE,
+} as const;
 
 export function isAuthorizedRestaurantMember(
 	user: { role?: string; restaurantId?: string } | undefined,

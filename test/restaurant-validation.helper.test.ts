@@ -1,6 +1,6 @@
 import { validateRestaurantActiveSubscription } from '../src/application/helpers/restaurant-validation.helper.ts';
 import type { RestaurantStatusResult } from '../src/application/ports/services/restaurant-service.port.ts';
-import { RestaurantBlockedError, SubscriptionRequiredError } from '../src/domain/index.ts';
+import { QueueProSubscriptionRequiredError, RestaurantBlockedError } from '../src/domain/index.ts';
 import { SUBSCRIPTION_PLAN } from '../src/shared/index.ts';
 
 describe('validateRestaurantActiveSubscription', () => {
@@ -31,25 +31,25 @@ describe('validateRestaurantActiveSubscription', () => {
 		);
 	});
 
-	it('should throw SubscriptionRequiredError when subscription is inactive', () => {
+	it('should throw QueueProSubscriptionRequiredError when subscription is inactive', () => {
 		const inactiveSubStatus: RestaurantStatusResult = {
 			...validStatus,
 			isSubscriptionActive: false,
 		};
 
 		expect(() => validateRestaurantActiveSubscription(inactiveSubStatus)).toThrow(
-			SubscriptionRequiredError,
+			QueueProSubscriptionRequiredError,
 		);
 	});
 
-	it('should throw SubscriptionRequiredError when subscription plan is not QUEUE_PRO', () => {
+	it('should throw QueueProSubscriptionRequiredError when subscription plan is not QUEUE_PRO', () => {
 		const wrongPlanStatus: RestaurantStatusResult = {
 			...validStatus,
 			subscriptionPlanCode: 'BASIC_PLAN',
 		};
 
 		expect(() => validateRestaurantActiveSubscription(wrongPlanStatus)).toThrow(
-			SubscriptionRequiredError,
+			QueueProSubscriptionRequiredError,
 		);
 	});
 });

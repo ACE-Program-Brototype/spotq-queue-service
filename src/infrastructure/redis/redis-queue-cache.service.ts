@@ -5,20 +5,25 @@ import type {
 import { TYPES } from '@di/types.ts';
 import { logger } from '@infrastructure/logger/index.ts';
 import { inject, injectable } from 'inversify';
-import type { RedisClientType } from 'redis';
+import type Redis from 'ioredis';
+
+export const REDIS_QUEUE_CACHE = {
+	KEY_PREFIX: 'queue:live:',
+	TTL_SECONDS: 86400, // 24 hours
+} as const;
 
 @injectable()
 export class RedisQueueCacheService implements IQueueCacheService {
-	private static readonly KEY_PREFIX = 'queue:live:';
-	private static readonly TTL_SECONDS = 86400; // 24 hours
+	public static readonly KEY_PREFIX = REDIS_QUEUE_CACHE.KEY_PREFIX;
+	public static readonly TTL_SECONDS = REDIS_QUEUE_CACHE.TTL_SECONDS;
 
 	constructor(
 		@inject(TYPES.Redis.Client)
-		private readonly client: RedisClientType,
+		private readonly client: Redis,
 	) {}
 
 	private getKey(queueEntryId: string): string {
-		return `${RedisQueueCacheService.KEY_PREFIX}${queueEntryId}`;
+		return `${REDIS_QUEUE_CACHE.KEY_PREFIX}${queueEntryId}`;
 	}
 
 	async saveLiveEntry(
@@ -37,9 +42,7 @@ export class RedisQueueCacheService implements IQueueCacheService {
 				updatedAt: new Date().toISOString(),
 			};
 
-			await this.client.set(key, JSON.stringify(state), {
-				EX: RedisQueueCacheService.TTL_SECONDS,
-			});
+			await this.client.set(key, JSON.stringify(state), 'EX', REDIS_QUEUE_CACHE.TTL_SECONDS);
 
 			logger.debug({ queueEntryId, position, currentEta }, 'Live queue entry state saved in Redis');
 		} catch (error) {

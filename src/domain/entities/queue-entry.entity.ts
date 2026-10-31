@@ -1,5 +1,5 @@
-import { QUEUE_CONSTANTS } from '@shared/constants/queue.constants.ts';
-import { QueueStatus, RegistrationType } from '../enums/queue.enums.ts';
+import { QUEUE_CONSTANTS, QUEUE_PREFIX } from '@shared/constants/queue.constants.ts';
+import { QueueStatus, REGISTRATION_TYPE, RegistrationType } from '../enums/queue.enums.ts';
 import {
 	CannotRingWalkInCustomerError,
 	QueueEntryNotWaitingError,
@@ -72,6 +72,19 @@ export interface CreateWalkInQueueEntryProps {
  */
 export class QueueEntry {
 	private constructor(private readonly props: QueueEntryProps) {}
+
+	/**
+	 * Generates a domain-compliant queue display number based on registration channel and sequence.
+	 * Online: 'Q-001', Walk-in: 'W-001'
+	 */
+	public static generateQueueNumber(
+		registrationType: RegistrationType,
+		sequenceNumber: number,
+	): string {
+		const prefix =
+			registrationType === REGISTRATION_TYPE.ONLINE ? QUEUE_PREFIX.ONLINE : QUEUE_PREFIX.WALK_IN;
+		return `${prefix}${String(sequenceNumber).padStart(3, '0')}`;
+	}
 
 	/**
 	 * Factory method to instantiate a new queue entry (online or walk-in).

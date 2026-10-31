@@ -1,13 +1,15 @@
+import { TYPES } from '@di/types.ts';
 import type { IHealthCheckable } from '@domain/index.ts';
 import type { PrismaClient } from '@prisma/client';
+import { inject, injectable } from 'inversify';
 import { prisma } from './prisma.ts';
 
+@injectable()
 export class DatabaseService implements IHealthCheckable {
-	private readonly client: PrismaClient;
-
-	constructor(client: PrismaClient = prisma) {
-		this.client = client;
-	}
+	constructor(
+		@inject(TYPES.Database.PrismaClient)
+		private readonly client: PrismaClient = prisma,
+	) {}
 
 	async connect(): Promise<void> {
 		await this.client.$connect();
@@ -26,6 +28,3 @@ export class DatabaseService implements IHealthCheckable {
 		}
 	}
 }
-
-export const databaseService = new DatabaseService(prisma);
-export const PrismaService = databaseService;
