@@ -70,6 +70,10 @@ describe('AssignTableUseCase', () => {
 			findActiveByUserId: jest.fn(),
 			createWithHistory: jest.fn(),
 			assignTablesWithHistory: jest.fn(),
+			updateStatusWithHistory: jest.fn(),
+			findActiveTableAssignments: jest.fn(),
+			releaseTableAssignments: jest.fn(),
+			batchUpdatePositions: jest.fn(),
 			getStaffQueueSnapshot: jest.fn(),
 		};
 
@@ -77,6 +81,7 @@ describe('AssignTableUseCase', () => {
 			checkAvailability: jest.fn(),
 			getRestaurantStatus: jest.fn(),
 			assignTables: jest.fn().mockResolvedValue(undefined),
+			releaseTables: jest.fn().mockResolvedValue(undefined),
 		};
 
 		mockQueueCacheService = {

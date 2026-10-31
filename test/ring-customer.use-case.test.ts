@@ -82,6 +82,10 @@ describe('RingCustomerUseCase Unit Tests', () => {
 			findActiveByUserId: jest.fn(),
 			createWithHistory: jest.fn(),
 			assignTablesWithHistory: jest.fn(),
+			updateStatusWithHistory: jest.fn(),
+			findActiveTableAssignments: jest.fn(),
+			releaseTableAssignments: jest.fn(),
+			batchUpdatePositions: jest.fn(),
 			getStaffQueueSnapshot: jest.fn(),
 		};
 

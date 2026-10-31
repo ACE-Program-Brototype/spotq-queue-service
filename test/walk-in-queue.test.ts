@@ -60,6 +60,10 @@ describe('RegisterQueueUseCase Unit Tests', () => {
 			assignTablesWithHistory: jest
 				.fn()
 				.mockImplementation((entry: QueueEntry) => Promise.resolve(entry)),
+			updateStatusWithHistory: jest.fn(),
+			findActiveTableAssignments: jest.fn(),
+			releaseTableAssignments: jest.fn(),
+			batchUpdatePositions: jest.fn(),
 			getStaffQueueSnapshot: jest.fn(),
 		};
 
@@ -72,6 +76,7 @@ describe('RegisterQueueUseCase Unit Tests', () => {
 				availableCount: 0,
 			}),
 			assignTables: jest.fn().mockResolvedValue(undefined),
+			releaseTables: jest.fn().mockResolvedValue(undefined),
 			getRestaurantStatus: jest.fn().mockResolvedValue({
 				restaurantId: 'rest-1234',
 				restaurantName: 'Grand Bistro',

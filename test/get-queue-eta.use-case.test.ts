@@ -61,6 +61,10 @@ describe('GetQueueEtaUseCase Unit Tests', () => {
 			findActiveByUserId: jest.fn(),
 			createWithHistory: jest.fn(),
 			assignTablesWithHistory: jest.fn(),
+			updateStatusWithHistory: jest.fn(),
+			findActiveTableAssignments: jest.fn(),
+			releaseTableAssignments: jest.fn(),
+			batchUpdatePositions: jest.fn(),
 			getStaffQueueSnapshot: jest.fn(),
 		};
 
@@ -68,6 +72,7 @@ describe('GetQueueEtaUseCase Unit Tests', () => {
 			getRestaurantStatus: jest.fn().mockResolvedValue(validRestaurantStatus),
 			checkAvailability: jest.fn().mockResolvedValue(openTableCheck),
 			assignTables: jest.fn(),
+			releaseTables: jest.fn(),
 		};
 
 		mockEtaService = {

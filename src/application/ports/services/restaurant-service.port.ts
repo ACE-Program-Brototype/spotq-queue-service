@@ -23,6 +23,11 @@ export interface AssignTableItem {
 	count: number;
 }
 
+export interface ReleaseTableItem {
+	tableId: string;
+	occupancyToRelease: number;
+}
+
 /**
  * Service port interface for communicating with spotq-restaurant-service.
  */
@@ -30,4 +35,5 @@ export interface IRestaurantServiceClient {
 	checkAvailability(restaurantId: string, partySize: number): Promise<TableAvailabilityResult>;
 	getRestaurantStatus(restaurantId: string): Promise<RestaurantStatusResult>;
 	assignTables(restaurantId: string, tables: AssignTableItem[]): Promise<void>;
+	releaseTables(restaurantId: string, tables: ReleaseTableItem[]): Promise<void>;
 }

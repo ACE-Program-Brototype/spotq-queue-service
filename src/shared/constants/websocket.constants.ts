@@ -7,8 +7,10 @@ export const WEBSOCKET_ROOM_PREFIXES = {
 
 export const WEBSOCKET_ROOMS = {
 	restaurant: (restaurantId: string): string => `restaurant:${restaurantId}`,
+	restaurantQueue: (restaurantId: string): string => `restaurant:${restaurantId}:queue`,
 	queue: (queueId: string): string => `queue:${queueId}`,
 	ticket: (ticketId: string): string => `ticket:${ticketId}`,
+	queueEntry: (queueEntryId: string): string => `queue-entry:${queueEntryId}`,
 	user: (userId: string): string => `user:${userId}`,
 } as const;
 
@@ -23,6 +25,10 @@ export const WS_CLIENT_EVENTS = {
 
 export const WS_SERVER_EVENTS = {
 	QUEUE_ENTRY_CREATED: 'QUEUE_ENTRY_CREATED',
+	QUEUE_ENTRY_SEATED: 'QUEUE_ENTRY_SEATED',
+	QUEUE_ENTRY_SKIPPED: 'QUEUE_ENTRY_SKIPPED',
+	QUEUE_ENTRY_CANCELLED: 'QUEUE_ENTRY_CANCELLED',
+	QUEUE_ENTRY_NO_SHOW: 'QUEUE_ENTRY_NO_SHOW',
 	QUEUE_JOINED: 'queue:joined',
 	QUEUE_POSITION_UPDATED: 'queue:position-updated',
 	QUEUE_UPDATED: 'queue:updated',

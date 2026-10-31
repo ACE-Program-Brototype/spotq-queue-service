@@ -172,6 +172,10 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 					.fn()
 					.mockImplementation((entry: QueueEntry) => Promise.resolve(entry)),
 				assignTablesWithHistory: jest.fn(),
+				updateStatusWithHistory: jest.fn(),
+				findActiveTableAssignments: jest.fn(),
+				releaseTableAssignments: jest.fn(),
+				batchUpdatePositions: jest.fn(),
 				getStaffQueueSnapshot: jest.fn(),
 			};
 
@@ -193,6 +197,7 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 					status: 'ACTIVE',
 				}),
 				assignTables: jest.fn().mockResolvedValue(undefined),
+				releaseTables: jest.fn().mockResolvedValue(undefined),
 			};
 
 			mockEtaService = {

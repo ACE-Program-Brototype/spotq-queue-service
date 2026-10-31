@@ -1,6 +1,7 @@
 import type {
 	AssignTableItem,
 	IRestaurantServiceClient,
+	ReleaseTableItem,
 	RestaurantStatusResult,
 	TableAvailabilityResult,
 } from '@application/ports/services/restaurant-service.port.ts';
@@ -275,6 +276,58 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 				{ err: error, restaurantId, tables },
 				'Unexpected error during table assignment',
 			);
+			throw new UpstreamServiceUnavailableError(
+				'Unexpected error communicating with restaurant service',
+			);
+		}
+	}
+
+	async releaseTables(restaurantId: string, tables: ReleaseTableItem[]): Promise<void> {
+		try {
+			const url = `${this.baseUrl}${RESTAURANT_SERVICE_ROUTES.RELEASE_TABLE(restaurantId)}`;
+			const response = await axios.patch<IApiResponseEnvelope<null>>(
+				url,
+				{ tables },
+				{
+					timeout: RestaurantServiceClient.REQUEST_TIMEOUT_MS,
+					headers: this.getInternalHeaders(),
+				},
+			);
+
+			if (response.data?.success !== true) {
+				const errorMessage = response.data?.message || QUEUE_MESSAGES.TABLE_RELEASE_FAILED_UPSTREAM;
+				throw new UpstreamServiceUnavailableError(errorMessage);
+			}
+		} catch (error) {
+			if (error instanceof DomainError) {
+				throw error;
+			}
+
+			if (axios.isAxiosError(error)) {
+				if (error.response?.status === 404) {
+					throw new RestaurantNotFoundError(restaurantId);
+				}
+
+				const upstreamMessage =
+					(error.response?.data as { message?: string })?.message ||
+					`${QUEUE_MESSAGES.TABLE_RELEASE_ERROR_PREFIX}: ${error.message}`;
+
+				logger.error(
+					{ err: error, restaurantId, tables, upstreamMessage },
+					'Failed to call spotq-restaurant-service table release API via axios',
+				);
+
+				const statusCode =
+					error.response?.status && error.response.status >= 400 && error.response.status < 500
+						? error.response.status
+						: HTTP_STATUS.SERVICE_UNAVAILABLE;
+
+				throw new UpstreamServiceUnavailableError(upstreamMessage, {
+					upstreamStatusCode: statusCode,
+				});
+			}
+
+			logger.error({ err: error, restaurantId, tables }, 'Unexpected error during table release');
 			throw new UpstreamServiceUnavailableError(
 				'Unexpected error communicating with restaurant service',
 			);

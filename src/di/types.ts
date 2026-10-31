@@ -21,6 +21,7 @@ export const TYPES = {
 		PushNotificationService: Symbol.for('PushNotificationService'),
 		QueueService: Symbol.for('QueueService'),
 		HealthService: Symbol.for('HealthService'),
+		QueuePositionRecalculator: Symbol.for('QueuePositionRecalculator'),
 	},
 	UseCases: {
 		RegisterQueueUseCase: Symbol.for('RegisterQueueUseCase'),
@@ -28,6 +29,9 @@ export const TYPES = {
 		GetQueueEtaUseCase: Symbol.for('GetQueueEtaUseCase'),
 		AssignTableUseCase: Symbol.for('AssignTableUseCase'),
 		RingCustomerUseCase: Symbol.for('RingCustomerUseCase'),
+		SeatPartyUseCase: Symbol.for('SeatPartyUseCase'),
+		SkipPartyUseCase: Symbol.for('SkipPartyUseCase'),
+		CancelQueueEntryUseCase: Symbol.for('CancelQueueEntryUseCase'),
 		Internal: {
 			GetCustomerQueueStatusUseCase: Symbol.for('GetCustomerQueueStatusUseCase'),
 		},

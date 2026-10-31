@@ -1,20 +1,28 @@
 import type { IQueueCacheService } from '@application/ports/cache/queue-cache.port.ts';
 import type { IEtaService } from '@application/ports/services/eta-service.port.ts';
 import type { IPushNotificationService } from '@application/ports/services/push-notification.port.ts';
+import type { IQueuePositionRecalculator } from '@application/ports/services/queue-position-recalculator.port.ts';
 import type { IRestaurantServiceClient } from '@application/ports/services/restaurant-service.port.ts';
 import type { IWebSocketBroadcaster } from '@application/ports/services/websocket-broadcaster.port.ts';
 import type { IAssignTableUseCase } from '@application/ports/use-cases/assign-table.use-case.port.ts';
+import type { ICancelQueueEntryUseCase } from '@application/ports/use-cases/cancel-queue-entry.use-case.port.ts';
 import type { IGetActiveQueueByUserUseCase } from '@application/ports/use-cases/get-active-queue-by-user.use-case.port.ts';
 import type { IGetQueueEtaUseCase } from '@application/ports/use-cases/get-queue-eta.use-case.port.ts';
 import type { IGetStaffQueueUseCase } from '@application/ports/use-cases/get-staff-queue.use-case.port.ts';
 import type { IRegisterQueueUseCase } from '@application/ports/use-cases/register-queue.use-case.port.ts';
 import type { IRingCustomerUseCase } from '@application/ports/use-cases/ring-customer.use-case.port.ts';
+import type { ISeatPartyUseCase } from '@application/ports/use-cases/seat-party.use-case.port.ts';
+import type { ISkipPartyUseCase } from '@application/ports/use-cases/skip-party.use-case.port.ts';
+import { QueuePositionRecalculator } from '@application/services/queue-position-recalculator.service.ts';
 import { AssignTableUseCase } from '@application/use-cases/assign-table.use-case.ts';
+import { CancelQueueEntryUseCase } from '@application/use-cases/cancel-queue-entry.use-case.ts';
 import { GetActiveQueueByUserUseCase } from '@application/use-cases/get-active-queue-by-user.use-case.ts';
 import { GetQueueEtaUseCase } from '@application/use-cases/get-queue-eta.use-case.ts';
 import { GetStaffQueueUseCase } from '@application/use-cases/get-staff-queue.use-case.ts';
 import { RegisterQueueUseCase } from '@application/use-cases/register-queue.use-case.ts';
 import { RingCustomerUseCase } from '@application/use-cases/ring-customer.use-case.ts';
+import { SeatPartyUseCase } from '@application/use-cases/seat-party.use-case.ts';
+import { SkipPartyUseCase } from '@application/use-cases/skip-party.use-case.ts';
 import type { IHealthService, IQueueService } from '@domain/index.ts';
 import type { IQueueRepository } from '@domain/repositories/queue.repository.interface.ts';
 import { DatabaseService } from '@infrastructure/database/database.service.ts';
@@ -77,6 +85,10 @@ export const queueModule = new ContainerModule(({ bind }) => {
 
 	bind<IHealthService>(TYPES.Services.HealthService).to(HealthService).inSingletonScope();
 
+	bind<IQueuePositionRecalculator>(TYPES.Services.QueuePositionRecalculator)
+		.to(QueuePositionRecalculator)
+		.inSingletonScope();
+
 	bind<IRegisterQueueUseCase>(TYPES.UseCases.RegisterQueueUseCase)
 		.to(RegisterQueueUseCase)
 		.inSingletonScope();
@@ -87,6 +99,14 @@ export const queueModule = new ContainerModule(({ bind }) => {
 
 	bind<IRingCustomerUseCase>(TYPES.UseCases.RingCustomerUseCase)
 		.to(RingCustomerUseCase)
+		.inSingletonScope();
+
+	bind<ISeatPartyUseCase>(TYPES.UseCases.SeatPartyUseCase).to(SeatPartyUseCase).inSingletonScope();
+
+	bind<ISkipPartyUseCase>(TYPES.UseCases.SkipPartyUseCase).to(SkipPartyUseCase).inSingletonScope();
+
+	bind<ICancelQueueEntryUseCase>(TYPES.UseCases.CancelQueueEntryUseCase)
+		.to(CancelQueueEntryUseCase)
 		.inSingletonScope();
 
 	bind<IGetActiveQueueByUserUseCase>(TYPES.UseCases.GetActiveQueueByUserUseCase)

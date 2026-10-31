@@ -3,10 +3,14 @@ export const ROUTES = {
 	HEALTH: '/health',
 	METRICS: '/metrics',
 	STAFF_BASE: '/staff',
+	API_V1_STAFF_BASE: '/api/v1/staff',
 	REGISTER_WALK_IN: '/restaurants/:restaurantId/queue/walk-in',
 	ASSIGN_TABLE: '/queue/:queueEntryId/assign-tables',
 	RING_CUSTOMER: '/queue/:queueEntryId/ring',
 	STAFF_QUEUE: '/restaurants/:restaurantId',
+	SEAT_PARTY: '/restaurants/:restaurantId/queue/:queueEntryId/seat',
+	SKIP_PARTY: '/restaurants/:restaurantId/queue/:queueEntryId/skip',
+	CANCEL_QUEUE_ENTRY: '/restaurants/:restaurantId/queue/:queueEntryId/cancel',
 	CUSTOMER_BASE: '/customer',
 	GET_ETA: '/:restaurantId/eta',
 	JOIN_QUEUE: '/restaurants/:restaurantId/queue/join',
@@ -19,6 +23,8 @@ export const RESTAURANT_SERVICE_ROUTES = {
 		`/api/internal/v1/restaurants/${encodeURIComponent(restaurantId)}/tables/availability`,
 	ASSIGN_TABLE: (restaurantId: string) =>
 		`/api/internal/v1/restaurants/${encodeURIComponent(restaurantId)}/tables/assign`,
+	RELEASE_TABLE: (restaurantId: string) =>
+		`/api/internal/v1/restaurants/${encodeURIComponent(restaurantId)}/tables/release`,
 } as const;
 
 export const INTERNAL_ROUTES = {

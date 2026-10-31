@@ -9,6 +9,9 @@ describe('StaffQueueController Unit Tests', () => {
 	let mockAssignTableUseCase: { execute: jest.Mock };
 	let mockRingCustomerUseCase: { execute: jest.Mock };
 	let mockGetStaffQueueUseCase: { execute: jest.Mock };
+	let mockSeatPartyUseCase: { execute: jest.Mock };
+	let mockSkipPartyUseCase: { execute: jest.Mock };
+	let mockCancelQueueEntryUseCase: { execute: jest.Mock };
 	let mockRes: Partial<Response>;
 
 	beforeEach(() => {
@@ -16,11 +19,17 @@ describe('StaffQueueController Unit Tests', () => {
 		mockAssignTableUseCase = { execute: jest.fn() };
 		mockRingCustomerUseCase = { execute: jest.fn() };
 		mockGetStaffQueueUseCase = { execute: jest.fn() };
+		mockSeatPartyUseCase = { execute: jest.fn() };
+		mockSkipPartyUseCase = { execute: jest.fn() };
+		mockCancelQueueEntryUseCase = { execute: jest.fn() };
 		controller = new StaffQueueController(
 			mockRegisterQueueUseCase as never,
 			mockAssignTableUseCase as never,
 			mockRingCustomerUseCase as never,
 			mockGetStaffQueueUseCase as never,
+			mockSeatPartyUseCase as never,
+			mockSkipPartyUseCase as never,
+			mockCancelQueueEntryUseCase as never,
 		);
 
 		mockRes = {
@@ -185,6 +194,113 @@ describe('StaffQueueController Unit Tests', () => {
 					data: mockResult,
 				}),
 			);
+		});
+	});
+
+	describe('seatParty', () => {
+		it('should throw UnauthorizedError when staffUserId is missing', async () => {
+			const req = {
+				params: { restaurantId: 'rest-1', queueEntryId: 'entry-1' },
+				body: { tableIds: ['tbl-1'] },
+				user: {},
+			} as unknown as Request;
+
+			await expect(controller.seatParty(req, mockRes as Response)).rejects.toThrow(
+				UnauthorizedError,
+			);
+		});
+
+		it('should call seatPartyUseCase and return 200 on success', async () => {
+			const req = {
+				params: { restaurantId: 'rest-1', queueEntryId: 'entry-1' },
+				body: { tableIds: ['tbl-1'] },
+				user: { userId: 'staff-1', restaurantId: 'rest-1' },
+			} as unknown as Request;
+
+			const mockResult = { queueEntryId: 'entry-1', status: 'SEATED' };
+			mockSeatPartyUseCase.execute.mockResolvedValue(mockResult);
+
+			await controller.seatParty(req, mockRes as Response);
+
+			expect(mockSeatPartyUseCase.execute).toHaveBeenCalledWith({
+				restaurantId: 'rest-1',
+				queueEntryId: 'entry-1',
+				staffUserId: 'staff-1',
+				tableIds: ['tbl-1'],
+			});
+			expect(mockRes.status).toHaveBeenCalledWith(HTTP_STATUS.OK);
+		});
+	});
+
+	describe('skipParty', () => {
+		it('should throw UnauthorizedError when staffUserId is missing', async () => {
+			const req = {
+				params: { restaurantId: 'rest-1', queueEntryId: 'entry-1' },
+				body: { reason: 'No show at stand' },
+				user: {},
+			} as unknown as Request;
+
+			await expect(controller.skipParty(req, mockRes as Response)).rejects.toThrow(
+				UnauthorizedError,
+			);
+		});
+
+		it('should call skipPartyUseCase and return 200 on success', async () => {
+			const req = {
+				params: { restaurantId: 'rest-1', queueEntryId: 'entry-1' },
+				body: { reason: 'No show at stand', skipPositions: 2 },
+				user: { userId: 'staff-1', restaurantId: 'rest-1' },
+			} as unknown as Request;
+
+			const mockResult = { queueEntryId: 'entry-1', status: 'SKIPPED' };
+			mockSkipPartyUseCase.execute.mockResolvedValue(mockResult);
+
+			await controller.skipParty(req, mockRes as Response);
+
+			expect(mockSkipPartyUseCase.execute).toHaveBeenCalledWith({
+				restaurantId: 'rest-1',
+				queueEntryId: 'entry-1',
+				staffUserId: 'staff-1',
+				reason: 'No show at stand',
+				skipPositions: 2,
+			});
+			expect(mockRes.status).toHaveBeenCalledWith(HTTP_STATUS.OK);
+		});
+	});
+
+	describe('cancelQueueEntry', () => {
+		it('should throw UnauthorizedError when staffUserId is missing', async () => {
+			const req = {
+				params: { restaurantId: 'rest-1', queueEntryId: 'entry-1' },
+				body: { reason: 'NO_SHOW' },
+				user: {},
+			} as unknown as Request;
+
+			await expect(controller.cancelQueueEntry(req, mockRes as Response)).rejects.toThrow(
+				UnauthorizedError,
+			);
+		});
+
+		it('should call cancelQueueEntryUseCase and return 200 with appropriate message', async () => {
+			const req = {
+				params: { restaurantId: 'rest-1', queueEntryId: 'entry-1' },
+				body: { reason: 'NO_SHOW', notes: 'Did not respond' },
+				user: { userId: 'staff-1', restaurantId: 'rest-1' },
+			} as unknown as Request;
+
+			const mockResult = { queueEntryId: 'entry-1', status: 'NO_SHOW' };
+			mockCancelQueueEntryUseCase.execute.mockResolvedValue(mockResult);
+
+			await controller.cancelQueueEntry(req, mockRes as Response);
+
+			expect(mockCancelQueueEntryUseCase.execute).toHaveBeenCalledWith({
+				restaurantId: 'rest-1',
+				queueEntryId: 'entry-1',
+				staffUserId: 'staff-1',
+				reason: 'NO_SHOW',
+				notes: 'Did not respond',
+			});
+			expect(mockRes.status).toHaveBeenCalledWith(HTTP_STATUS.OK);
 		});
 	});
 });

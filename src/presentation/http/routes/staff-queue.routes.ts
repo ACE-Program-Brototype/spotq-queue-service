@@ -10,6 +10,10 @@ import {
 	assignTablesParamsSchema,
 } from '@presentation/http/validators/assign-table.validator.ts';
 import {
+	cancelQueueEntryBodySchema,
+	cancelQueueEntryParamsSchema,
+} from '@presentation/http/validators/cancel-queue-entry.validator.ts';
+import {
 	getStaffQueueParamsSchema,
 	getStaffQueueQuerySchema,
 } from '@presentation/http/validators/get-staff-queue.validator.ts';
@@ -18,14 +22,17 @@ import {
 	registerWalkInParamsSchema,
 } from '@presentation/http/validators/register-walk-in.validator.ts';
 import { ringCustomerParamsSchema } from '@presentation/http/validators/ring-customer.validator.ts';
+import {
+	seatPartyBodySchema,
+	seatPartyParamsSchema,
+} from '@presentation/http/validators/seat-party.validator.ts';
+import {
+	skipPartyBodySchema,
+	skipPartyParamsSchema,
+} from '@presentation/http/validators/skip-party.validator.ts';
 import { ROUTES } from '@shared/constants/routes.constants.ts';
 import { Router } from 'express';
 
-/**
- * Express router handling staff queue management endpoints.
- *
- * Controllers are injected from the Inversify IoC container.
- */
 const staffQueueRouter = Router();
 
 staffQueueRouter.get(
@@ -57,6 +64,30 @@ staffQueueRouter.post(
 	staffAuthMiddleware,
 	validateRequestParams(ringCustomerParamsSchema),
 	staffQueueController.ringCustomer,
+);
+
+staffQueueRouter.post(
+	ROUTES.SEAT_PARTY,
+	staffAuthMiddleware,
+	validateRequestParams(seatPartyParamsSchema),
+	validateRequestBody(seatPartyBodySchema),
+	staffQueueController.seatParty,
+);
+
+staffQueueRouter.post(
+	ROUTES.SKIP_PARTY,
+	staffAuthMiddleware,
+	validateRequestParams(skipPartyParamsSchema),
+	validateRequestBody(skipPartyBodySchema),
+	staffQueueController.skipParty,
+);
+
+staffQueueRouter.post(
+	ROUTES.CANCEL_QUEUE_ENTRY,
+	staffAuthMiddleware,
+	validateRequestParams(cancelQueueEntryParamsSchema),
+	validateRequestBody(cancelQueueEntryBodySchema),
+	staffQueueController.cancelQueueEntry,
 );
 
 export { staffQueueRouter };

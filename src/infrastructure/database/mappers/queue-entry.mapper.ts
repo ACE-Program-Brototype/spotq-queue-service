@@ -27,6 +27,7 @@ export const QueueEntryMapper: IEntityMapper<QueueEntry, PrismaQueueEntry> = {
 			fid: raw.fid ?? null,
 			joinedAt: raw.joinedAt,
 			seatedAt: raw.seatedAt,
+			cancelledAt: raw.cancelledAt,
 			createdAt: raw.createdAt,
 			updatedAt: raw.updatedAt,
 		});
@@ -52,6 +53,7 @@ export const QueueEntryMapper: IEntityMapper<QueueEntry, PrismaQueueEntry> = {
 			fid: entity.fid ?? null,
 			joinedAt: entity.joinedAt,
 			seatedAt: entity.seatedAt ?? null,
+			cancelledAt: entity.cancelledAt ?? null,
 			createdAt: entity.createdAt,
 			updatedAt: entity.updatedAt,
 		};
