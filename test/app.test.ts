@@ -144,15 +144,15 @@ describe('Queue Service Integration & Unit Tests', () => {
 			expect(healthy).toBe(false);
 		});
 
-		it('redisService.health should return true when Redis ping succeeds', async () => {
+		it('redisService.isHealthy should return true when Redis ping succeeds', async () => {
 			jest.spyOn(redisClient, 'ping').mockResolvedValue('PONG');
-			const healthy = await redisService.health();
+			const healthy = await redisService.isHealthy();
 			expect(healthy).toBe(true);
 		});
 
-		it('redisService.health should return false when Redis ping fails', async () => {
+		it('redisService.isHealthy should return false when Redis ping fails', async () => {
 			jest.spyOn(redisClient, 'ping').mockRejectedValue(new Error('Redis error'));
-			const healthy = await redisService.health();
+			const healthy = await redisService.isHealthy();
 			expect(healthy).toBe(false);
 		});
 

@@ -1,11 +1,9 @@
-import { container } from '@di/container.ts';
-import { TYPES } from '@di/types.ts';
-import type { StaffQueueController } from '@presentation/http/controllers/staff-queue.controller.ts';
+import { staffQueueController } from '@di/controllers.resolutions.ts';
 import {
 	staffAuthMiddleware,
-	validateQuery,
 	validateRequestBody,
 	validateRequestParams,
+	validateRequestQuery,
 } from '@presentation/http/middleware/index.ts';
 import {
 	assignTablesBodySchema,
@@ -29,15 +27,12 @@ import { Router } from 'express';
  * Controllers are injected from the Inversify IoC container.
  */
 const staffQueueRouter = Router();
-const staffQueueController = container.get<StaffQueueController>(
-	TYPES.Controllers.StaffQueueController,
-);
 
 staffQueueRouter.get(
 	ROUTES.STAFF_QUEUE,
 	staffAuthMiddleware,
 	validateRequestParams(getStaffQueueParamsSchema),
-	validateQuery(getStaffQueueQuerySchema),
+	validateRequestQuery(getStaffQueueQuerySchema),
 	staffQueueController.getLiveQueue,
 );
 

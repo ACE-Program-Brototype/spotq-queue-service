@@ -61,7 +61,7 @@ describe('Staff Live Queue List API - GET /staff/restaurants/:restaurantId', () 
 			.set('x-restaurant-id', 'not-a-uuid')
 			.set('Accept', 'application/json');
 
-		expect(res.status).toBe(HTTP_STATUS.UNPROCESSABLE_ENTITY);
+		expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST);
 		expect(res.body.success).toBe(false);
 	});
 
@@ -73,7 +73,7 @@ describe('Staff Live Queue List API - GET /staff/restaurants/:restaurantId', () 
 			.set('x-restaurant-id', restaurantId)
 			.set('Accept', 'application/json');
 
-		expect(res.status).toBe(HTTP_STATUS.UNPROCESSABLE_ENTITY);
+		expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST);
 		expect(res.body.success).toBe(false);
 	});
 

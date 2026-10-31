@@ -40,7 +40,7 @@ export class CustomerQueueController {
 	joinQueue = async (req: Request, res: Response): Promise<void> => {
 		const { restaurantId } = req.params as unknown as JoinQueueParams;
 		const { guestName, guestPhone, partySize, specialNotes, fid } = req.body as JoinQueueBody;
-		const userId = req.userId || req.user?.userId;
+		const userId = req.user?.userId ?? req.userId;
 
 		const result = await this.registerQueueUseCase.execute({
 			restaurantId,

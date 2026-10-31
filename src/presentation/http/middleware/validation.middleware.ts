@@ -45,7 +45,7 @@ export function validateRequestParams<T>(schema: ZodSchema<T>) {
 				res,
 				ERROR_CODES.INVALID_PARAMETERS,
 				QUEUE_MESSAGES.INVALID_PARAMETERS,
-				HTTP_STATUS.UNPROCESSABLE_ENTITY,
+				HTTP_STATUS.BAD_REQUEST,
 				errors,
 			);
 			return;
@@ -56,7 +56,7 @@ export function validateRequestParams<T>(schema: ZodSchema<T>) {
 	};
 }
 
-export function validateQuery<T>(schema: ZodSchema<T>) {
+export function validateRequestQuery<T>(schema: ZodSchema<T>) {
 	return (req: Request, res: Response, next: NextFunction): void => {
 		const result = schema.safeParse(req.query);
 		if (!result.success) {
@@ -66,7 +66,7 @@ export function validateQuery<T>(schema: ZodSchema<T>) {
 				res,
 				ERROR_CODES.INVALID_PARAMETERS,
 				QUEUE_MESSAGES.INVALID_PARAMETERS,
-				HTTP_STATUS.UNPROCESSABLE_ENTITY,
+				HTTP_STATUS.BAD_REQUEST,
 				errors,
 			);
 			return;
@@ -81,7 +81,3 @@ export function validateQuery<T>(schema: ZodSchema<T>) {
 		next();
 	};
 }
-
-// Backwards-compatible aliases
-export const validateBody = validateRequestBody;
-export const validateParams = validateRequestParams;

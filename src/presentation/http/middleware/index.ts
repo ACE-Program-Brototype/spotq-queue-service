@@ -6,9 +6,7 @@ export { getHeaderValue } from './middleware.utils.ts';
 export { notFoundMiddleware } from './not-found.middleware.ts';
 export { authMiddleware, staffAuthMiddleware } from './staff.auth.middleware.ts';
 export {
-	validateBody,
-	validateParams,
-	validateQuery,
 	validateRequestBody,
 	validateRequestParams,
+	validateRequestQuery,
 } from './validation.middleware.ts';

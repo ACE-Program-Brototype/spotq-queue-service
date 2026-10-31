@@ -55,6 +55,14 @@ export const PARTY_SIZE_RANGE_MAP: Record<
 } as const;
 
 /**
+ * Display number prefixes based on registration channel.
+ */
+export const QUEUE_PREFIX = {
+	ONLINE: 'Q-',
+	WALK_IN: 'W-',
+} as const;
+
+/**
  * Constants governing queue operations, response timeouts, and party size ranges.
  */
 export const QUEUE_CONSTANTS = {
@@ -63,4 +71,5 @@ export const QUEUE_CONSTANTS = {
 	INITIAL_WAITING_POSITION: 1,
 	PARTY_SIZE_BUCKETS: PARTY_SIZE_BUCKET,
 	BUCKET_RANGES: PARTY_SIZE_RANGE_MAP,
+	QUEUE_PREFIX,
 } as const;

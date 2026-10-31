@@ -1,5 +1,11 @@
 import { logger } from '@infrastructure/logger/index.ts';
-import { WS_ERROR_MESSAGES } from '@shared/constants/websocket.constants.ts';
+import { getHeaderValue } from '@presentation/http/middleware/middleware.utils.ts';
+import {
+	CUSTOMER_ROLE,
+	RESTAURANT_OWNER_ROLE,
+	STAFF_ROLE,
+	WS_ERROR_MESSAGES,
+} from '@shared/constants/websocket.constants.ts';
 import type { Socket } from 'socket.io';
 
 export interface AuthenticatedSocketUser {
@@ -15,13 +21,6 @@ declare module 'socket.io' {
 		user?: AuthenticatedSocketUser;
 		[key: string]: unknown;
 	}
-}
-
-function getHeaderValue(header: string | string[] | undefined): string | undefined {
-	if (Array.isArray(header)) {
-		return header[0];
-	}
-	return header;
 }
 
 function getParamValue(value: unknown): string | undefined {
@@ -53,13 +52,16 @@ export function socketAuthMiddleware(socket: Socket, next: (err?: Error) => void
 		return;
 	}
 
-	const role = (headerRole || 'CUSTOMER').toUpperCase();
-	const isStaffOrOwner = role === 'STAFF' || role === 'RESTAURANT_OWNER';
+	const role = (headerRole || CUSTOMER_ROLE).toUpperCase();
+	const isStaffOrOwner = role === STAFF_ROLE || role === RESTAURANT_OWNER_ROLE;
 
-	const requestTicketId = headerTicketId ?? getParamValue(query?.ticketId);
+	const trimmedHeaderTicketId = headerTicketId?.trim();
+	const trimmedHeaderRestaurantId = headerRestaurantId?.trim();
+
+	const requestTicketId = trimmedHeaderTicketId || getParamValue(query?.ticketId);
 	const effectiveRestaurantId = isStaffOrOwner
-		? headerRestaurantId
-		: (headerRestaurantId ?? getParamValue(query?.restaurantId));
+		? trimmedHeaderRestaurantId
+		: trimmedHeaderRestaurantId || getParamValue(query?.restaurantId);
 
 	const user: AuthenticatedSocketUser = {
 		userId: headerUserId,
@@ -78,9 +80,8 @@ export function socketAuthMiddleware(socket: Socket, next: (err?: Error) => void
 			role: user.role,
 			restaurantId: user.restaurantId,
 			ticketId: user.ticketId,
-			source: 'gateway_headers',
 		},
-		'WebSocket authenticated via API Gateway headers',
+		'WebSocket authenticated successfully via API Gateway context headers',
 	);
 
 	next();

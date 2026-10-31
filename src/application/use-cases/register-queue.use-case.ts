@@ -44,7 +44,7 @@ export class RegisterQueueUseCase implements IRegisterQueueUseCase {
 	 * @param input - Registration payload including restaurant, guest, and party details
 	 * @returns Queue entry confirmation details
 	 * @throws RestaurantBlockedError - When restaurant is blocked by platform administration
-	 * @throws SubscriptionRequiredError - When restaurant lacks active QUEUE_PRO subscription
+	 * @throws QueueProSubscriptionRequiredError - When restaurant lacks active QUEUE_PRO subscription
 	 * @throws RestaurantNotAcceptingQueueError - When restaurant is closed or queues are disabled
 	 * @throws TableAvailableError - When open table exists for immediate seating
 	 * @throws ActiveQueueEntryExistsError - When phone number is already actively queued

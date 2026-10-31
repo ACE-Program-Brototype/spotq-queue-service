@@ -10,3 +10,6 @@ export enum RegistrationType {
 	ONLINE = 'ONLINE',
 	WALK_IN = 'WALK_IN',
 }
+
+export const REGISTRATION_TYPE = RegistrationType;
+export type REGISTRATION_TYPE = RegistrationType;

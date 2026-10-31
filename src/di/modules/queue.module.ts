@@ -36,7 +36,7 @@ import { StaffQueueController } from '@presentation/http/controllers/staff-queue
 import type { PrismaClient } from '@prisma/client';
 import { ContainerModule } from 'inversify';
 import type Redis from 'ioredis';
-import { TYPES } from './types.ts';
+import { TYPES } from '../types.ts';
 
 export const queueModule = new ContainerModule(({ bind }) => {
 	bind<PrismaClient>(TYPES.Database.PrismaClient).toConstantValue(prisma);

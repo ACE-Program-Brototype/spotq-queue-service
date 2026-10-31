@@ -88,7 +88,7 @@ describe('Internal Queue API - GET /api/internal/v1/restaurants/:restaurantId/qu
 			.get('/api/internal/v1/restaurants/invalid-uuid/queue/users/invalid-uuid/active')
 			.set('Accept', 'application/json');
 
-		expect(res.status).toBe(HTTP_STATUS.UNPROCESSABLE_ENTITY);
+		expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST);
 		expect(res.body.success).toBe(false);
 		expect(findSpy).not.toHaveBeenCalled();
 	});
@@ -157,7 +157,7 @@ describe('Internal Queue API - GET /api/internal/v1/queue-entries/:userId/status
 			.get('/api/internal/v1/queue-entries/invalid-uuid/status')
 			.set('Accept', 'application/json');
 
-		expect(res.status).toBe(HTTP_STATUS.UNPROCESSABLE_ENTITY);
+		expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST);
 		expect(res.body.success).toBe(false);
 		expect(findSpy).not.toHaveBeenCalled();
 	});

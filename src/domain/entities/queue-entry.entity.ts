@@ -1,5 +1,5 @@
-import { QUEUE_CONSTANTS } from '@shared/constants/queue.constants.ts';
-import { QueueStatus, RegistrationType } from '../enums/queue.enums.ts';
+import { QUEUE_CONSTANTS, QUEUE_PREFIX } from '@shared/constants/queue.constants.ts';
+import { QueueStatus, REGISTRATION_TYPE, RegistrationType } from '../enums/queue.enums.ts';
 import {
 	CannotRingWalkInCustomerError,
 	QueueEntryNotWaitingError,
@@ -81,7 +81,8 @@ export class QueueEntry {
 		registrationType: RegistrationType,
 		sequenceNumber: number,
 	): string {
-		const prefix = registrationType === RegistrationType.ONLINE ? 'Q-' : 'W-';
+		const prefix =
+			registrationType === REGISTRATION_TYPE.ONLINE ? QUEUE_PREFIX.ONLINE : QUEUE_PREFIX.WALK_IN;
 		return `${prefix}${String(sequenceNumber).padStart(3, '0')}`;
 	}
 

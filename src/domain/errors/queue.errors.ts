@@ -85,7 +85,7 @@ export class RestaurantBlockedError extends DomainError {
 /**
  * Thrown when a restaurant lacks the required active QUEUE_PRO subscription.
  */
-export class SubscriptionRequiredError extends DomainError {
+export class QueueProSubscriptionRequiredError extends DomainError {
 	constructor(restaurantId: string, currentPlan?: string | null) {
 		super(
 			`${QUEUE_MESSAGES.SUBSCRIPTION_REQUIRED} (Current plan: ${currentPlan ?? 'NONE'})`,

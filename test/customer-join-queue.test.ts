@@ -352,7 +352,7 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 				.set('x-user-id', validUserId)
 				.send(validBody);
 
-			expect(res.status).toBe(HTTP_STATUS.UNPROCESSABLE_ENTITY);
+			expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST);
 			expect(res.body.success).toBe(false);
 			expect(res.body.code).toBe('INVALID_PARAMETERS');
 		});

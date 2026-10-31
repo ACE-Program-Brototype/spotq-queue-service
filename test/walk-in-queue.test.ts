@@ -10,10 +10,10 @@ import { RegisterQueueUseCase } from '../src/application/use-cases/register-queu
 import {
 	ActiveQueueEntryExistsError,
 	QueueEntry,
+	QueueProSubscriptionRequiredError,
 	RegistrationType,
 	RestaurantBlockedError,
 	RestaurantNotAcceptingQueueError,
-	SubscriptionRequiredError,
 	TableAvailableError,
 } from '../src/domain/index.ts';
 import type { IQueueRepository } from '../src/domain/repositories/queue.repository.interface.ts';
@@ -128,7 +128,7 @@ describe('RegisterQueueUseCase Unit Tests', () => {
 		expect(mockQueueRepository.createWithHistory).not.toHaveBeenCalled();
 	});
 
-	it('should throw SubscriptionRequiredError (403) if restaurant subscription is inactive', async () => {
+	it('should throw QueueProSubscriptionRequiredError (403) if restaurant subscription is inactive', async () => {
 		mockRestaurantServiceClient.getRestaurantStatus.mockResolvedValueOnce({
 			restaurantId: 'rest-1234',
 			restaurantName: 'Grand Bistro',
@@ -141,12 +141,12 @@ describe('RegisterQueueUseCase Unit Tests', () => {
 			canAccessQueueService: false,
 		});
 
-		await expect(useCase.execute(defaultInput)).rejects.toThrow(SubscriptionRequiredError);
+		await expect(useCase.execute(defaultInput)).rejects.toThrow(QueueProSubscriptionRequiredError);
 		expect(mockRestaurantServiceClient.checkAvailability).not.toHaveBeenCalled();
 		expect(mockQueueRepository.createWithHistory).not.toHaveBeenCalled();
 	});
 
-	it('should throw SubscriptionRequiredError (403) if restaurant subscription is not QUEUE_PRO', async () => {
+	it('should throw QueueProSubscriptionRequiredError (403) if restaurant subscription is not QUEUE_PRO', async () => {
 		mockRestaurantServiceClient.getRestaurantStatus.mockResolvedValueOnce({
 			restaurantId: 'rest-1234',
 			restaurantName: 'Grand Bistro',
@@ -159,7 +159,7 @@ describe('RegisterQueueUseCase Unit Tests', () => {
 			canAccessQueueService: false,
 		});
 
-		await expect(useCase.execute(defaultInput)).rejects.toThrow(SubscriptionRequiredError);
+		await expect(useCase.execute(defaultInput)).rejects.toThrow(QueueProSubscriptionRequiredError);
 		expect(mockRestaurantServiceClient.checkAvailability).not.toHaveBeenCalled();
 		expect(mockQueueRepository.createWithHistory).not.toHaveBeenCalled();
 	});
@@ -411,7 +411,7 @@ describe('POST /staff/restaurants/:restaurantId/queue/walk-in HTTP Tests', () =>
 				partySize: 2,
 			});
 
-		expect(res.status).toBe(422);
+		expect(res.status).toBe(400);
 		expect(res.body.success).toBe(false);
 		expect(res.body.code).toBe('INVALID_PARAMETERS');
 	});

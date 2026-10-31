@@ -1,11 +1,9 @@
-import { container } from '@di/container.ts';
-import { TYPES } from '@di/types.ts';
-import type { CustomerQueueController } from '@presentation/http/controllers/customer-queue.controller.ts';
+import { customerQueueController } from '@di/controllers.resolutions.ts';
 import {
 	customerAuthMiddleware,
-	validateQuery,
 	validateRequestBody,
 	validateRequestParams,
+	validateRequestQuery,
 } from '@presentation/http/middleware/index.ts';
 import {
 	getEtaParamsSchema,
@@ -19,15 +17,12 @@ import { ROUTES } from '@shared/constants/routes.constants.ts';
 import { Router } from 'express';
 
 const customerQueueRouter = Router();
-const customerQueueController = container.get<CustomerQueueController>(
-	TYPES.Controllers.CustomerQueueController,
-);
 
 customerQueueRouter.get(
 	ROUTES.GET_ETA,
 	customerAuthMiddleware,
 	validateRequestParams(getEtaParamsSchema),
-	validateQuery(getEtaQuerySchema),
+	validateRequestQuery(getEtaQuerySchema),
 	customerQueueController.getEta,
 );
 
