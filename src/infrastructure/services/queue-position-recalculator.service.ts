@@ -41,16 +41,27 @@ export class QueuePositionRecalculator implements IQueuePositionRecalculator {
 		}
 
 		let runningPeopleAhead = 0;
+		const entryInputs = activeEntries.map((entry, i) => {
+			const peopleAhead = runningPeopleAhead;
+			runningPeopleAhead += entry.partySize;
+			return {
+				entry,
+				newPosition: i + 1,
+				peopleAhead,
+			};
+		});
+
+		const predictedEtas = await Promise.all(
+			entryInputs.map((item) =>
+				this.etaService.predictEta(restaurantId, item.peopleAhead, item.entry.partySize),
+			),
+		);
+
 		const deltas: PositionDelta[] = [];
 
-		for (let i = 0; i < activeEntries.length; i++) {
-			const entry = activeEntries[i];
-			const newPosition = i + 1;
-			const predictedEta = await this.etaService.predictEta(
-				restaurantId,
-				runningPeopleAhead,
-				entry.partySize,
-			);
+		for (let i = 0; i < entryInputs.length; i++) {
+			const { entry, newPosition } = entryInputs[i];
+			const predictedEta = predictedEtas[i];
 
 			const positionChanged = entry.position !== newPosition;
 			const etaChanged = entry.estimatedWaitMinutes !== predictedEta;
@@ -66,8 +77,6 @@ export class QueuePositionRecalculator implements IQueuePositionRecalculator {
 				});
 				entry.updatePosition(newPosition, predictedEta);
 			}
-
-			runningPeopleAhead += entry.partySize;
 		}
 
 		if (deltas.length === 0) {
