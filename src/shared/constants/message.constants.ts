@@ -101,6 +101,7 @@ export const VALIDATION_MESSAGES = {
 	INVALID_TABLE_ID_UUID: 'tableId must be a valid UUID',
 	SKIP_REASON_REQUIRED: 'A reason for skipping is required',
 	CANCEL_REASON_REQUIRED: 'A reason for cancellation is required',
+	REASON_TOO_LONG: 'Reason cannot exceed 500 characters',
 	DUPLICATE_TABLE_ID: 'Duplicate tableId detected in assignment list',
 	INVALID_CANCEL_REASON:
 		'Invalid cancellation reason. Supported reasons: NO_SHOW, GUEST_CANCELLED, WALK_OUT, OTHER',

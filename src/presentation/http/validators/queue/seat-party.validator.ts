@@ -14,7 +14,7 @@ export const seatPartyBodySchema = z
 	.object({
 		tableIds: z
 			.array(
-				z.string().min(1, {
+				z.uuid({
 					message: VALIDATION_MESSAGES.INVALID_TABLE_ID_UUID,
 				}),
 			)

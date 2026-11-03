@@ -13,13 +13,12 @@ export const cancelQueueEntryParamsSchema = z.object({
 
 export const cancelQueueEntryBodySchema = z
 	.object({
-		reason: z
-			.string()
-			.trim()
-			.toUpperCase()
-			.refine((val) => Object.values(QueueCancelReason).includes(val as QueueCancelReason), {
-				message: VALIDATION_MESSAGES.INVALID_CANCEL_REASON,
+		reason: z.preprocess(
+			(val) => (typeof val === 'string' ? val.trim().toUpperCase() : val),
+			z.nativeEnum(QueueCancelReason, {
+				errorMap: () => ({ message: VALIDATION_MESSAGES.INVALID_CANCEL_REASON }),
 			}),
+		),
 		notes: z.string().trim().max(500).optional(),
 	})
 	.strict();

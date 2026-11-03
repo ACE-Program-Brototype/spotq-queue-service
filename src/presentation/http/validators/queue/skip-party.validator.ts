@@ -12,9 +12,15 @@ export const skipPartyParamsSchema = z.object({
 
 export const skipPartyBodySchema = z
 	.object({
-		reason: z.string().trim().min(1, {
-			message: VALIDATION_MESSAGES.SKIP_REASON_REQUIRED,
-		}),
+		reason: z
+			.string()
+			.trim()
+			.min(1, {
+				message: VALIDATION_MESSAGES.SKIP_REASON_REQUIRED,
+			})
+			.max(500, {
+				message: VALIDATION_MESSAGES.REASON_TOO_LONG,
+			}),
 		skipPositions: z.number().int().positive().optional(),
 	})
 	.strict();
