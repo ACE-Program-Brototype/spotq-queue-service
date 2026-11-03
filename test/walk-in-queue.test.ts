@@ -61,6 +61,7 @@ describe('RegisterQueueUseCase Unit Tests', () => {
 				.fn()
 				.mockImplementation((entry: QueueEntry) => Promise.resolve(entry)),
 			getStaffQueueSnapshot: jest.fn(),
+			countPeopleAheadAtJoin: jest.fn().mockResolvedValue(0),
 		};
 
 		mockRestaurantServiceClient = {
