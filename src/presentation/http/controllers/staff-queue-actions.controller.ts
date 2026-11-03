@@ -33,7 +33,7 @@ export class StaffQueueActionsController {
 	seatParty = async (req: Request, res: Response): Promise<void> => {
 		const { restaurantId, queueEntryId } = req.params as unknown as SeatPartyParams;
 		const { tableIds } = req.body as SeatPartyBody;
-		const staffUserId = req.user?.userId;
+		const staffUserId = req.user?.userId ?? req.userId;
 
 		if (!staffUserId) {
 			throw new UnauthorizedError(messages.GATEWAY_UNAUTHORIZED);
@@ -52,7 +52,7 @@ export class StaffQueueActionsController {
 	skipParty = async (req: Request, res: Response): Promise<void> => {
 		const { restaurantId, queueEntryId } = req.params as unknown as SkipPartyParams;
 		const { reason, skipPositions } = req.body as SkipPartyBody;
-		const staffUserId = req.user?.userId;
+		const staffUserId = req.user?.userId ?? req.userId;
 
 		if (!staffUserId) {
 			throw new UnauthorizedError(messages.GATEWAY_UNAUTHORIZED);
@@ -72,7 +72,7 @@ export class StaffQueueActionsController {
 	cancelQueueEntry = async (req: Request, res: Response): Promise<void> => {
 		const { restaurantId, queueEntryId } = req.params as unknown as CancelQueueEntryParams;
 		const { reason, notes } = req.body as CancelQueueEntryBody;
-		const staffUserId = req.user?.userId;
+		const staffUserId = req.user?.userId ?? req.userId;
 
 		if (!staffUserId) {
 			throw new UnauthorizedError(messages.GATEWAY_UNAUTHORIZED);

@@ -49,6 +49,29 @@ describe('StaffQueueActionsController Unit Tests', () => {
 		expect(mockRes.status).toHaveBeenCalledWith(HTTP_STATUS.OK);
 	});
 
+	it('should fallback to req.userId when req.user is absent', async () => {
+		mockSeatPartyUseCase.execute.mockResolvedValue({
+			queueEntryId: 'entry-1',
+			status: 'SEATED',
+		});
+
+		const req = {
+			params: { restaurantId: 'rest-1', queueEntryId: 'entry-1' },
+			body: { tableIds: ['tbl-1'] },
+			userId: 'staff-from-root-req',
+		} as unknown as Request;
+
+		await controller.seatParty(req, mockRes as Response);
+
+		expect(mockSeatPartyUseCase.execute).toHaveBeenCalledWith({
+			restaurantId: 'rest-1',
+			queueEntryId: 'entry-1',
+			staffUserId: 'staff-from-root-req',
+			tableIds: ['tbl-1'],
+		});
+		expect(mockRes.status).toHaveBeenCalledWith(HTTP_STATUS.OK);
+	});
+
 	it('should throw UnauthorizedError when staffUserId is missing in seatParty', async () => {
 		const req = {
 			params: { restaurantId: 'rest-1', queueEntryId: 'entry-1' },
