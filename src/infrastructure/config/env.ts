@@ -58,6 +58,20 @@ export const config = {
 		url: validatedEnv.RABBITMQ_URL,
 		mlEtaQueue: validatedEnv.RABBITMQ_ML_ETA_QUEUE,
 	},
+	circuitBreakers: {
+		eta: {
+			timeoutMs: validatedEnv.CIRCUIT_BREAKER_ETA_TIMEOUT_MS,
+			resetTimeoutMs: validatedEnv.CIRCUIT_BREAKER_ETA_RESET_TIMEOUT_MS,
+			errorThresholdPercentage: validatedEnv.CIRCUIT_BREAKER_ETA_ERROR_THRESHOLD,
+			volumeThreshold: validatedEnv.CIRCUIT_BREAKER_ETA_VOLUME_THRESHOLD,
+		},
+		restaurant: {
+			timeoutMs: validatedEnv.CIRCUIT_BREAKER_RESTAURANT_TIMEOUT_MS,
+			resetTimeoutMs: validatedEnv.CIRCUIT_BREAKER_RESTAURANT_RESET_TIMEOUT_MS,
+			errorThresholdPercentage: validatedEnv.CIRCUIT_BREAKER_RESTAURANT_ERROR_THRESHOLD,
+			volumeThreshold: validatedEnv.CIRCUIT_BREAKER_RESTAURANT_VOLUME_THRESHOLD,
+		},
+	},
 } as const;
 
 export type Config = typeof config;

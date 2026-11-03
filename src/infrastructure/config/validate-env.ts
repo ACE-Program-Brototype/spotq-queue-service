@@ -48,6 +48,17 @@ const envSchema = z.object({
 	TICKET_DEEP_LINK_BASE_URL: z.string().optional(),
 	RABBITMQ_URL: z.string().default('amqp://guest:guest@localhost:5672'),
 	RABBITMQ_ML_ETA_QUEUE: z.string().default('ml-eta-queue'),
+	CIRCUIT_BREAKER_ETA_TIMEOUT_MS: z.coerce
+		.number()
+		.positive()
+		.default(ETA_CONSTANTS.DEFAULT_TIMEOUT_MS),
+	CIRCUIT_BREAKER_ETA_RESET_TIMEOUT_MS: z.coerce.number().positive().optional(),
+	CIRCUIT_BREAKER_ETA_ERROR_THRESHOLD: z.coerce.number().min(1).max(100).optional(),
+	CIRCUIT_BREAKER_ETA_VOLUME_THRESHOLD: z.coerce.number().min(1).optional(),
+	CIRCUIT_BREAKER_RESTAURANT_TIMEOUT_MS: z.coerce.number().positive().default(2000),
+	CIRCUIT_BREAKER_RESTAURANT_RESET_TIMEOUT_MS: z.coerce.number().positive().optional(),
+	CIRCUIT_BREAKER_RESTAURANT_ERROR_THRESHOLD: z.coerce.number().min(1).max(100).optional(),
+	CIRCUIT_BREAKER_RESTAURANT_VOLUME_THRESHOLD: z.coerce.number().min(1).optional(),
 });
 
 export const validateEnv = () => {
