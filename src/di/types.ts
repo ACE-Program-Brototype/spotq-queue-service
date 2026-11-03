@@ -5,6 +5,9 @@ export const TYPES = {
 	Redis: {
 		Client: Symbol.for('RedisClient'),
 	},
+	RabbitMQ: {
+		Client: Symbol.for('RabbitMQClient'),
+	},
 	Infrastructure: {
 		DatabaseService: Symbol.for('DatabaseService'),
 		RedisService: Symbol.for('RedisService'),
@@ -21,6 +24,7 @@ export const TYPES = {
 		PushNotificationService: Symbol.for('PushNotificationService'),
 		QueueService: Symbol.for('QueueService'),
 		HealthService: Symbol.for('HealthService'),
+		RabbitMQService: Symbol.for('RabbitMQService'),
 	},
 	UseCases: {
 		RegisterQueueUseCase: Symbol.for('RegisterQueueUseCase'),
