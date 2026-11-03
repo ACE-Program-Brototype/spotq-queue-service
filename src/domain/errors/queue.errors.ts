@@ -2,10 +2,6 @@ import { AUTH_MESSAGES, messages, QUEUE_MESSAGES } from '@shared/constants/messa
 import { SUBSCRIPTION_PLAN_CODES } from '@shared/constants/subscription.constants.ts';
 import { DomainError } from './domain.error.ts';
 
-/**
- * Thrown when a table is currently free and available for immediate seating,
- * preventing unnecessary queue creation.
- */
 export class TableAvailableError extends DomainError {
 	constructor(availableCount = 1, details?: unknown) {
 		super(QUEUE_MESSAGES.TABLES_AVAILABLE, 'TABLES_AVAILABLE', {
@@ -15,63 +11,42 @@ export class TableAvailableError extends DomainError {
 	}
 }
 
-/**
- * Thrown when the restaurant is closed or does not currently accept queue joins.
- */
 export class RestaurantNotAcceptingQueueError extends DomainError {
 	constructor(message: string = QUEUE_MESSAGES.RESTAURANT_NOT_ACCEPTING) {
 		super(message, 'RESTAURANT_NOT_ACCEPTING_QUEUE');
 	}
 }
 
-/**
- * Thrown when a party with the specified phone number is already active in the queue.
- */
 export class ActiveQueueEntryExistsError extends DomainError {
 	constructor(phone: string) {
 		super(`${QUEUE_MESSAGES.ACTIVE_ENTRY_EXISTS} (Phone: ${phone})`, 'ACTIVE_QUEUE_ENTRY_EXISTS');
 	}
 }
 
-/**
- * Thrown when an authenticated customer already holds an active ticket in the queue.
- */
 export class ActiveUserQueueEntryExistsError extends DomainError {
 	constructor() {
 		super(QUEUE_MESSAGES.ACTIVE_USER_ENTRY_EXISTS, 'ACTIVE_QUEUE_ENTRY_EXISTS');
 	}
 }
 
-/**
- * Thrown when a requested queue ticket or entry does not exist.
- */
 export class QueueEntryNotFoundError extends DomainError {
 	constructor(id: string) {
 		super(QUEUE_MESSAGES.ENTRY_NOT_FOUND, 'QUEUE_ENTRY_NOT_FOUND', { queueEntryId: id });
 	}
 }
 
-/**
- * Thrown when a staff member attempts to manage a restaurant queue they are not authorized for.
- */
 export class UnauthorizedStaffAccessError extends DomainError {
 	constructor(message: string = AUTH_MESSAGES.UNAUTHORIZED_RESTAURANT_ACCESS) {
 		super(message, 'FORBIDDEN');
 	}
 }
 
-/**
- * Thrown when the party size violates minimum or maximum supported limits.
- */
 export class InvalidPartySizeError extends DomainError {
 	constructor(message: string = QUEUE_MESSAGES.INVALID_PARTY_SIZE) {
 		super(message, 'INVALID_PARTY_SIZE');
 	}
 }
 
-/**
- * Thrown when the restaurant is suspended or blocked by platform administrators.
- */
 export class RestaurantBlockedError extends DomainError {
 	constructor(restaurantId: string, reason?: string | null) {
 		super(
@@ -82,9 +57,6 @@ export class RestaurantBlockedError extends DomainError {
 	}
 }
 
-/**
- * Thrown when a restaurant lacks the required active QUEUE_PRO subscription.
- */
 export class QueueProSubscriptionRequiredError extends DomainError {
 	constructor(restaurantId: string, currentPlan?: string | null) {
 		super(
@@ -95,18 +67,12 @@ export class QueueProSubscriptionRequiredError extends DomainError {
 	}
 }
 
-/**
- * Thrown when the target restaurant is not found.
- */
 export class RestaurantNotFoundError extends DomainError {
 	constructor(restaurantId: string) {
 		super(QUEUE_MESSAGES.RESTAURANT_NOT_FOUND, 'RESTAURANT_NOT_FOUND', { restaurantId });
 	}
 }
 
-/**
- * Thrown when an external upstream dependency (e.g., restaurant service) is unreachable or fails.
- */
 export class UpstreamServiceUnavailableError extends DomainError {
 	constructor(message: string = QUEUE_MESSAGES.UPSTREAM_SERVICE_UNAVAILABLE, details?: unknown) {
 		super(message, 'UPSTREAM_SERVICE_UNAVAILABLE', details);
@@ -140,9 +106,6 @@ export class CannotRingWalkInCustomerError extends DomainError {
 	}
 }
 
-/**
- * Thrown when authentication credentials or gateway identity context are missing or invalid.
- */
 export class UnauthorizedError extends DomainError {
 	constructor(message: string = messages.GATEWAY_UNAUTHORIZED) {
 		super(message, 'UNAUTHORIZED');

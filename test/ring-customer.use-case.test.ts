@@ -127,12 +127,10 @@ describe('RingCustomerUseCase Unit Tests', () => {
 		expect(result.lastRingedAt).toBeDefined();
 		expect(result.notificationDispatched).toBe(true);
 
-		// Verify repository persisted incremented ringCount
 		expect(mockQueueRepository.save).toHaveBeenCalledWith(entry);
 		expect(entry.ringCount).toBe(1);
 		expect(entry.lastRingedAt).toBeInstanceOf(Date);
 
-		// Verify BullMQ job was enqueued
 		expect(mockQueueService.addJob).toHaveBeenCalledWith(
 			QUEUE_NAMES.PUSH_NOTIFICATIONS,
 			JOB_NAMES.SEND_PUSH_NOTIFICATION,
@@ -147,7 +145,6 @@ describe('RingCustomerUseCase Unit Tests', () => {
 			expect.any(Object),
 		);
 
-		// Verify WebSocket event was sent to private ticket room
 		expect(mockSocketBroadcaster.sendToTicket).toHaveBeenCalledWith(
 			queueEntryId,
 			WS_SERVER_EVENTS.TICKET_CALLED,
@@ -173,10 +170,8 @@ describe('RingCustomerUseCase Unit Tests', () => {
 		expect(result.ringCount).toBe(2);
 		expect(result.notificationDispatched).toBe(false);
 
-		// Push notification not dispatched without FID
 		expect(mockQueueService.addJob).not.toHaveBeenCalled();
 
-		// WebSocket event still sent to ticket screen
 		expect(mockSocketBroadcaster.sendToTicket).toHaveBeenCalledWith(
 			queueEntryId,
 			WS_SERVER_EVENTS.TICKET_CALLED,

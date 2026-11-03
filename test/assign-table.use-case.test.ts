@@ -126,13 +126,11 @@ describe('AssignTableUseCase', () => {
 		expect(result.status).toBe(QueueStatus.SEATED);
 		expect(result.seatedAt).toBeDefined();
 
-		// Verify S2S call
 		expect(mockRestaurantServiceClient.assignTables).toHaveBeenCalledWith(restaurantId, [
 			{ tableId: tableId1, count: 2 },
 			{ tableId: tableId2, count: 2 },
 		]);
 
-		// Verify atomic persistence
 		expect(mockQueueRepository.assignTablesWithHistory).toHaveBeenCalledWith(
 			entry,
 			[tableId1, tableId2],
@@ -140,10 +138,8 @@ describe('AssignTableUseCase', () => {
 			QueueStatus.WAITING,
 		);
 
-		// Verify cache invalidation
 		expect(mockQueueCacheService.removeLiveEntry).toHaveBeenCalledWith(queueEntryId);
 
-		// Verify WebSocket broadcast
 		expect(mockSocketBroadcaster.broadcastToRestaurant).toHaveBeenCalledWith(
 			restaurantId,
 			WS_SERVER_EVENTS.TICKET_SEATED,

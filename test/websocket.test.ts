@@ -27,7 +27,6 @@ describe('WebSocket Infrastructure Integration Tests', () => {
 	const customerTicketId = '44444444-4444-4444-4444-444444444444';
 	const customerUserId = '55555555-5555-5555-5555-555555555555';
 
-	// Gateway trusted headers injected after JWT verification at Envoy
 	const staffHeaders = {
 		'x-user-id': staffUserId,
 		'x-user-role': 'STAFF',

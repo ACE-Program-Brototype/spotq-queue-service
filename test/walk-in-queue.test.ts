@@ -216,24 +216,19 @@ describe('RegisterQueueUseCase Unit Tests', () => {
 	it('should calculate position, call ETA, persist entry, store in Redis, and broadcast WebSocket event', async () => {
 		const result = await useCase.execute(defaultInput);
 
-		// 1. Verify table availability call
 		expect(mockRestaurantServiceClient.checkAvailability).toHaveBeenCalledWith('rest-1234', 4);
 
-		// 2. Position should be activeAhead + 1 = 5 + 1 = 6
 		expect(result.position).toBe(6);
 
-		// 3. ETA Service should receive totalPeopleAhead (16) and partySize (4)
 		expect(mockEtaService.predictEta).toHaveBeenCalledWith('rest-1234', 16, 4);
 		expect(result.estimatedWaitMinutes).toBe(25);
 
-		// 4. Persistence verification
 		expect(mockQueueRepository.createWithHistory).toHaveBeenCalledTimes(1);
 		const createdEntry = mockQueueRepository.createWithHistory.mock.calls[0][0];
 		expect(createdEntry.registrationType).toBe(RegistrationType.WALK_IN);
-		expect(createdEntry.queueNumber).toBe('W-013'); // 12 + 1
+		expect(createdEntry.queueNumber).toBe('W-013');
 		expect(createdEntry.phone).toBe('+15559876543');
 
-		// 5. Redis live cache verification
 		expect(mockQueueCacheService.saveLiveEntry).toHaveBeenCalledWith(
 			createdEntry.id,
 			'rest-1234',
@@ -241,7 +236,6 @@ describe('RegisterQueueUseCase Unit Tests', () => {
 			25,
 		);
 
-		// 6. WebSocket broadcast verification
 		expect(mockWebSocketBroadcaster.broadcastToRestaurant).toHaveBeenCalledWith(
 			'rest-1234',
 			'QUEUE_ENTRY_CREATED',
@@ -262,7 +256,6 @@ describe('RegisterQueueUseCase Unit Tests', () => {
 			}),
 		);
 
-		// 7. Output DTO conforms to specification
 		expect(result).toEqual({
 			queueEntryId: createdEntry.id,
 			restaurantId: 'rest-1234',
