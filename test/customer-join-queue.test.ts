@@ -173,6 +173,7 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 					.mockImplementation((entry: QueueEntry) => Promise.resolve(entry)),
 				assignTablesWithHistory: jest.fn(),
 				getStaffQueueSnapshot: jest.fn(),
+				countPeopleAheadAtJoin: jest.fn().mockResolvedValue(0),
 			};
 
 			mockRestaurantServiceClient = {

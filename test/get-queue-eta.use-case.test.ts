@@ -62,6 +62,7 @@ describe('GetQueueEtaUseCase Unit Tests', () => {
 			createWithHistory: jest.fn(),
 			assignTablesWithHistory: jest.fn(),
 			getStaffQueueSnapshot: jest.fn(),
+			countPeopleAheadAtJoin: jest.fn().mockResolvedValue(0),
 		};
 
 		mockRestaurantServiceClient = {

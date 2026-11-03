@@ -54,6 +54,10 @@ export const config = {
 	notifications: {
 		ticketDeepLinkBaseUrl: validatedEnv.TICKET_DEEP_LINK_BASE_URL,
 	},
+	rabbitmq: {
+		url: validatedEnv.RABBITMQ_URL,
+		mlEtaQueue: validatedEnv.RABBITMQ_ML_ETA_QUEUE,
+	},
 } as const;
 
 export type Config = typeof config;

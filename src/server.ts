@@ -3,6 +3,7 @@ import http from 'node:http';
 import { bullmqQueueService, databaseService, initWorkers, redisService } from '@di/index.ts';
 import { config } from '@infrastructure/config/index.ts';
 import { logger } from '@infrastructure/logger/index.ts';
+import { rabbitmqClient } from '@infrastructure/rabbitmq/index.ts';
 import { initSocketServer } from '@infrastructure/websocket/index.ts';
 import { MESSAGES } from '@shared/constants/index.ts';
 import app from './app.ts';
@@ -10,6 +11,11 @@ import app from './app.ts';
 async function bootstrap() {
 	await databaseService.connect();
 	await redisService.connect();
+	try {
+		await rabbitmqClient.connect();
+	} catch (error) {
+		logger.error({ err: error }, 'Failed to connect to RabbitMQ broker on bootstrap');
+	}
 
 	const workers = initWorkers();
 
@@ -60,6 +66,7 @@ async function bootstrap() {
 
 			await workers.closeAll();
 			await bullmqQueueService.close();
+			await rabbitmqClient.close();
 			await redisService.disconnect();
 			await databaseService.disconnect();
 
