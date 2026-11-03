@@ -123,4 +123,24 @@ describe('QueueEntry Entity Unit Tests', () => {
 			expect(customDeadline).toEqual(new Date('2026-10-28T10:01:00.000Z'));
 		});
 	});
+
+	describe('updatePosition', () => {
+		it('should update position and eta when entry is WAITING', () => {
+			const entry = createTestEntry({ status: QueueStatus.WAITING });
+			entry.updatePosition(4, 25);
+
+			expect(entry.position).toBe(4);
+			expect(entry.estimatedWaitMinutes).toBe(25);
+		});
+
+		it('should ignore position and eta updates when entry is not WAITING', () => {
+			const seatedEntry = createTestEntry({ status: QueueStatus.SEATED });
+			seatedEntry.updatePosition(4, 25);
+			expect(seatedEntry.position).toBe(2);
+
+			const cancelledEntry = createTestEntry({ status: QueueStatus.CANCELLED });
+			cancelledEntry.updatePosition(4, 25);
+			expect(cancelledEntry.position).toBe(2);
+		});
+	});
 });

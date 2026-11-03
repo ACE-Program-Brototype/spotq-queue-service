@@ -257,6 +257,9 @@ export class QueueEntry {
 	}
 
 	public updatePosition(newPosition: number, newEta?: number | null): void {
+		if (this.props.status !== QueueStatus.WAITING) {
+			return;
+		}
 		this.props.position = newPosition;
 		if (newEta !== undefined) {
 			this.props.estimatedWaitMinutes = newEta;
