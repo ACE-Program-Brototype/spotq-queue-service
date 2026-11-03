@@ -186,4 +186,23 @@ describe('SeatPartyUseCase Unit Tests', () => {
 			}),
 		).rejects.toThrow(QueueEntryNotWaitingError);
 	});
+
+	it('should propagate error and not persist seated status if restaurantServiceClient.assignTables fails', async () => {
+		const entry = createMockQueueEntry(QueueStatus.WAITING);
+		mockQueueRepository.findById.mockResolvedValue(entry);
+		const assignmentError = new Error('Restaurant service table assignment failed');
+		mockRestaurantServiceClient.assignTables.mockRejectedValue(assignmentError);
+
+		await expect(
+			useCase.execute({
+				restaurantId,
+				queueEntryId,
+				staffUserId,
+				tableIds,
+			}),
+		).rejects.toThrow(assignmentError);
+
+		expect(mockQueueRepository.assignTablesWithHistory).not.toHaveBeenCalled();
+		expect(mockSocketBroadcaster.broadcastToRestaurant).not.toHaveBeenCalled();
+	});
 });
