@@ -347,7 +347,7 @@ describe('AssignTableUseCase', () => {
 		expect(mockRabbitMQService.publishToMlEta).toHaveBeenCalled();
 	});
 
-	it('should propagate database error if countPeopleAheadAtJoin throws', async () => {
+	it('should complete table assignment and skip RabbitMQ if countPeopleAheadAtJoin throws (non-blocking)', async () => {
 		const entry = createMockQueueEntry(QueueStatus.WAITING, 4);
 		mockQueueRepository.findById.mockResolvedValue(entry);
 		mockQueueRepository.assignTablesWithHistory.mockImplementation(async (e) => e);
@@ -355,15 +355,19 @@ describe('AssignTableUseCase', () => {
 			.fn()
 			.mockRejectedValue(new Error('Database timeout'));
 
-		await expect(
-			useCase.execute({
-				restaurantId,
-				queueEntryId,
-				staffUserId,
-				tables: [{ tableId: tableId1, count: 4 }],
-			}),
-		).rejects.toThrow('Database timeout');
+		const result = await useCase.execute({
+			restaurantId,
+			queueEntryId,
+			staffUserId,
+			tables: [{ tableId: tableId1, count: 4 }],
+		});
 
+		expect(result).toBeDefined();
+		expect(result.status).toBe(QueueStatus.SEATED);
 		expect(mockRabbitMQService.publishToMlEta).not.toHaveBeenCalled();
+		expect(mockLogger.warn).toHaveBeenCalledWith(
+			expect.objectContaining({ queueEntryId }),
+			expect.stringContaining('skipping ML ETA training event'),
+		);
 	});
 });

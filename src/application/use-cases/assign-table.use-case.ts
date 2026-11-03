@@ -48,10 +48,18 @@ export class AssignTableUseCase implements IAssignTableUseCase {
 			throw new InsufficientTableCapacityError(queueEntry.partySize, totalAssignedSeats);
 		}
 
-		const totalPeopleAheadAtJoin = await this.queueRepository.countPeopleAheadAtJoin(
-			restaurantId,
-			queueEntry.joinedAt,
-		);
+		let totalPeopleAheadAtJoin: number | null = null;
+		try {
+			totalPeopleAheadAtJoin = await this.queueRepository.countPeopleAheadAtJoin(
+				restaurantId,
+				queueEntry.joinedAt,
+			);
+		} catch (error) {
+			this.logger.warn(
+				{ err: error, queueEntryId },
+				'Non-blocking: Failed to query total people ahead at join; skipping ML ETA training event',
+			);
+		}
 
 		const previousStatus = queueEntry.status;
 		queueEntry.seat();
@@ -99,16 +107,18 @@ export class AssignTableUseCase implements IAssignTableUseCase {
 			);
 		}
 
-		const trainingEvent = AssignTableMapper.toMlEtaTrainingEvent(
-			persistedEntry,
-			totalPeopleAheadAtJoin,
-		);
-		this.rabbitmqService.publishToMlEta(trainingEvent).catch((error) => {
-			this.logger.error(
-				{ err: error, queueEntryId },
-				'Non-blocking: Failed to publish ML ETA training event to RabbitMQ',
+		if (totalPeopleAheadAtJoin !== null) {
+			const trainingEvent = AssignTableMapper.toMlEtaTrainingEvent(
+				persistedEntry,
+				totalPeopleAheadAtJoin,
 			);
-		});
+			this.rabbitmqService.publishToMlEta(trainingEvent).catch((error) => {
+				this.logger.error(
+					{ err: error, queueEntryId },
+					'Non-blocking: Failed to publish ML ETA training event to RabbitMQ',
+				);
+			});
+		}
 
 		return AssignTableMapper.toOutputDTO(persistedEntry, tableIds);
 	}
