@@ -16,7 +16,7 @@ export const cancelQueueEntryBodySchema = z
 		reason: z.preprocess(
 			(val) => (typeof val === 'string' ? val.trim().toUpperCase() : val),
 			z.nativeEnum(QueueCancelReason, {
-				errorMap: () => ({ message: VALIDATION_MESSAGES.INVALID_CANCEL_REASON }),
+				message: VALIDATION_MESSAGES.INVALID_CANCEL_REASON,
 			}),
 		),
 		notes: z.string().trim().max(500).optional(),
