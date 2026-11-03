@@ -13,7 +13,6 @@ import {
 	QueueEntryNotWaitingError,
 	QueueStatus,
 } from '@domain/index.ts';
-import { logger } from '@infrastructure/logger/index.ts';
 import { WS_SERVER_EVENTS } from '@shared/constants/websocket.constants.ts';
 import { inject, injectable } from 'inversify';
 
@@ -68,14 +67,7 @@ export class SkipPartyUseCase implements ISkipPartyUseCase {
 					reason: `${reason} (shifted by ${skipPositions} positions)`,
 				});
 
-				try {
-					await this.queuePositionRecalculator.recalculate(restaurantId);
-				} catch (err) {
-					logger.error(
-						{ err, restaurantId },
-						'Non-blocking: Failed to recalculate queue positions after skip reordering',
-					);
-				}
+				await this.queuePositionRecalculator.recalculate(restaurantId);
 
 				const broadcastPayload = {
 					event: WS_SERVER_EVENTS.QUEUE_ENTRY_SKIPPED,
@@ -86,23 +78,16 @@ export class SkipPartyUseCase implements ISkipPartyUseCase {
 					position: targetIndex + 1,
 				};
 
-				try {
-					this.socketBroadcaster.broadcastToRestaurant(
-						restaurantId,
-						WS_SERVER_EVENTS.QUEUE_ENTRY_SKIPPED,
-						broadcastPayload,
-					);
-					this.socketBroadcaster.sendToTicket(
-						queueEntryId,
-						WS_SERVER_EVENTS.QUEUE_ENTRY_SKIPPED,
-						broadcastPayload,
-					);
-				} catch (err) {
-					logger.error(
-						{ err, queueEntryId },
-						`Non-blocking: Failed to broadcast ${WS_SERVER_EVENTS.QUEUE_ENTRY_SKIPPED} WebSocket event`,
-					);
-				}
+				this.socketBroadcaster.broadcastToRestaurant(
+					restaurantId,
+					WS_SERVER_EVENTS.QUEUE_ENTRY_SKIPPED,
+					broadcastPayload,
+				);
+				this.socketBroadcaster.sendToTicket(
+					queueEntryId,
+					WS_SERVER_EVENTS.QUEUE_ENTRY_SKIPPED,
+					broadcastPayload,
+				);
 
 				return {
 					queueEntryId: queueEntry.id,
@@ -123,23 +108,8 @@ export class SkipPartyUseCase implements ISkipPartyUseCase {
 			reason,
 		});
 
-		try {
-			await this.queueCacheService.removeLiveEntry(queueEntryId);
-		} catch (err) {
-			logger.error(
-				{ err, queueEntryId },
-				'Non-blocking: Failed to remove skipped entry from live Redis cache',
-			);
-		}
-
-		try {
-			await this.queuePositionRecalculator.recalculate(restaurantId);
-		} catch (err) {
-			logger.error(
-				{ err, restaurantId },
-				'Non-blocking: Failed to recalculate queue positions after skipping party',
-			);
-		}
+		await this.queueCacheService.removeLiveEntry(queueEntryId);
+		await this.queuePositionRecalculator.recalculate(restaurantId);
 
 		const broadcastPayload = {
 			event: WS_SERVER_EVENTS.QUEUE_ENTRY_SKIPPED,
@@ -149,23 +119,16 @@ export class SkipPartyUseCase implements ISkipPartyUseCase {
 			reason,
 		};
 
-		try {
-			this.socketBroadcaster.broadcastToRestaurant(
-				restaurantId,
-				WS_SERVER_EVENTS.QUEUE_ENTRY_SKIPPED,
-				broadcastPayload,
-			);
-			this.socketBroadcaster.sendToTicket(
-				queueEntryId,
-				WS_SERVER_EVENTS.QUEUE_ENTRY_SKIPPED,
-				broadcastPayload,
-			);
-		} catch (err) {
-			logger.error(
-				{ err, queueEntryId },
-				`Non-blocking: Failed to broadcast ${WS_SERVER_EVENTS.QUEUE_ENTRY_SKIPPED} WebSocket event`,
-			);
-		}
+		this.socketBroadcaster.broadcastToRestaurant(
+			restaurantId,
+			WS_SERVER_EVENTS.QUEUE_ENTRY_SKIPPED,
+			broadcastPayload,
+		);
+		this.socketBroadcaster.sendToTicket(
+			queueEntryId,
+			WS_SERVER_EVENTS.QUEUE_ENTRY_SKIPPED,
+			broadcastPayload,
+		);
 
 		return {
 			queueEntryId: persisted.id,

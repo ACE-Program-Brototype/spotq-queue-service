@@ -9,7 +9,6 @@ import type { IWebSocketBroadcaster } from '@application/ports/services/websocke
 import type { ISeatPartyUseCase } from '@application/ports/use-cases/queue/seat-party.use-case.port.ts';
 import { TYPES } from '@di/types.ts';
 import { type IQueueRepository, QueueEntryNotFoundError } from '@domain/index.ts';
-import { logger } from '@infrastructure/logger/index.ts';
 import { WS_SERVER_EVENTS } from '@shared/constants/websocket.constants.ts';
 import { inject, injectable } from 'inversify';
 
@@ -60,23 +59,8 @@ export class SeatPartyUseCase implements ISeatPartyUseCase {
 			previousStatus,
 		);
 
-		try {
-			await this.queueCacheService.removeLiveEntry(queueEntryId);
-		} catch (err) {
-			logger.error(
-				{ err, queueEntryId },
-				'Non-blocking: Failed to remove seated entry from live Redis cache',
-			);
-		}
-
-		try {
-			await this.queuePositionRecalculator.recalculate(restaurantId);
-		} catch (err) {
-			logger.error(
-				{ err, restaurantId },
-				'Non-blocking: Failed to recalculate queue positions after seating party',
-			);
-		}
+		await this.queueCacheService.removeLiveEntry(queueEntryId);
+		await this.queuePositionRecalculator.recalculate(restaurantId);
 
 		const seatedAtIso = (persisted.seatedAt ?? new Date()).toISOString();
 
@@ -89,23 +73,16 @@ export class SeatPartyUseCase implements ISeatPartyUseCase {
 			seatedAt: seatedAtIso,
 		};
 
-		try {
-			this.socketBroadcaster.broadcastToRestaurant(
-				restaurantId,
-				WS_SERVER_EVENTS.QUEUE_ENTRY_SEATED,
-				broadcastPayload,
-			);
-			this.socketBroadcaster.sendToTicket(
-				queueEntryId,
-				WS_SERVER_EVENTS.QUEUE_ENTRY_SEATED,
-				broadcastPayload,
-			);
-		} catch (err) {
-			logger.error(
-				{ err, queueEntryId },
-				`Non-blocking: Failed to broadcast ${WS_SERVER_EVENTS.QUEUE_ENTRY_SEATED} WebSocket event`,
-			);
-		}
+		this.socketBroadcaster.broadcastToRestaurant(
+			restaurantId,
+			WS_SERVER_EVENTS.QUEUE_ENTRY_SEATED,
+			broadcastPayload,
+		);
+		this.socketBroadcaster.sendToTicket(
+			queueEntryId,
+			WS_SERVER_EVENTS.QUEUE_ENTRY_SEATED,
+			broadcastPayload,
+		);
 
 		return {
 			queueEntryId: persisted.id,

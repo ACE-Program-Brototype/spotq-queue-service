@@ -9,7 +9,6 @@ import type { IWebSocketBroadcaster } from '@application/ports/services/websocke
 import type { ICancelQueueEntryUseCase } from '@application/ports/use-cases/queue/cancel-queue-entry.use-case.port.ts';
 import { TYPES } from '@di/types.ts';
 import { type IQueueRepository, QueueEntryNotFoundError, QueueStatus } from '@domain/index.ts';
-import { logger } from '@infrastructure/logger/index.ts';
 import { WS_SERVER_EVENTS } from '@shared/constants/websocket.constants.ts';
 import { inject, injectable } from 'inversify';
 
@@ -42,33 +41,26 @@ export class CancelQueueEntryUseCase implements ICancelQueueEntryUseCase {
 
 		queueEntry.cancel(targetStatus);
 
-		try {
-			const activeAssignments = await this.queueRepository.findActiveTableAssignments(queueEntryId);
+		const activeAssignments = await this.queueRepository.findActiveTableAssignments(queueEntryId);
 
-			if (activeAssignments.length > 0) {
-				const assignmentCount = activeAssignments.length;
-				const baseOccupancy = Math.floor(queueEntry.partySize / assignmentCount);
-				let remainder = queueEntry.partySize % assignmentCount;
+		if (activeAssignments.length > 0) {
+			const assignmentCount = activeAssignments.length;
+			const baseOccupancy = Math.floor(queueEntry.partySize / assignmentCount);
+			let remainder = queueEntry.partySize % assignmentCount;
 
-				const releasePayload = activeAssignments.map((a) => {
-					const occupancy = baseOccupancy + (remainder > 0 ? 1 : 0);
-					if (remainder > 0) {
-						remainder--;
-					}
-					return {
-						tableId: a.tableId,
-						occupancyToRelease: Math.max(1, occupancy),
-					};
-				});
+			const releasePayload = activeAssignments.map((a) => {
+				const occupancy = baseOccupancy + (remainder > 0 ? 1 : 0);
+				if (remainder > 0) {
+					remainder--;
+				}
+				return {
+					tableId: a.tableId,
+					occupancyToRelease: Math.max(1, occupancy),
+				};
+			});
 
-				await this.restaurantServiceClient.releaseTables(restaurantId, releasePayload);
-				await this.queueRepository.releaseTableAssignments(queueEntryId);
-			}
-		} catch (err) {
-			logger.warn(
-				{ err, restaurantId, queueEntryId },
-				'Table release coordination completed with non-fatal notice',
-			);
+			await this.restaurantServiceClient.releaseTables(restaurantId, releasePayload);
+			await this.queueRepository.releaseTableAssignments(queueEntryId);
 		}
 
 		const persisted = await this.queueRepository.updateStatusWithHistory({
@@ -79,23 +71,8 @@ export class CancelQueueEntryUseCase implements ICancelQueueEntryUseCase {
 			notes: notes ?? null,
 		});
 
-		try {
-			await this.queueCacheService.removeLiveEntry(queueEntryId);
-		} catch (err) {
-			logger.error(
-				{ err, queueEntryId },
-				'Non-blocking: Failed to remove cancelled entry from live Redis cache',
-			);
-		}
-
-		try {
-			await this.queuePositionRecalculator.recalculate(restaurantId);
-		} catch (err) {
-			logger.error(
-				{ err, restaurantId },
-				'Non-blocking: Failed to recalculate queue positions after cancellation',
-			);
-		}
+		await this.queueCacheService.removeLiveEntry(queueEntryId);
+		await this.queuePositionRecalculator.recalculate(restaurantId);
 
 		const cancelledAtIso = (persisted.cancelledAt ?? new Date()).toISOString();
 
@@ -111,25 +88,18 @@ export class CancelQueueEntryUseCase implements ICancelQueueEntryUseCase {
 			cancelledAt: cancelledAtIso,
 		};
 
-		try {
-			this.socketBroadcaster.broadcastToRestaurant(
-				restaurantId,
-				broadcastPayload.event,
-				broadcastPayload,
-			);
-			this.socketBroadcaster.sendToTicket(queueEntryId, broadcastPayload.event, broadcastPayload);
+		this.socketBroadcaster.broadcastToRestaurant(
+			restaurantId,
+			broadcastPayload.event,
+			broadcastPayload,
+		);
+		this.socketBroadcaster.sendToTicket(queueEntryId, broadcastPayload.event, broadcastPayload);
 
-			if (isNoShow) {
-				this.socketBroadcaster.sendToTicket(
-					queueEntryId,
-					WS_SERVER_EVENTS.QUEUE_ENTRY_CANCELLED,
-					broadcastPayload,
-				);
-			}
-		} catch (err) {
-			logger.error(
-				{ err, queueEntryId },
-				`Non-blocking: Failed to broadcast ${broadcastPayload.event} WebSocket event`,
+		if (isNoShow) {
+			this.socketBroadcaster.sendToTicket(
+				queueEntryId,
+				WS_SERVER_EVENTS.QUEUE_ENTRY_CANCELLED,
+				broadcastPayload,
 			);
 		}
 
