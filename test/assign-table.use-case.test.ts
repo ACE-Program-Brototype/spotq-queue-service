@@ -167,13 +167,14 @@ describe('AssignTableUseCase', () => {
 			}),
 		);
 
-		// Verify RabbitMQ ML ETA training event publication
+		// Verify RabbitMQ ML ETA training event publication with valid ISO-8601 seated_at
+		const isoDateRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
 		expect(mockRabbitMQService.publishToMlEta).toHaveBeenCalledWith({
 			queue_entry_id: queueEntryId,
 			restaurant_id: restaurantId,
 			party_size: 4,
-			joined_at: expect.any(String),
-			seated_at: expect.any(String),
+			joined_at: expect.stringMatching(isoDateRegex),
+			seated_at: expect.stringMatching(isoDateRegex),
 			total_people_ahead_at_join: 3,
 		});
 	});
