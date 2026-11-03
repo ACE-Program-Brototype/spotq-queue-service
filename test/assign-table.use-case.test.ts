@@ -1,4 +1,5 @@
 import type { IQueueCacheService } from '@application/ports/cache/queue-cache.port.ts';
+import type { ILogger } from '@application/ports/services/logger-service.port.ts';
 import type { IRabbitMQService } from '@application/ports/services/rabbitmq-service.port';
 import type { IRestaurantServiceClient } from '@application/ports/services/restaurant-service.port.ts';
 import type { IWebSocketBroadcaster } from '@application/ports/services/websocket-broadcaster.port.ts';
@@ -21,6 +22,7 @@ describe('AssignTableUseCase', () => {
 	let mockQueueCacheService: jest.Mocked<IQueueCacheService>;
 	let mockSocketBroadcaster: jest.Mocked<IWebSocketBroadcaster>;
 	let mockRabbitMQService: jest.Mocked<IRabbitMQService>;
+	let mockLogger: jest.Mocked<ILogger>;
 
 	const restaurantId = '11111111-1111-4111-8111-111111111111';
 	const queueEntryId = '22222222-2222-4222-8222-222222222222';
@@ -98,12 +100,20 @@ describe('AssignTableUseCase', () => {
 			publishToMlEta: jest.fn().mockResolvedValue(true),
 		};
 
+		mockLogger = {
+			info: jest.fn(),
+			warn: jest.fn(),
+			error: jest.fn(),
+			debug: jest.fn(),
+		};
+
 		useCase = new AssignTableUseCase(
 			mockQueueRepository,
 			mockRestaurantServiceClient,
 			mockQueueCacheService,
 			mockSocketBroadcaster,
 			mockRabbitMQService,
+			mockLogger,
 		);
 	});
 
@@ -337,7 +347,7 @@ describe('AssignTableUseCase', () => {
 		expect(mockRabbitMQService.publishToMlEta).toHaveBeenCalled();
 	});
 
-	it('should fallback to position - 1 if countPeopleAheadAtJoin throws', async () => {
+	it('should propagate database error if countPeopleAheadAtJoin throws', async () => {
 		const entry = createMockQueueEntry(QueueStatus.WAITING, 4);
 		mockQueueRepository.findById.mockResolvedValue(entry);
 		mockQueueRepository.assignTablesWithHistory.mockImplementation(async (e) => e);
@@ -345,17 +355,15 @@ describe('AssignTableUseCase', () => {
 			.fn()
 			.mockRejectedValue(new Error('Database timeout'));
 
-		await useCase.execute({
-			restaurantId,
-			queueEntryId,
-			staffUserId,
-			tables: [{ tableId: tableId1, count: 4 }],
-		});
-
-		expect(mockRabbitMQService.publishToMlEta).toHaveBeenCalledWith(
-			expect.objectContaining({
-				total_people_ahead_at_join: 0, // position: 1 => 1 - 1 = 0
+		await expect(
+			useCase.execute({
+				restaurantId,
+				queueEntryId,
+				staffUserId,
+				tables: [{ tableId: tableId1, count: 4 }],
 			}),
-		);
+		).rejects.toThrow('Database timeout');
+
+		expect(mockRabbitMQService.publishToMlEta).not.toHaveBeenCalled();
 	});
 });

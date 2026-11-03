@@ -4,6 +4,7 @@ import type {
 } from '@application/dtos/assign-table.dto.ts';
 import { AssignTableMapper } from '@application/mappers/assign-table.mapper.ts';
 import type { IQueueCacheService } from '@application/ports/cache/queue-cache.port.ts';
+import type { ILogger } from '@application/ports/services/logger-service.port.ts';
 import type { IRabbitMQService } from '@application/ports/services/rabbitmq-service.port.ts';
 import type { IRestaurantServiceClient } from '@application/ports/services/restaurant-service.port.ts';
 import type { IWebSocketBroadcaster } from '@application/ports/services/websocket-broadcaster.port.ts';
@@ -14,7 +15,6 @@ import {
 	type IQueueRepository,
 	QueueEntryNotFoundError,
 } from '@domain/index.ts';
-import { logger } from '@infrastructure/logger/index.ts';
 import { WS_SERVER_EVENTS } from '@shared/index.ts';
 import { inject, injectable } from 'inversify';
 
@@ -31,6 +31,8 @@ export class AssignTableUseCase implements IAssignTableUseCase {
 		private readonly socketBroadcaster: IWebSocketBroadcaster,
 		@inject(TYPES.Services.RabbitMQService)
 		private readonly rabbitmqService: IRabbitMQService,
+		@inject(TYPES.Logger.PinoClient)
+		private readonly logger: ILogger,
 	) {}
 
 	async execute(input: AssignTablesInputDTO): Promise<AssignTablesOutputDTO> {
@@ -46,18 +48,10 @@ export class AssignTableUseCase implements IAssignTableUseCase {
 			throw new InsufficientTableCapacityError(queueEntry.partySize, totalAssignedSeats);
 		}
 
-		let totalPeopleAheadAtJoin = Math.max(0, (queueEntry.position ?? 1) - 1);
-		try {
-			totalPeopleAheadAtJoin = await this.queueRepository.countPeopleAheadAtJoin(
-				restaurantId,
-				queueEntry.joinedAt,
-			);
-		} catch (error) {
-			logger.warn(
-				{ err: error, queueEntryId },
-				'Failed to query total people ahead at join, falling back to position calculation',
-			);
-		}
+		const totalPeopleAheadAtJoin = await this.queueRepository.countPeopleAheadAtJoin(
+			restaurantId,
+			queueEntry.joinedAt,
+		);
 
 		const previousStatus = queueEntry.status;
 		queueEntry.seat();
@@ -75,7 +69,7 @@ export class AssignTableUseCase implements IAssignTableUseCase {
 		try {
 			await this.queueCacheService.removeLiveEntry(queueEntryId);
 		} catch (error) {
-			logger.error(
+			this.logger.error(
 				{ err: error, queueEntryId },
 				'Non-blocking: Failed to remove seated entry from live Redis cache',
 			);
@@ -99,24 +93,22 @@ export class AssignTableUseCase implements IAssignTableUseCase {
 				seatedAt: persistedEntry.seatedAt?.toISOString(),
 			});
 		} catch (error) {
-			logger.error(
+			this.logger.error(
 				{ err: error, queueEntryId },
 				`Non-blocking: Failed to broadcast ${WS_SERVER_EVENTS.TICKET_SEATED} WebSocket event`,
 			);
 		}
 
-		try {
-			const trainingEvent = AssignTableMapper.toMlEtaTrainingEvent(
-				persistedEntry,
-				totalPeopleAheadAtJoin,
-			);
-			await this.rabbitmqService.publishToMlEta(trainingEvent);
-		} catch (error) {
-			logger.error(
+		const trainingEvent = AssignTableMapper.toMlEtaTrainingEvent(
+			persistedEntry,
+			totalPeopleAheadAtJoin,
+		);
+		void this.rabbitmqService.publishToMlEta(trainingEvent).catch((error) => {
+			this.logger.error(
 				{ err: error, queueEntryId },
 				'Non-blocking: Failed to publish ML ETA training event to RabbitMQ',
 			);
-		}
+		});
 
 		return AssignTableMapper.toOutputDTO(persistedEntry, tableIds);
 	}
