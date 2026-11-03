@@ -1,5 +1,1 @@
-import type { SeatPartyInputDTO, SeatPartyOutputDTO } from '@application/dtos/seat-party.dto.ts';
-
-export interface ISeatPartyUseCase {
-	execute(input: SeatPartyInputDTO): Promise<SeatPartyOutputDTO>;
-}
+export * from './queue/seat-party.use-case.port.ts';

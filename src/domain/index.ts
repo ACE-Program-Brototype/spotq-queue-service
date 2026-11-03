@@ -4,5 +4,5 @@ export * from './enums/queue.enums.ts';
 export * from './errors/domain.error.ts';
 export * from './errors/queue.errors.ts';
 export * from './interfaces/index.ts';
-export * from './repositories/base.repository.interface.ts';
-export * from './repositories/queue.repository.interface.ts';
+export * from './repositories/i-base.repository.ts';
+export * from './repositories/i-queue.repository.ts';

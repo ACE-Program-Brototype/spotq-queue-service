@@ -1,6 +1,6 @@
 import type { QueueEntry } from '../entities/queue-entry.entity.ts';
 import type { QueueStatus } from '../enums/queue.enums.ts';
-import type { IBaseRepository } from './base.repository.interface.ts';
+import type { IBaseRepository } from './i-base.repository.ts';
 
 export interface ActiveQueueMetrics {
 	queueDepth: number;

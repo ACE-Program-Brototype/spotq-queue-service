@@ -40,6 +40,7 @@ export const TYPES = {
 	Controllers: {
 		HealthController: Symbol.for('HealthController'),
 		StaffQueueController: Symbol.for('StaffQueueController'),
+		StaffQueueActionsController: Symbol.for('StaffQueueActionsController'),
 		InternalQueueController: Symbol.for('InternalQueueController'),
 		CustomerQueueController: Symbol.for('CustomerQueueController'),
 	},

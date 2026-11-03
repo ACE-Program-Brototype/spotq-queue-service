@@ -1,4 +1,4 @@
-import { staffQueueController } from '@di/controllers.resolutions.ts';
+import { staffQueueActionsController, staffQueueController } from '@di/controllers.resolutions.ts';
 import {
 	staffAuthMiddleware,
 	validateRequestBody,
@@ -71,7 +71,7 @@ staffQueueRouter.post(
 	staffAuthMiddleware,
 	validateRequestParams(seatPartyParamsSchema),
 	validateRequestBody(seatPartyBodySchema),
-	staffQueueController.seatParty,
+	staffQueueActionsController.seatParty,
 );
 
 staffQueueRouter.post(
@@ -79,7 +79,7 @@ staffQueueRouter.post(
 	staffAuthMiddleware,
 	validateRequestParams(skipPartyParamsSchema),
 	validateRequestBody(skipPartyBodySchema),
-	staffQueueController.skipParty,
+	staffQueueActionsController.skipParty,
 );
 
 staffQueueRouter.post(
@@ -87,7 +87,7 @@ staffQueueRouter.post(
 	staffAuthMiddleware,
 	validateRequestParams(cancelQueueEntryParamsSchema),
 	validateRequestBody(cancelQueueEntryBodySchema),
-	staffQueueController.cancelQueueEntry,
+	staffQueueActionsController.cancelQueueEntry,
 );
 
 export { staffQueueRouter };

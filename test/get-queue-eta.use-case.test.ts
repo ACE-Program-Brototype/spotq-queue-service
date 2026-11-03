@@ -6,7 +6,7 @@ import {
 	RestaurantBlockedError,
 	RestaurantNotAcceptingQueueError,
 } from '../src/domain/index.ts';
-import type { IQueueRepository } from '../src/domain/repositories/queue.repository.interface.ts';
+import type { IQueueRepository } from '../src/domain/repositories/i-queue.repository.ts';
 import { SUBSCRIPTION_PLAN } from '../src/shared/index.ts';
 
 describe('GetQueueEtaUseCase Unit Tests', () => {

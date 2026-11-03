@@ -1,10 +1,10 @@
 import { internalQueueController } from '@di/controllers.resolutions.ts';
 import { validateRequestParams } from '@presentation/http/middleware/index.ts';
+import { internalS2SAuthMiddleware } from '@presentation/http/middleware/internal-s2s-auth.middleware.ts';
 import { getUserActiveQueueParamsSchema } from '@presentation/http/validators/get-user-active-queue.validator.ts';
 import { getCustomerQueueStatusParamsSchema } from '@presentation/http/validators/internal/get-customer-queue-status.validator.ts';
 import { INTERNAL_ROUTES } from '@shared/constants/routes.constants.ts';
 import { Router } from 'express';
-import { internalS2SAuthMiddleware } from '../middleware/internal-s2s-auth.middleware.ts';
 
 export const internalQueueRouter: Router = Router();
 

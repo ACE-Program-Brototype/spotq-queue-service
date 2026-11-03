@@ -162,6 +162,8 @@ describe('SkipPartyUseCase Unit Tests', () => {
 		expect(result.status).toBe(QueueStatus.WAITING);
 		expect(result.position).toBe(3);
 		expect(mockQueueRepository.batchUpdatePositions).toHaveBeenCalledWith([
+			{ id: 'entry-2', position: 1 },
+			{ id: 'entry-3', position: 2 },
 			{ id: queueEntryId, position: 3 },
 		]);
 		expect(mockQueuePositionRecalculator.recalculate).toHaveBeenCalledWith(restaurantId);

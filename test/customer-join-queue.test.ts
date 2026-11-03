@@ -21,7 +21,7 @@ import {
 	RestaurantNotAcceptingQueueError,
 	TableAvailableError,
 } from '../src/domain/index.ts';
-import type { IQueueRepository } from '../src/domain/repositories/queue.repository.interface.ts';
+import type { IQueueRepository } from '../src/domain/repositories/i-queue.repository.ts';
 import { CustomerQueueController } from '../src/presentation/http/controllers/customer-queue.controller.ts';
 import {
 	type JoinQueueParams,

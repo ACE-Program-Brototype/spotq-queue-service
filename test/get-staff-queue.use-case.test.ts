@@ -1,6 +1,6 @@
 import { GetStaffQueueUseCase } from '@application/use-cases/get-staff-queue.use-case.ts';
 import { QueueEntry, QueueStatus, RegistrationType } from '@domain/index.ts';
-import type { IQueueRepository } from '@domain/repositories/queue.repository.interface.ts';
+import type { IQueueRepository } from '@domain/repositories/i-queue.repository.ts';
 
 describe('GetStaffQueueUseCase Unit Tests', () => {
 	let useCase: GetStaffQueueUseCase;

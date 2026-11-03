@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { GetCustomerQueueStatusUseCase } from '@application/use-cases/internal/get-customer-queue-status.use-case.ts';
 import { QueueEntry, QueueStatus, RegistrationType } from '@domain/index.ts';
-import type { IQueueRepository } from '@domain/repositories/queue.repository.interface.ts';
+import type { IQueueRepository } from '@domain/repositories/i-queue.repository.ts';
 
 describe('GetCustomerQueueStatusUseCase', () => {
 	const userId = '22222222-2222-2222-2222-222222222222';

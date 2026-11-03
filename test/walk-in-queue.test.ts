@@ -16,7 +16,7 @@ import {
 	RestaurantNotAcceptingQueueError,
 	TableAvailableError,
 } from '../src/domain/index.ts';
-import type { IQueueRepository } from '../src/domain/repositories/queue.repository.interface.ts';
+import type { IQueueRepository } from '../src/domain/repositories/i-queue.repository.ts';
 
 describe('RegisterQueueUseCase Unit Tests', () => {
 	let mockQueueRepository: jest.Mocked<IQueueRepository>;

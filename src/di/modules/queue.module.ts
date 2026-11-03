@@ -13,7 +13,6 @@ import type { IRegisterQueueUseCase } from '@application/ports/use-cases/registe
 import type { IRingCustomerUseCase } from '@application/ports/use-cases/ring-customer.use-case.port.ts';
 import type { ISeatPartyUseCase } from '@application/ports/use-cases/seat-party.use-case.port.ts';
 import type { ISkipPartyUseCase } from '@application/ports/use-cases/skip-party.use-case.port.ts';
-import { QueuePositionRecalculator } from '@application/services/queue-position-recalculator.service.ts';
 import { AssignTableUseCase } from '@application/use-cases/assign-table.use-case.ts';
 import { CancelQueueEntryUseCase } from '@application/use-cases/cancel-queue-entry.use-case.ts';
 import { GetActiveQueueByUserUseCase } from '@application/use-cases/get-active-queue-by-user.use-case.ts';
@@ -24,7 +23,7 @@ import { RingCustomerUseCase } from '@application/use-cases/ring-customer.use-ca
 import { SeatPartyUseCase } from '@application/use-cases/seat-party.use-case.ts';
 import { SkipPartyUseCase } from '@application/use-cases/skip-party.use-case.ts';
 import type { IHealthService, IQueueService } from '@domain/index.ts';
-import type { IQueueRepository } from '@domain/repositories/queue.repository.interface.ts';
+import type { IQueueRepository } from '@domain/repositories/i-queue.repository.ts';
 import { DatabaseService } from '@infrastructure/database/database.service.ts';
 import { prisma } from '@infrastructure/database/prisma.ts';
 import { PrismaQueueRepository } from '@infrastructure/database/repositories/prisma-queue.repository.ts';
@@ -36,11 +35,13 @@ import { redisClient } from '@infrastructure/redis/redis.client.ts';
 import { RedisService } from '@infrastructure/redis/redis.service.ts';
 import { RedisQueueCacheService } from '@infrastructure/redis/redis-queue-cache.service.ts';
 import { HealthService } from '@infrastructure/services/health.service.ts';
+import { QueuePositionRecalculator } from '@infrastructure/services/queue-position-recalculator.service.ts';
 import { SocketBroadcaster } from '@infrastructure/websocket/socket-broadcaster.ts';
 import { CustomerQueueController } from '@presentation/http/controllers/customer-queue.controller.ts';
 import { HealthController } from '@presentation/http/controllers/health.controller.ts';
-import { InternalQueueController } from '@presentation/http/controllers/internal-queue.controller.ts';
+import { InternalQueueController } from '@presentation/http/controllers/internal/internal-queue.controller.ts';
 import { StaffQueueController } from '@presentation/http/controllers/staff-queue.controller.ts';
+import { StaffQueueActionsController } from '@presentation/http/controllers/staff-queue-actions.controller.ts';
 import type { PrismaClient } from '@prisma/client';
 import { ContainerModule } from 'inversify';
 import type Redis from 'ioredis';
@@ -127,6 +128,10 @@ export const queueModule = new ContainerModule(({ bind }) => {
 
 	bind<StaffQueueController>(TYPES.Controllers.StaffQueueController)
 		.to(StaffQueueController)
+		.inSingletonScope();
+
+	bind<StaffQueueActionsController>(TYPES.Controllers.StaffQueueActionsController)
+		.to(StaffQueueActionsController)
 		.inSingletonScope();
 
 	bind<InternalQueueController>(TYPES.Controllers.InternalQueueController)

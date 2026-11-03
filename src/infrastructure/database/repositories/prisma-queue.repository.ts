@@ -48,9 +48,7 @@ export class PrismaQueueRepository
 					restaurantId,
 					status: QueueStatus.WAITING,
 				},
-				orderBy: {
-					joinedAt: 'asc',
-				},
+				orderBy: [{ position: 'asc' }, { joinedAt: 'asc' }],
 			});
 			return records.map((r: PrismaQueueEntry) => this.mapper.toDomain(r));
 		});

@@ -9,7 +9,7 @@ import app from '../src/app.ts';
 import { container } from '../src/di/container.ts';
 import { TYPES } from '../src/di/types.ts';
 import { QueueEntry, QueueStatus, RegistrationType } from '../src/domain/index.ts';
-import type { IQueueRepository } from '../src/domain/repositories/queue.repository.interface.ts';
+import type { IQueueRepository } from '../src/domain/repositories/i-queue.repository.ts';
 import { HTTP_STATUS, messages, QUEUE_MESSAGES } from '../src/shared/index.ts';
 
 describe('Internal Queue API - GET /api/internal/v1/restaurants/:restaurantId/queue/users/:userId/active', () => {

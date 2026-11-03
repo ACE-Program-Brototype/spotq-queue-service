@@ -1,8 +1,8 @@
 import type { IQueueCacheService } from '@application/ports/cache/queue-cache.port.ts';
 import type { IEtaService } from '@application/ports/services/eta-service.port.ts';
 import type { IWebSocketBroadcaster } from '@application/ports/services/websocket-broadcaster.port.ts';
-import { QueuePositionRecalculator } from '@application/services/queue-position-recalculator.service.ts';
 import { type IQueueRepository, QueueEntry, QueueStatus, RegistrationType } from '@domain/index.ts';
+import { QueuePositionRecalculator } from '@infrastructure/services/queue-position-recalculator.service.ts';
 import { WS_SERVER_EVENTS } from '@shared/constants/websocket.constants.ts';
 
 describe('QueuePositionRecalculator Unit Tests', () => {

@@ -1,8 +1,1 @@
-import type {
-	CancelQueueEntryInputDTO,
-	CancelQueueEntryOutputDTO,
-} from '@application/dtos/cancel-queue-entry.dto.ts';
-
-export interface ICancelQueueEntryUseCase {
-	execute(input: CancelQueueEntryInputDTO): Promise<CancelQueueEntryOutputDTO>;
-}
+export * from './queue/cancel-queue-entry.use-case.port.ts';

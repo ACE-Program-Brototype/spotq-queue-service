@@ -18,7 +18,7 @@ import app from '../src/app.ts';
 import { container } from '../src/di/container.ts';
 import { TYPES } from '../src/di/types.ts';
 import { QueueEntry, QueueStatus, RegistrationType } from '../src/domain/index.ts';
-import type { IQueueRepository } from '../src/domain/repositories/queue.repository.interface.ts';
+import type { IQueueRepository } from '../src/domain/repositories/i-queue.repository.ts';
 import { RestaurantServiceClient } from '../src/infrastructure/external/restaurant-service.client.ts';
 import { RedisQueueCacheService } from '../src/infrastructure/redis/redis-queue-cache.service.ts';
 import { HTTP_STATUS, QUEUE_MESSAGES } from '../src/shared/index.ts';
