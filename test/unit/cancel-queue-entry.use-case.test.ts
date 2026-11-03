@@ -180,6 +180,42 @@ describe('CancelQueueEntryUseCase Unit Tests', () => {
 		);
 	});
 
+	it('should distribute occupancy to release across multiple active table assignments', async () => {
+		const entry = createMockQueueEntry(QueueStatus.WAITING);
+		mockQueueRepository.findById.mockResolvedValue(entry);
+		mockQueueRepository.findActiveTableAssignments.mockResolvedValue([
+			{
+				id: 'assign-1',
+				queueEntryId,
+				tableId: 'tbl-1',
+				assignedBy: 'staff-1',
+				assignedAt: new Date(),
+				releasedAt: null,
+			},
+			{
+				id: 'assign-2',
+				queueEntryId,
+				tableId: 'tbl-2',
+				assignedBy: 'staff-1',
+				assignedAt: new Date(),
+				releasedAt: null,
+			},
+		]);
+		mockQueueRepository.updateStatusWithHistory.mockResolvedValue(entry);
+
+		await useCase.execute({
+			restaurantId,
+			queueEntryId,
+			staffUserId,
+			reason: 'NO_SHOW',
+		});
+
+		expect(mockRestaurantServiceClient.releaseTables).toHaveBeenCalledWith(restaurantId, [
+			{ tableId: 'tbl-1', occupancyToRelease: 2 },
+			{ tableId: 'tbl-2', occupancyToRelease: 2 },
+		]);
+	});
+
 	it('should throw QueueEntryNotFoundError when entry not found', async () => {
 		mockQueueRepository.findById.mockResolvedValue(null);
 

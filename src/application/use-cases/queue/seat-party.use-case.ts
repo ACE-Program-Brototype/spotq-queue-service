@@ -36,10 +36,19 @@ export class SeatPartyUseCase implements ISeatPartyUseCase {
 		const previousStatus = queueEntry.status;
 		queueEntry.seat();
 
-		await this.restaurantServiceClient.assignTables(
-			restaurantId,
-			tableIds.map((tableId) => ({ tableId, count: queueEntry.partySize })),
-		);
+		const tableCount = tableIds.length;
+		const baseCount = Math.floor(queueEntry.partySize / tableCount);
+		let remainder = queueEntry.partySize % tableCount;
+
+		const assignmentPayload = tableIds.map((tableId) => {
+			const count = baseCount + (remainder > 0 ? 1 : 0);
+			if (remainder > 0) {
+				remainder--;
+			}
+			return { tableId, count: Math.max(1, count) };
+		});
+
+		await this.restaurantServiceClient.assignTables(restaurantId, assignmentPayload);
 
 		const persisted = await this.queueRepository.assignTablesWithHistory(
 			queueEntry,

@@ -205,4 +205,23 @@ describe('SeatPartyUseCase Unit Tests', () => {
 		expect(mockQueueRepository.assignTablesWithHistory).not.toHaveBeenCalled();
 		expect(mockSocketBroadcaster.broadcastToRestaurant).not.toHaveBeenCalled();
 	});
+
+	it('should distribute party size across multiple assigned tables', async () => {
+		const entry = createMockQueueEntry(QueueStatus.WAITING);
+		mockQueueRepository.findById.mockResolvedValue(entry);
+		mockQueueRepository.assignTablesWithHistory.mockResolvedValue(entry);
+		const multiTables = ['tbl-1', 'tbl-2'];
+
+		await useCase.execute({
+			restaurantId,
+			queueEntryId,
+			staffUserId,
+			tableIds: multiTables,
+		});
+
+		expect(mockRestaurantServiceClient.assignTables).toHaveBeenCalledWith(restaurantId, [
+			{ tableId: 'tbl-1', count: 2 },
+			{ tableId: 'tbl-2', count: 2 },
+		]);
+	});
 });

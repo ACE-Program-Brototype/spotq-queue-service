@@ -46,13 +46,22 @@ export class CancelQueueEntryUseCase implements ICancelQueueEntryUseCase {
 			const activeAssignments = await this.queueRepository.findActiveTableAssignments(queueEntryId);
 
 			if (activeAssignments.length > 0) {
-				await this.restaurantServiceClient.releaseTables(
-					restaurantId,
-					activeAssignments.map((a) => ({
+				const assignmentCount = activeAssignments.length;
+				const baseOccupancy = Math.floor(queueEntry.partySize / assignmentCount);
+				let remainder = queueEntry.partySize % assignmentCount;
+
+				const releasePayload = activeAssignments.map((a) => {
+					const occupancy = baseOccupancy + (remainder > 0 ? 1 : 0);
+					if (remainder > 0) {
+						remainder--;
+					}
+					return {
 						tableId: a.tableId,
-						occupancyToRelease: queueEntry.partySize,
-					})),
-				);
+						occupancyToRelease: Math.max(1, occupancy),
+					};
+				});
+
+				await this.restaurantServiceClient.releaseTables(restaurantId, releasePayload);
 				await this.queueRepository.releaseTableAssignments(queueEntryId);
 			}
 		} catch (err) {
