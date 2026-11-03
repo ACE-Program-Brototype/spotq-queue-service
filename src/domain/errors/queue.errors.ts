@@ -119,11 +119,10 @@ export class UpstreamServiceUnavailableError extends DomainError {
 
 export class QueueEntryNotWaitingError extends DomainError {
 	constructor(queueEntryId: string, currentStatus: string) {
-		super(
-			`${QUEUE_MESSAGES.QUEUE_ENTRY_NOT_WAITING} (ID: ${queueEntryId}, current status: ${currentStatus})`,
-			'QUEUE_ENTRY_NOT_WAITING',
-			{ queueEntryId, currentStatus },
-		);
+		super(QUEUE_MESSAGES.QUEUE_ENTRY_NOT_WAITING, 'QUEUE_ENTRY_NOT_WAITING', {
+			queueEntryId,
+			currentStatus,
+		});
 	}
 }
 
