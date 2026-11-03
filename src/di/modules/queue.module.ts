@@ -1,5 +1,6 @@
 import type { IQueueCacheService } from '@application/ports/cache/queue-cache.port.ts';
 import type { IEtaService } from '@application/ports/services/eta-service.port.ts';
+import type { ILogger } from '@application/ports/services/logger-service.port.ts';
 import type { IPushNotificationService } from '@application/ports/services/push-notification.port.ts';
 import type { IRabbitMQService } from '@application/ports/services/rabbitmq-service.port.ts';
 import type { IRestaurantServiceClient } from '@application/ports/services/restaurant-service.port.ts';
@@ -24,6 +25,7 @@ import { PrismaQueueRepository } from '@infrastructure/database/repositories/pri
 import { MlEtaServiceClient } from '@infrastructure/external/ml-eta-service.client.ts';
 import { RestaurantServiceClient } from '@infrastructure/external/restaurant-service.client.ts';
 import { FirebasePushNotificationService } from '@infrastructure/firebase/index.ts';
+import { logger } from '@infrastructure/logger/index.ts';
 import { BullMQQueueService } from '@infrastructure/queue/bullmq.service.ts';
 import { RabbitMQService, rabbitmqClient } from '@infrastructure/rabbitmq/index.ts';
 import { redisClient } from '@infrastructure/redis/redis.client.ts';
@@ -45,6 +47,7 @@ export const queueModule = new ContainerModule(({ bind }) => {
 	bind<PrismaClient>(TYPES.Database.PrismaClient).toConstantValue(prisma);
 	bind<Redis>(TYPES.Redis.Client).toConstantValue(redisClient);
 	bind<RabbitMQClient>(TYPES.RabbitMQ.Client).toConstantValue(rabbitmqClient);
+	bind<ILogger>(TYPES.Logger.PinoClient).toConstantValue(logger);
 
 	bind<DatabaseService>(TYPES.Infrastructure.DatabaseService)
 		.to(DatabaseService)

@@ -8,6 +8,9 @@ export const TYPES = {
 	RabbitMQ: {
 		Client: Symbol.for('RabbitMQClient'),
 	},
+	Logger: {
+		PinoClient: Symbol.for('Logger'),
+	},
 	Infrastructure: {
 		DatabaseService: Symbol.for('DatabaseService'),
 		RedisService: Symbol.for('RedisService'),
