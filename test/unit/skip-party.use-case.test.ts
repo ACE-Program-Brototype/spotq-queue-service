@@ -1,7 +1,7 @@
 import type { IQueueCacheService } from '@application/ports/cache/queue-cache.port.ts';
 import type { IQueuePositionRecalculator } from '@application/ports/services/queue-position-recalculator.port.ts';
 import type { IWebSocketBroadcaster } from '@application/ports/services/websocket-broadcaster.port.ts';
-import { SkipPartyUseCase } from '@application/use-cases/skip-party.use-case.ts';
+import { SkipPartyUseCase } from '@application/use-cases/queue/skip-party.use-case.ts';
 import {
 	type IQueueRepository,
 	QueueEntry,

@@ -2,7 +2,7 @@ import type { IQueueCacheService } from '@application/ports/cache/queue-cache.po
 import type { IQueuePositionRecalculator } from '@application/ports/services/queue-position-recalculator.port.ts';
 import type { IRestaurantServiceClient } from '@application/ports/services/restaurant-service.port.ts';
 import type { IWebSocketBroadcaster } from '@application/ports/services/websocket-broadcaster.port.ts';
-import { SeatPartyUseCase } from '@application/use-cases/seat-party.use-case.ts';
+import { SeatPartyUseCase } from '@application/use-cases/queue/seat-party.use-case.ts';
 import {
 	type IQueueRepository,
 	QueueEntry,

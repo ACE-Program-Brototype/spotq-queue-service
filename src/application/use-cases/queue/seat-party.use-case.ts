@@ -1,9 +1,12 @@
-import type { SeatPartyInputDTO, SeatPartyOutputDTO } from '@application/dtos/seat-party.dto.ts';
+import type {
+	SeatPartyInputDTO,
+	SeatPartyOutputDTO,
+} from '@application/dtos/queue/seat-party.dto.ts';
 import type { IQueueCacheService } from '@application/ports/cache/queue-cache.port.ts';
 import type { IQueuePositionRecalculator } from '@application/ports/services/queue-position-recalculator.port.ts';
 import type { IRestaurantServiceClient } from '@application/ports/services/restaurant-service.port.ts';
 import type { IWebSocketBroadcaster } from '@application/ports/services/websocket-broadcaster.port.ts';
-import type { ISeatPartyUseCase } from '@application/ports/use-cases/seat-party.use-case.port.ts';
+import type { ISeatPartyUseCase } from '@application/ports/use-cases/queue/seat-party.use-case.port.ts';
 import { TYPES } from '@di/types.ts';
 import { type IQueueRepository, QueueEntryNotFoundError } from '@domain/index.ts';
 import { logger } from '@infrastructure/logger/index.ts';

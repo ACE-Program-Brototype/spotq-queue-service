@@ -1,12 +1,12 @@
 import type {
 	CancelQueueEntryInputDTO,
 	CancelQueueEntryOutputDTO,
-} from '@application/dtos/cancel-queue-entry.dto.ts';
+} from '@application/dtos/queue/cancel-queue-entry.dto.ts';
 import type { IQueueCacheService } from '@application/ports/cache/queue-cache.port.ts';
 import type { IQueuePositionRecalculator } from '@application/ports/services/queue-position-recalculator.port.ts';
 import type { IRestaurantServiceClient } from '@application/ports/services/restaurant-service.port.ts';
 import type { IWebSocketBroadcaster } from '@application/ports/services/websocket-broadcaster.port.ts';
-import type { ICancelQueueEntryUseCase } from '@application/ports/use-cases/cancel-queue-entry.use-case.port.ts';
+import type { ICancelQueueEntryUseCase } from '@application/ports/use-cases/queue/cancel-queue-entry.use-case.port.ts';
 import { TYPES } from '@di/types.ts';
 import { type IQueueRepository, QueueEntryNotFoundError, QueueStatus } from '@domain/index.ts';
 import { logger } from '@infrastructure/logger/index.ts';

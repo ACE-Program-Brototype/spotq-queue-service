@@ -1,17 +1,23 @@
-import type { ICancelQueueEntryUseCase } from '@application/ports/use-cases/cancel-queue-entry.use-case.port.ts';
-import type { ISeatPartyUseCase } from '@application/ports/use-cases/seat-party.use-case.port.ts';
-import type { ISkipPartyUseCase } from '@application/ports/use-cases/skip-party.use-case.port.ts';
+import type { ICancelQueueEntryUseCase } from '@application/ports/use-cases/queue/cancel-queue-entry.use-case.port.ts';
+import type { ISeatPartyUseCase } from '@application/ports/use-cases/queue/seat-party.use-case.port.ts';
+import type { ISkipPartyUseCase } from '@application/ports/use-cases/queue/skip-party.use-case.port.ts';
 import { TYPES } from '@di/types.ts';
 import { QueueStatus, UnauthorizedError } from '@domain/index.ts';
-import { HTTP_STATUS, messages, QUEUE_MESSAGES, sendSuccessResponse } from '@shared/index.ts';
-import type { Request, Response } from 'express';
-import { inject, injectable } from 'inversify';
 import type {
 	CancelQueueEntryBody,
 	CancelQueueEntryParams,
-} from '../validators/cancel-queue-entry.validator.ts';
-import type { SeatPartyBody, SeatPartyParams } from '../validators/seat-party.validator.ts';
-import type { SkipPartyBody, SkipPartyParams } from '../validators/skip-party.validator.ts';
+} from '@presentation/http/validators/queue/cancel-queue-entry.validator.ts';
+import type {
+	SeatPartyBody,
+	SeatPartyParams,
+} from '@presentation/http/validators/queue/seat-party.validator.ts';
+import type {
+	SkipPartyBody,
+	SkipPartyParams,
+} from '@presentation/http/validators/queue/skip-party.validator.ts';
+import { HTTP_STATUS, messages, QUEUE_MESSAGES, sendSuccessResponse } from '@shared/index.ts';
+import type { Request, Response } from 'express';
+import { inject, injectable } from 'inversify';
 
 @injectable()
 export class StaffQueueActionsController {

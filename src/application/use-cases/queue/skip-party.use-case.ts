@@ -1,8 +1,11 @@
-import type { SkipPartyInputDTO, SkipPartyOutputDTO } from '@application/dtos/skip-party.dto.ts';
+import type {
+	SkipPartyInputDTO,
+	SkipPartyOutputDTO,
+} from '@application/dtos/queue/skip-party.dto.ts';
 import type { IQueueCacheService } from '@application/ports/cache/queue-cache.port.ts';
 import type { IQueuePositionRecalculator } from '@application/ports/services/queue-position-recalculator.port.ts';
 import type { IWebSocketBroadcaster } from '@application/ports/services/websocket-broadcaster.port.ts';
-import type { ISkipPartyUseCase } from '@application/ports/use-cases/skip-party.use-case.port.ts';
+import type { ISkipPartyUseCase } from '@application/ports/use-cases/queue/skip-party.use-case.port.ts';
 import { TYPES } from '@di/types.ts';
 import {
 	type IQueueRepository,
