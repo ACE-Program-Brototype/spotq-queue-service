@@ -1,4 +1,5 @@
 import type { IQueueCacheService } from '@application/ports/cache/queue-cache.port.ts';
+import type { IRabbitMQService } from '@application/ports/services/rabbitmq-service.port';
 import type { IRestaurantServiceClient } from '@application/ports/services/restaurant-service.port.ts';
 import type { IWebSocketBroadcaster } from '@application/ports/services/websocket-broadcaster.port.ts';
 import { AssignTableUseCase } from '@application/use-cases/assign-table.use-case.ts';
@@ -19,6 +20,7 @@ describe('AssignTableUseCase', () => {
 	let mockRestaurantServiceClient: jest.Mocked<IRestaurantServiceClient>;
 	let mockQueueCacheService: jest.Mocked<IQueueCacheService>;
 	let mockSocketBroadcaster: jest.Mocked<IWebSocketBroadcaster>;
+	let mockRabbitMQService: jest.Mocked<IRabbitMQService>;
 
 	const restaurantId = '11111111-1111-4111-8111-111111111111';
 	const queueEntryId = '22222222-2222-4222-8222-222222222222';
@@ -71,6 +73,7 @@ describe('AssignTableUseCase', () => {
 			createWithHistory: jest.fn(),
 			assignTablesWithHistory: jest.fn(),
 			getStaffQueueSnapshot: jest.fn(),
+			countPeopleAheadAtJoin: jest.fn().mockResolvedValue(3),
 		};
 
 		mockRestaurantServiceClient = {
@@ -91,11 +94,16 @@ describe('AssignTableUseCase', () => {
 			sendToTicket: jest.fn(),
 		};
 
+		mockRabbitMQService = {
+			publishToMlEta: jest.fn().mockResolvedValue(true),
+		};
+
 		useCase = new AssignTableUseCase(
 			mockQueueRepository,
 			mockRestaurantServiceClient,
 			mockQueueCacheService,
 			mockSocketBroadcaster,
+			mockRabbitMQService,
 		);
 	});
 
@@ -158,6 +166,16 @@ describe('AssignTableUseCase', () => {
 				status: QueueStatus.SEATED,
 			}),
 		);
+
+		// Verify RabbitMQ ML ETA training event publication
+		expect(mockRabbitMQService.publishToMlEta).toHaveBeenCalledWith({
+			queue_entry_id: queueEntryId,
+			restaurant_id: restaurantId,
+			party_size: 4,
+			joined_at: expect.any(String),
+			seated_at: expect.any(String),
+			total_people_ahead_at_join: 3,
+		});
 	});
 
 	it('should throw QueueEntryNotFoundError if ticket does not exist', async () => {
@@ -241,5 +259,102 @@ describe('AssignTableUseCase', () => {
 
 		expect(mockQueueRepository.assignTablesWithHistory).not.toHaveBeenCalled();
 		expect(mockQueueCacheService.removeLiveEntry).not.toHaveBeenCalled();
+	});
+
+	it('should construct and publish training event with joined_at and seated_at', async () => {
+		const joinedAt = new Date('2026-10-09T10:30:00.000Z');
+		const seatedAt = new Date('2026-10-09T10:55:00.000Z');
+
+		const entry = QueueEntry.reconstitute({
+			id: queueEntryId,
+			restaurantId,
+			userId: 'user-1',
+			guestName: 'John Doe',
+			phone: '+15551234567',
+			queueNumber: 'W-001',
+			partySize: 4,
+			specialNotes: null,
+			registrationType: RegistrationType.WALK_IN,
+			position: 2,
+			estimatedWaitMinutes: 25,
+			estimatedWaitMinutesAtJoin: 25,
+			status: QueueStatus.WAITING,
+			ringCount: 0,
+			lastRingedAt: null,
+			fid: null,
+			joinedAt,
+			seatedAt: null,
+			createdAt: joinedAt,
+			updatedAt: joinedAt,
+		});
+
+		mockQueueRepository.findById.mockResolvedValue(entry);
+		mockQueueRepository.assignTablesWithHistory.mockImplementation(async (e) => {
+			return QueueEntry.reconstitute({
+				...e.toJSON(),
+				status: QueueStatus.SEATED,
+				seatedAt,
+			});
+		});
+
+		mockQueueRepository.countPeopleAheadAtJoin = jest.fn().mockResolvedValue(3);
+
+		await useCase.execute({
+			restaurantId,
+			queueEntryId,
+			staffUserId,
+			tables: [{ tableId: tableId1, count: 4 }],
+		});
+
+		expect(mockRabbitMQService.publishToMlEta).toHaveBeenCalledWith({
+			queue_entry_id: queueEntryId,
+			restaurant_id: restaurantId,
+			party_size: 4,
+			joined_at: '2026-10-09T10:30:00.000Z',
+			seated_at: '2026-10-09T10:55:00.000Z',
+			total_people_ahead_at_join: 3,
+		});
+	});
+
+	it('should complete table assignment even if RabbitMQ publishing fails (non-blocking)', async () => {
+		const entry = createMockQueueEntry(QueueStatus.WAITING, 4);
+		mockQueueRepository.findById.mockResolvedValue(entry);
+		mockQueueRepository.assignTablesWithHistory.mockImplementation(async (e) => e);
+		mockRabbitMQService.publishToMlEta.mockRejectedValue(
+			new Error('RabbitMQ channel broker connection closed'),
+		);
+
+		const result = await useCase.execute({
+			restaurantId,
+			queueEntryId,
+			staffUserId,
+			tables: [{ tableId: tableId1, count: 4 }],
+		});
+
+		expect(result).toBeDefined();
+		expect(result.status).toBe(QueueStatus.SEATED);
+		expect(mockRabbitMQService.publishToMlEta).toHaveBeenCalled();
+	});
+
+	it('should fallback to position - 1 if countPeopleAheadAtJoin throws', async () => {
+		const entry = createMockQueueEntry(QueueStatus.WAITING, 4);
+		mockQueueRepository.findById.mockResolvedValue(entry);
+		mockQueueRepository.assignTablesWithHistory.mockImplementation(async (e) => e);
+		mockQueueRepository.countPeopleAheadAtJoin = jest
+			.fn()
+			.mockRejectedValue(new Error('Database timeout'));
+
+		await useCase.execute({
+			restaurantId,
+			queueEntryId,
+			staffUserId,
+			tables: [{ tableId: tableId1, count: 4 }],
+		});
+
+		expect(mockRabbitMQService.publishToMlEta).toHaveBeenCalledWith(
+			expect.objectContaining({
+				total_people_ahead_at_join: 0, // position: 1 => 1 - 1 = 0
+			}),
+		);
 	});
 });

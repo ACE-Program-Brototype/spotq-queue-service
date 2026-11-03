@@ -2,7 +2,9 @@ import type {
 	AssignTablesInputDTO,
 	AssignTablesOutputDTO,
 } from '@application/dtos/assign-table.dto.ts';
+import { AssignTableMapper } from '@application/mappers/assign-table.mapper.ts';
 import type { IQueueCacheService } from '@application/ports/cache/queue-cache.port.ts';
+import type { IRabbitMQService } from '@application/ports/services/rabbitmq-service.port.ts';
 import type { IRestaurantServiceClient } from '@application/ports/services/restaurant-service.port.ts';
 import type { IWebSocketBroadcaster } from '@application/ports/services/websocket-broadcaster.port.ts';
 import type { IAssignTableUseCase } from '@application/ports/use-cases/assign-table.use-case.port.ts';
@@ -27,6 +29,8 @@ export class AssignTableUseCase implements IAssignTableUseCase {
 		private readonly queueCacheService: IQueueCacheService,
 		@inject(TYPES.Services.WebSocketBroadcaster)
 		private readonly socketBroadcaster: IWebSocketBroadcaster,
+		@inject(TYPES.Services.RabbitMQService)
+		private readonly rabbitmqService: IRabbitMQService,
 	) {}
 
 	async execute(input: AssignTablesInputDTO): Promise<AssignTablesOutputDTO> {
@@ -40,6 +44,19 @@ export class AssignTableUseCase implements IAssignTableUseCase {
 		const totalAssignedSeats = tables.reduce((acc, t) => acc + t.count, 0);
 		if (totalAssignedSeats < queueEntry.partySize) {
 			throw new InsufficientTableCapacityError(queueEntry.partySize, totalAssignedSeats);
+		}
+
+		let totalPeopleAheadAtJoin = Math.max(0, (queueEntry.position ?? 1) - 1);
+		try {
+			totalPeopleAheadAtJoin = await this.queueRepository.countPeopleAheadAtJoin(
+				restaurantId,
+				queueEntry.joinedAt,
+			);
+		} catch (error) {
+			logger.warn(
+				{ err: error, queueEntryId },
+				'Failed to query total people ahead at join, falling back to position calculation',
+			);
 		}
 
 		const previousStatus = queueEntry.status;
@@ -88,12 +105,19 @@ export class AssignTableUseCase implements IAssignTableUseCase {
 			);
 		}
 
-		return {
-			queueEntryId: persistedEntry.id,
-			restaurantId: persistedEntry.restaurantId,
-			tableIds,
-			status: persistedEntry.status,
-			seatedAt: (persistedEntry.seatedAt ?? new Date()).toISOString(),
-		};
+		try {
+			const trainingEvent = AssignTableMapper.toMlEtaTrainingEvent(
+				persistedEntry,
+				totalPeopleAheadAtJoin,
+			);
+			await this.rabbitmqService.publishToMlEta(trainingEvent);
+		} catch (error) {
+			logger.error(
+				{ err: error, queueEntryId },
+				'Non-blocking: Failed to publish ML ETA training event to RabbitMQ',
+			);
+		}
+
+		return AssignTableMapper.toOutputDTO(persistedEntry, tableIds);
 	}
 }
