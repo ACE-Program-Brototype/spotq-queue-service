@@ -103,7 +103,7 @@ export class AssignTableUseCase implements IAssignTableUseCase {
 			persistedEntry,
 			totalPeopleAheadAtJoin,
 		);
-		void this.rabbitmqService.publishToMlEta(trainingEvent).catch((error) => {
+		this.rabbitmqService.publishToMlEta(trainingEvent).catch((error) => {
 			this.logger.error(
 				{ err: error, queueEntryId },
 				'Non-blocking: Failed to publish ML ETA training event to RabbitMQ',
