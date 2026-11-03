@@ -161,12 +161,29 @@ describe('SkipPartyUseCase Unit Tests', () => {
 
 		expect(result.status).toBe(QueueStatus.WAITING);
 		expect(result.position).toBe(3);
+		expect(entry.position).toBe(3);
 		expect(mockQueueRepository.batchUpdatePositions).toHaveBeenCalledWith([
 			{ id: 'entry-2', position: 1 },
 			{ id: 'entry-3', position: 2 },
 			{ id: queueEntryId, position: 3 },
 		]);
+		expect(mockQueueRepository.updateStatusWithHistory).toHaveBeenCalledWith({
+			queueEntry: entry,
+			previousStatus: QueueStatus.WAITING,
+			changedBy: staffUserId,
+			reason: `${reason} (shifted by 2 positions)`,
+		});
 		expect(mockQueuePositionRecalculator.recalculate).toHaveBeenCalledWith(restaurantId);
+		expect(mockSocketBroadcaster.broadcastToRestaurant).toHaveBeenCalledWith(
+			restaurantId,
+			WS_SERVER_EVENTS.QUEUE_ENTRY_SKIPPED,
+			expect.objectContaining({ queueEntryId, status: QueueStatus.WAITING, position: 3 }),
+		);
+		expect(mockSocketBroadcaster.sendToTicket).toHaveBeenCalledWith(
+			queueEntryId,
+			WS_SERVER_EVENTS.QUEUE_ENTRY_SKIPPED,
+			expect.objectContaining({ queueEntryId, status: QueueStatus.WAITING, position: 3 }),
+		);
 	});
 
 	it('should throw QueueEntryNotFoundError when entry not found', async () => {

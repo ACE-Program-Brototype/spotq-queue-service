@@ -4,7 +4,12 @@ import type { IQueuePositionRecalculator } from '@application/ports/services/que
 import type { IWebSocketBroadcaster } from '@application/ports/services/websocket-broadcaster.port.ts';
 import type { ISkipPartyUseCase } from '@application/ports/use-cases/skip-party.use-case.port.ts';
 import { TYPES } from '@di/types.ts';
-import { type IQueueRepository, QueueEntryNotFoundError } from '@domain/index.ts';
+import {
+	type IQueueRepository,
+	QueueEntryNotFoundError,
+	QueueEntryNotWaitingError,
+	QueueStatus,
+} from '@domain/index.ts';
 import { logger } from '@infrastructure/logger/index.ts';
 import { WS_SERVER_EVENTS } from '@shared/constants/websocket.constants.ts';
 import { inject, injectable } from 'inversify';
@@ -30,6 +35,10 @@ export class SkipPartyUseCase implements ISkipPartyUseCase {
 			throw new QueueEntryNotFoundError(queueEntryId);
 		}
 
+		if (queueEntry.status !== QueueStatus.WAITING) {
+			throw new QueueEntryNotWaitingError(queueEntryId, queueEntry.status);
+		}
+
 		const previousStatus = queueEntry.status;
 
 		if (skipPositions && skipPositions > 0) {
@@ -40,6 +49,8 @@ export class SkipPartyUseCase implements ISkipPartyUseCase {
 				const targetIndex = Math.min(currentIndex + skipPositions, activeEntries.length - 1);
 				const [skippedEntry] = activeEntries.splice(currentIndex, 1);
 				activeEntries.splice(targetIndex, 0, skippedEntry);
+
+				queueEntry.updatePosition(targetIndex + 1);
 
 				const updates = activeEntries.map((entry, idx) => ({
 					id: entry.id,
@@ -60,6 +71,33 @@ export class SkipPartyUseCase implements ISkipPartyUseCase {
 					logger.error(
 						{ err, restaurantId },
 						'Non-blocking: Failed to recalculate queue positions after skip reordering',
+					);
+				}
+
+				const broadcastPayload = {
+					event: WS_SERVER_EVENTS.QUEUE_ENTRY_SKIPPED,
+					queueEntryId: queueEntry.id,
+					restaurantId: queueEntry.restaurantId,
+					status: queueEntry.status,
+					reason: `${reason} (shifted by ${skipPositions} positions)`,
+					position: targetIndex + 1,
+				};
+
+				try {
+					this.socketBroadcaster.broadcastToRestaurant(
+						restaurantId,
+						WS_SERVER_EVENTS.QUEUE_ENTRY_SKIPPED,
+						broadcastPayload,
+					);
+					this.socketBroadcaster.sendToTicket(
+						queueEntryId,
+						WS_SERVER_EVENTS.QUEUE_ENTRY_SKIPPED,
+						broadcastPayload,
+					);
+				} catch (err) {
+					logger.error(
+						{ err, queueEntryId },
+						`Non-blocking: Failed to broadcast ${WS_SERVER_EVENTS.QUEUE_ENTRY_SKIPPED} WebSocket event`,
 					);
 				}
 
