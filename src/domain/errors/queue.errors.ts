@@ -47,7 +47,7 @@ export class ActiveUserQueueEntryExistsError extends DomainError {
  */
 export class QueueEntryNotFoundError extends DomainError {
 	constructor(id: string) {
-		super(`${QUEUE_MESSAGES.ENTRY_NOT_FOUND} (ID: ${id})`, 'QUEUE_ENTRY_NOT_FOUND');
+		super(QUEUE_MESSAGES.ENTRY_NOT_FOUND, 'QUEUE_ENTRY_NOT_FOUND', { queueEntryId: id });
 	}
 }
 
@@ -100,11 +100,7 @@ export class QueueProSubscriptionRequiredError extends DomainError {
  */
 export class RestaurantNotFoundError extends DomainError {
 	constructor(restaurantId: string) {
-		super(
-			`${QUEUE_MESSAGES.RESTAURANT_NOT_FOUND} (Restaurant ID: ${restaurantId})`,
-			'RESTAURANT_NOT_FOUND',
-			{ restaurantId },
-		);
+		super(QUEUE_MESSAGES.RESTAURANT_NOT_FOUND, 'RESTAURANT_NOT_FOUND', { restaurantId });
 	}
 }
 
@@ -138,11 +134,9 @@ export class InsufficientTableCapacityError extends DomainError {
 
 export class CannotRingWalkInCustomerError extends DomainError {
 	constructor(queueEntryId: string) {
-		super(
-			`${QUEUE_MESSAGES.CANNOT_RING_WALK_IN_CUSTOMER} (ID: ${queueEntryId})`,
-			'CANNOT_RING_WALK_IN_CUSTOMER',
-			{ queueEntryId },
-		);
+		super(QUEUE_MESSAGES.CANNOT_RING_WALK_IN_CUSTOMER, 'CANNOT_RING_WALK_IN_CUSTOMER', {
+			queueEntryId,
+		});
 	}
 }
 
