@@ -6,7 +6,7 @@ import {
 	RestaurantBlockedError,
 	RestaurantNotAcceptingQueueError,
 } from '../src/domain/index.ts';
-import type { IQueueRepository } from '../src/domain/repositories/queue.repository.interface.ts';
+import type { IQueueRepository } from '../src/domain/repositories/i-queue.repository.ts';
 import { SUBSCRIPTION_PLAN } from '../src/shared/index.ts';
 
 describe('GetQueueEtaUseCase Unit Tests', () => {
@@ -61,6 +61,10 @@ describe('GetQueueEtaUseCase Unit Tests', () => {
 			findActiveByUserId: jest.fn(),
 			createWithHistory: jest.fn(),
 			assignTablesWithHistory: jest.fn(),
+			updateStatusWithHistory: jest.fn(),
+			findActiveTableAssignments: jest.fn(),
+			releaseTableAssignments: jest.fn(),
+			batchUpdatePositions: jest.fn(),
 			getStaffQueueSnapshot: jest.fn(),
 			countPeopleAheadAtJoin: jest.fn().mockResolvedValue(0),
 		};
@@ -69,6 +73,7 @@ describe('GetQueueEtaUseCase Unit Tests', () => {
 			getRestaurantStatus: jest.fn().mockResolvedValue(validRestaurantStatus),
 			checkAvailability: jest.fn().mockResolvedValue(openTableCheck),
 			assignTables: jest.fn(),
+			releaseTables: jest.fn(),
 		};
 
 		mockEtaService = {

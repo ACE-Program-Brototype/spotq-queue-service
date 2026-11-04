@@ -21,7 +21,7 @@ import {
 	RestaurantNotAcceptingQueueError,
 	TableAvailableError,
 } from '../src/domain/index.ts';
-import type { IQueueRepository } from '../src/domain/repositories/queue.repository.interface.ts';
+import type { IQueueRepository } from '../src/domain/repositories/i-queue.repository.ts';
 import { CustomerQueueController } from '../src/presentation/http/controllers/customer-queue.controller.ts';
 import {
 	type JoinQueueParams,
@@ -172,6 +172,10 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 					.fn()
 					.mockImplementation((entry: QueueEntry) => Promise.resolve(entry)),
 				assignTablesWithHistory: jest.fn(),
+				updateStatusWithHistory: jest.fn(),
+				findActiveTableAssignments: jest.fn(),
+				releaseTableAssignments: jest.fn(),
+				batchUpdatePositions: jest.fn(),
 				getStaffQueueSnapshot: jest.fn(),
 				countPeopleAheadAtJoin: jest.fn().mockResolvedValue(0),
 			};
@@ -194,6 +198,7 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 					status: 'ACTIVE',
 				}),
 				assignTables: jest.fn().mockResolvedValue(undefined),
+				releaseTables: jest.fn().mockResolvedValue(undefined),
 			};
 
 			mockEtaService = {

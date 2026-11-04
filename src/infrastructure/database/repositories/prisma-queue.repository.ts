@@ -1,12 +1,14 @@
 import { TYPES } from '@di/types.ts';
 import {
 	ActiveQueueEntryExistsError,
+	type ActiveTableAssignmentResult,
 	ActiveUserQueueEntryExistsError,
 	type IQueueRepository,
 	type QueueEntry,
 	QueueStatus,
 	type StaffQueueQueryFilters,
 	type StaffQueueSnapshotResult,
+	type UpdateStatusWithHistoryParams,
 } from '@domain/index.ts';
 import type { Prisma, PrismaClient, QueueEntry as PrismaQueueEntry } from '@prisma/client';
 import { QUEUE_QUERY_CONSTANTS } from '@shared/constants/queue.constants.ts';
@@ -46,9 +48,7 @@ export class PrismaQueueRepository
 					restaurantId,
 					status: QueueStatus.WAITING,
 				},
-				orderBy: {
-					joinedAt: 'asc',
-				},
+				orderBy: [{ position: 'asc' }, { joinedAt: 'asc' }],
 			});
 			return records.map((r: PrismaQueueEntry) => this.mapper.toDomain(r));
 		});
@@ -385,6 +385,86 @@ export class PrismaQueueRepository
 			});
 
 			return this.mapper.toDomain(updatedRecord);
+		});
+	}
+
+	public async updateStatusWithHistory(params: UpdateStatusWithHistoryParams): Promise<QueueEntry> {
+		return this.run(async () => {
+			const persistenceData = this.mapper.toPersistence(params.queueEntry);
+
+			const updatedRecord = await this.prismaClient.$transaction(async (tx) => {
+				const client = tx as Prisma.TransactionClient;
+
+				const updated = await client.queueEntry.update({
+					where: { id: params.queueEntry.id },
+					data: persistenceData,
+				});
+
+				await client.queueStatusHistory.create({
+					data: {
+						queueEntryId: params.queueEntry.id,
+						previousStatus: params.previousStatus,
+						currentStatus: params.queueEntry.status,
+						changedBy: params.changedBy,
+						reason: params.reason ?? null,
+						notes: params.notes ?? null,
+					},
+				});
+
+				return updated;
+			});
+
+			return this.mapper.toDomain(updatedRecord);
+		});
+	}
+
+	public async findActiveTableAssignments(
+		queueEntryId: string,
+	): Promise<ActiveTableAssignmentResult[]> {
+		return this.run(async () => {
+			return this.prismaClient.tableAssignment.findMany({
+				where: {
+					queueEntryId,
+					releasedAt: null,
+				},
+			});
+		});
+	}
+
+	public async releaseTableAssignments(queueEntryId: string): Promise<void> {
+		return this.run(async () => {
+			await this.prismaClient.tableAssignment.updateMany({
+				where: {
+					queueEntryId,
+					releasedAt: null,
+				},
+				data: {
+					releasedAt: new Date(),
+				},
+			});
+		});
+	}
+
+	public async batchUpdatePositions(
+		updates: Array<{ id: string; position: number | null; estimatedWaitMinutes?: number | null }>,
+	): Promise<void> {
+		if (updates.length === 0) {
+			return;
+		}
+		return this.run(async () => {
+			await this.prismaClient.$transaction(
+				updates.map((u) =>
+					this.prismaClient.queueEntry.update({
+						where: { id: u.id },
+						data: {
+							position: u.position,
+							...(u.estimatedWaitMinutes !== undefined && {
+								estimatedWaitMinutes: u.estimatedWaitMinutes,
+							}),
+						},
+					}),
+				),
+			);
 		});
 	}
 

@@ -1,7 +1,7 @@
 import http from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { container, TYPES } from '@di/index.ts';
-import type { IQueueRepository } from '@domain/repositories/queue.repository.interface.ts';
+import type { IQueueRepository } from '@domain/repositories/i-queue.repository.ts';
 import { initSocketServer } from '@infrastructure/websocket/socket.server.ts';
 import type { SocketBroadcaster } from '@infrastructure/websocket/socket-broadcaster.ts';
 import {
@@ -27,7 +27,6 @@ describe('WebSocket Infrastructure Integration Tests', () => {
 	const customerTicketId = '44444444-4444-4444-4444-444444444444';
 	const customerUserId = '55555555-5555-5555-5555-555555555555';
 
-	// Gateway trusted headers injected after JWT verification at Envoy
 	const staffHeaders = {
 		'x-user-id': staffUserId,
 		'x-user-role': 'STAFF',

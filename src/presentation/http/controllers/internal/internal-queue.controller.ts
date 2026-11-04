@@ -1,11 +1,11 @@
 import type { IGetActiveQueueByUserUseCase } from '@application/ports/use-cases/get-active-queue-by-user.use-case.port.ts';
 import type { IGetCustomerQueueStatusUseCase } from '@application/ports/use-cases/internal/get-customer-queue-status.use-case.port.ts';
 import { TYPES } from '@di/types.ts';
+import type { GetUserActiveQueueParams } from '@presentation/http/validators/get-user-active-queue.validator.ts';
+import type { GetCustomerQueueStatusParams } from '@presentation/http/validators/internal/get-customer-queue-status.validator.ts';
 import { HTTP_STATUS, messages, QUEUE_MESSAGES, sendSuccessResponse } from '@shared/index.ts';
 import type { Request, Response } from 'express';
 import { inject, injectable } from 'inversify';
-import type { GetUserActiveQueueParams } from '../validators/get-user-active-queue.validator.ts';
-import type { GetCustomerQueueStatusParams } from '../validators/internal/get-customer-queue-status.validator.ts';
 
 @injectable()
 export class InternalQueueController {

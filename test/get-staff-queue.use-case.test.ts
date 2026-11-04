@@ -1,6 +1,6 @@
 import { GetStaffQueueUseCase } from '@application/use-cases/get-staff-queue.use-case.ts';
 import { QueueEntry, QueueStatus, RegistrationType } from '@domain/index.ts';
-import type { IQueueRepository } from '@domain/repositories/queue.repository.interface.ts';
+import type { IQueueRepository } from '@domain/repositories/i-queue.repository.ts';
 
 describe('GetStaffQueueUseCase Unit Tests', () => {
 	let useCase: GetStaffQueueUseCase;
@@ -55,6 +55,10 @@ describe('GetStaffQueueUseCase Unit Tests', () => {
 			getRegistrationMetrics: jest.fn(),
 			createWithHistory: jest.fn(),
 			assignTablesWithHistory: jest.fn(),
+			updateStatusWithHistory: jest.fn(),
+			findActiveTableAssignments: jest.fn(),
+			releaseTableAssignments: jest.fn(),
+			batchUpdatePositions: jest.fn(),
 			getStaffQueueSnapshot: jest.fn(),
 			countPeopleAheadAtJoin: jest.fn().mockResolvedValue(0),
 		};
@@ -116,14 +120,12 @@ describe('GetStaffQueueUseCase Unit Tests', () => {
 
 		const result = await useCase.execute({ restaurantId });
 
-		// Ringing party is first in line (position 1)
 		expect(result.entries[0].position).toBe(1);
 		expect(result.entries[0].ringCount).toBe(1);
 		expect(result.entries[0].lastRingAt).toBe('2026-10-28T10:00:00.000Z');
 		expect(result.entries[0].responseDeadline).toBe('2026-10-28T10:02:00.000Z');
 		expect(result.entries[0].assignedTableId).toBe('tbl-101');
 
-		// The next waiting party gets position 2
 		expect(result.entries[1].position).toBe(2);
 		expect(result.entries[1].lastRingAt).toBeNull();
 		expect(result.entries[1].responseDeadline).toBeNull();

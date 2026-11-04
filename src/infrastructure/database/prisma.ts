@@ -51,9 +51,7 @@ if (
 		parsedUrl.searchParams.set('sslmode', 'no-verify');
 		connectionString = parsedUrl.toString();
 		process.env.DATABASE_URL = connectionString;
-	} catch {
-		// fallback to original if parsing fails
-	}
+	} catch {}
 }
 
 const pool = new pg.Pool({

@@ -27,6 +27,7 @@ export const TYPES = {
 		PushNotificationService: Symbol.for('PushNotificationService'),
 		QueueService: Symbol.for('QueueService'),
 		HealthService: Symbol.for('HealthService'),
+		QueuePositionRecalculator: Symbol.for('QueuePositionRecalculator'),
 		RabbitMQService: Symbol.for('RabbitMQService'),
 	},
 	UseCases: {
@@ -35,6 +36,9 @@ export const TYPES = {
 		GetQueueEtaUseCase: Symbol.for('GetQueueEtaUseCase'),
 		AssignTableUseCase: Symbol.for('AssignTableUseCase'),
 		RingCustomerUseCase: Symbol.for('RingCustomerUseCase'),
+		SeatPartyUseCase: Symbol.for('SeatPartyUseCase'),
+		SkipPartyUseCase: Symbol.for('SkipPartyUseCase'),
+		CancelQueueEntryUseCase: Symbol.for('CancelQueueEntryUseCase'),
 		Internal: {
 			GetCustomerQueueStatusUseCase: Symbol.for('GetCustomerQueueStatusUseCase'),
 		},
@@ -43,6 +47,7 @@ export const TYPES = {
 	Controllers: {
 		HealthController: Symbol.for('HealthController'),
 		StaffQueueController: Symbol.for('StaffQueueController'),
+		StaffQueueActionsController: Symbol.for('StaffQueueActionsController'),
 		InternalQueueController: Symbol.for('InternalQueueController'),
 		CustomerQueueController: Symbol.for('CustomerQueueController'),
 	},

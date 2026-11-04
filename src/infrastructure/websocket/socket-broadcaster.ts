@@ -45,8 +45,9 @@ export class SocketBroadcaster implements IWebSocketBroadcaster {
 			return;
 		}
 		const room = WEBSOCKET_ROOMS.restaurant(restaurantId);
-		logger.debug({ room, event }, 'Broadcasting WebSocket event to restaurant room');
-		server.to(room).emit(event, data);
+		const queueRoom = WEBSOCKET_ROOMS.restaurantQueue(restaurantId);
+		logger.debug({ room, queueRoom, event }, 'Broadcasting WebSocket event to restaurant room');
+		server.to(room).to(queueRoom).emit(event, data);
 	}
 
 	/**
@@ -81,7 +82,8 @@ export class SocketBroadcaster implements IWebSocketBroadcaster {
 			return;
 		}
 		const room = WEBSOCKET_ROOMS.ticket(ticketId);
-		logger.debug({ room, event }, 'Broadcasting WebSocket event to ticket room');
-		server.to(room).emit(event, data);
+		const entryRoom = WEBSOCKET_ROOMS.queueEntry(ticketId);
+		logger.debug({ room, entryRoom, event }, 'Broadcasting WebSocket event to ticket room');
+		server.to(room).to(entryRoom).emit(event, data);
 	}
 }

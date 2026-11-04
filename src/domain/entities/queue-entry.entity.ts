@@ -27,6 +27,7 @@ export interface QueueEntryProps {
 	fid?: string | null;
 	joinedAt: Date;
 	seatedAt?: Date | null;
+	cancelledAt?: Date | null;
 	createdAt: Date;
 	updatedAt: Date;
 }
@@ -113,6 +114,7 @@ export class QueueEntry {
 			fid: props.fid ?? null,
 			joinedAt: now,
 			seatedAt: null,
+			cancelledAt: null,
 			createdAt: now,
 			updatedAt: now,
 		});
@@ -213,6 +215,10 @@ export class QueueEntry {
 		return this.props.seatedAt;
 	}
 
+	public get cancelledAt(): Date | null | undefined {
+		return this.props.cancelledAt;
+	}
+
 	public get createdAt(): Date {
 		return this.props.createdAt;
 	}
@@ -228,6 +234,36 @@ export class QueueEntry {
 		this.props.status = QueueStatus.SEATED;
 		this.props.seatedAt = new Date();
 		this.props.position = null;
+		this.props.updatedAt = new Date();
+	}
+
+	public skip(): void {
+		if (this.props.status !== QueueStatus.WAITING) {
+			throw new QueueEntryNotWaitingError(this.props.id, this.props.status);
+		}
+		this.props.status = QueueStatus.SKIPPED;
+		this.props.position = null;
+		this.props.updatedAt = new Date();
+	}
+
+	public cancel(status: QueueStatus.CANCELLED | QueueStatus.NO_SHOW = QueueStatus.CANCELLED): void {
+		if (this.props.status !== QueueStatus.WAITING) {
+			throw new QueueEntryNotWaitingError(this.props.id, this.props.status);
+		}
+		this.props.status = status;
+		this.props.cancelledAt = new Date();
+		this.props.position = null;
+		this.props.updatedAt = new Date();
+	}
+
+	public updatePosition(newPosition: number, newEta?: number | null): void {
+		if (this.props.status !== QueueStatus.WAITING) {
+			return;
+		}
+		this.props.position = newPosition;
+		if (newEta !== undefined) {
+			this.props.estimatedWaitMinutes = newEta;
+		}
 		this.props.updatedAt = new Date();
 	}
 

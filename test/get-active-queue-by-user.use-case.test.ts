@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { GetActiveQueueByUserUseCase } from '@application/use-cases/get-active-queue-by-user.use-case.ts';
 import { QueueEntry, QueueStatus, RegistrationType } from '@domain/index.ts';
-import type { IQueueRepository } from '@domain/repositories/queue.repository.interface.ts';
+import type { IQueueRepository } from '@domain/repositories/i-queue.repository.ts';
 
 describe('GetActiveQueueByUserUseCase', () => {
 	let mockQueueRepository: jest.Mocked<IQueueRepository>;

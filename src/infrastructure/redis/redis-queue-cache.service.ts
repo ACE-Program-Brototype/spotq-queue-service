@@ -9,7 +9,7 @@ import type Redis from 'ioredis';
 
 export const REDIS_QUEUE_CACHE = {
 	KEY_PREFIX: 'queue:live:',
-	TTL_SECONDS: 86400, // 24 hours
+	TTL_SECONDS: 86400,
 } as const;
 
 @injectable()
@@ -46,7 +46,6 @@ export class RedisQueueCacheService implements IQueueCacheService {
 
 			logger.debug({ queueEntryId, position, currentEta }, 'Live queue entry state saved in Redis');
 		} catch (error) {
-			// Redis caching failure should not abort transaction, log warning
 			logger.warn({ err: error, queueEntryId }, 'Failed to cache live queue entry state in Redis');
 		}
 	}
