@@ -12,6 +12,7 @@ import {
 } from '@domain/index.ts';
 import { config } from '@infrastructure/config/index.ts';
 import { logger } from '@infrastructure/logger/index.ts';
+import { ETA_CONSTANTS } from '@shared/constants/eta.constants.ts';
 import { HTTP_STATUS } from '@shared/constants/http.constants.ts';
 import { QUEUE_MESSAGES } from '@shared/constants/message.constants.ts';
 import { RESTAURANT_SERVICE_ROUTES } from '@shared/constants/routes.constants.ts';
@@ -32,10 +33,6 @@ interface IApiResponseEnvelope<T> {
 	error?: string;
 }
 
-export const RESTAURANT_CLIENT_CONSTANTS = {
-	REQUEST_TIMEOUT_MS: 1500,
-} as const;
-
 /**
  * HTTP Client implementation for communicating with spotq-restaurant-service.
  *
@@ -50,8 +47,6 @@ export const RESTAURANT_CLIENT_CONSTANTS = {
  */
 @injectable()
 export class RestaurantServiceClient implements IRestaurantServiceClient {
-	public static readonly REQUEST_TIMEOUT_MS = RESTAURANT_CLIENT_CONSTANTS.REQUEST_TIMEOUT_MS;
-
 	private readonly baseUrl: string;
 	private readonly useMock: boolean;
 	private readonly s2sServiceName: string;
@@ -69,7 +64,7 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 		targetServiceName: string = config.services.restaurantServiceName,
 		timeoutMs: number = config.circuitBreakers.restaurant.timeoutMs,
 		breakerOptions?: Partial<CircuitBreakerOptions<[() => Promise<unknown>], unknown>>,
-		requestTimeoutMs: number = RestaurantServiceClient.REQUEST_TIMEOUT_MS,
+		requestTimeoutMs: number = ETA_CONSTANTS.REQUEST_TIMEOUT_MS,
 	) {
 		this.baseUrl = baseUrl.replace(/\/$/, '');
 		this.useMock = useMock;

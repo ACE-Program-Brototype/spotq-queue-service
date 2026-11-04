@@ -5,6 +5,7 @@ import {
 } from '../../src/domain/index.ts';
 import { RestaurantServiceClient } from '../../src/infrastructure/external/restaurant-service.client.ts';
 import { logger } from '../../src/infrastructure/logger/index.ts';
+import { ETA_CONSTANTS } from '../../src/shared/constants/eta.constants.ts';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -312,10 +313,10 @@ describe('RestaurantServiceClient Circuit Breaker Integration', () => {
 			expect(axiosGetSpy).toHaveBeenCalledWith(
 				expect.any(String),
 				expect.objectContaining({
-					timeout: RestaurantServiceClient.REQUEST_TIMEOUT_MS,
+					timeout: ETA_CONSTANTS.REQUEST_TIMEOUT_MS,
 				}),
 			);
-			expect(RestaurantServiceClient.REQUEST_TIMEOUT_MS).toBeLessThan(2000);
+			expect(ETA_CONSTANTS.REQUEST_TIMEOUT_MS).toBeLessThan(2000);
 		});
 
 		it('should abort in-flight Axios request when circuit breaker times out', async () => {
