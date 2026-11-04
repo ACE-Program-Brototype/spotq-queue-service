@@ -292,6 +292,32 @@ describe('RestaurantServiceClient Circuit Breaker Integration', () => {
 	});
 
 	describe('Timeout & Request Cancellation', () => {
+		it('should configure Axios timeout to be smaller than the circuit breaker timeout', async () => {
+			axiosGetSpy.mockResolvedValueOnce({
+				data: {
+					success: true,
+					data: {
+						restaurantId: 'rest-1',
+						isOpen: true,
+						isBlocked: false,
+						hasQueuePro: true,
+					},
+				},
+			});
+
+			client = new RestaurantServiceClient();
+
+			await client.getRestaurantStatus('rest-1');
+
+			expect(axiosGetSpy).toHaveBeenCalledWith(
+				expect.any(String),
+				expect.objectContaining({
+					timeout: RestaurantServiceClient.REQUEST_TIMEOUT_MS,
+				}),
+			);
+			expect(RestaurantServiceClient.REQUEST_TIMEOUT_MS).toBeLessThan(2000);
+		});
+
 		it('should abort in-flight Axios request when circuit breaker times out', async () => {
 			let capturedSignal: AbortSignal | undefined;
 			axiosGetSpy.mockImplementation((_url, config) => {

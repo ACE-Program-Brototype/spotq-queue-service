@@ -32,6 +32,10 @@ interface IApiResponseEnvelope<T> {
 	error?: string;
 }
 
+export const RESTAURANT_CLIENT_CONSTANTS = {
+	REQUEST_TIMEOUT_MS: 1500,
+} as const;
+
 /**
  * HTTP Client implementation for communicating with spotq-restaurant-service.
  *
@@ -46,12 +50,15 @@ interface IApiResponseEnvelope<T> {
  */
 @injectable()
 export class RestaurantServiceClient implements IRestaurantServiceClient {
+	public static readonly REQUEST_TIMEOUT_MS = RESTAURANT_CLIENT_CONSTANTS.REQUEST_TIMEOUT_MS;
+
 	private readonly baseUrl: string;
 	private readonly useMock: boolean;
 	private readonly s2sServiceName: string;
 	private readonly s2sPrivateKey?: string;
 	private readonly targetServiceName: string;
 	private readonly timeoutMs: number;
+	private readonly requestTimeoutMs: number;
 	private readonly breaker: CircuitBreaker<[() => Promise<unknown>], unknown>;
 
 	constructor(
@@ -62,6 +69,7 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 		targetServiceName: string = config.services.restaurantServiceName,
 		timeoutMs: number = config.circuitBreakers.restaurant.timeoutMs,
 		breakerOptions?: Partial<CircuitBreakerOptions<[() => Promise<unknown>], unknown>>,
+		requestTimeoutMs: number = RestaurantServiceClient.REQUEST_TIMEOUT_MS,
 	) {
 		this.baseUrl = baseUrl.replace(/\/$/, '');
 		this.useMock = useMock;
@@ -69,6 +77,7 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 		this.s2sPrivateKey = s2sPrivateKey;
 		this.targetServiceName = targetServiceName;
 		this.timeoutMs = timeoutMs;
+		this.requestTimeoutMs = requestTimeoutMs;
 		const breakerTimeoutMs = breakerOptions?.timeoutMs ?? this.timeoutMs;
 
 		this.breaker = new CircuitBreaker(
@@ -207,7 +216,7 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 				const url = `${this.baseUrl}${RESTAURANT_SERVICE_ROUTES.VALIDATION(restaurantId)}`;
 				const response = await axios.get<IApiResponseEnvelope<RestaurantStatusResult>>(url, {
 					signal,
-					timeout: this.timeoutMs,
+					timeout: this.requestTimeoutMs,
 					headers: this.getInternalHeaders(),
 				});
 
@@ -291,7 +300,7 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 				const response = await axios.get<IApiResponseEnvelope<TableAvailabilityResult>>(url, {
 					signal,
 					params: { partySize },
-					timeout: this.timeoutMs,
+					timeout: this.requestTimeoutMs,
 					headers: this.getInternalHeaders(),
 				});
 
@@ -353,7 +362,7 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 					{ tables },
 					{
 						signal,
-						timeout: this.timeoutMs,
+						timeout: this.requestTimeoutMs,
 						headers: this.getInternalHeaders(),
 					},
 				);
@@ -414,7 +423,7 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 					{ tables },
 					{
 						signal,
-						timeout: this.timeoutMs,
+						timeout: this.requestTimeoutMs,
 						headers: this.getInternalHeaders(),
 					},
 				);
