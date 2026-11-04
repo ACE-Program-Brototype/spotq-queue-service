@@ -44,6 +44,24 @@ describe('MlEtaServiceClient Circuit Breaker Integration', () => {
 		expect(axiosGetSpy).toHaveBeenCalledTimes(1);
 	});
 
+	it('should configure Axios timeout to be smaller than the circuit breaker timeout', async () => {
+		axiosGetSpy.mockResolvedValueOnce({
+			data: { estimated_wait_minutes: 10 },
+		});
+
+		client = new MlEtaServiceClient('http://test-ml:8000', 2000);
+
+		await client.predictEta('rest-1', 2, 2);
+
+		expect(axiosGetSpy).toHaveBeenCalledWith(
+			expect.any(String),
+			expect.objectContaining({
+				timeout: ETA_CONSTANTS.REQUEST_TIMEOUT_MS,
+			}),
+		);
+		expect(ETA_CONSTANTS.REQUEST_TIMEOUT_MS).toBeLessThan(2000);
+	});
+
 	it('should return fallback ETA when ML prediction returns non-finite numbers (Infinity, -Infinity, NaN)', async () => {
 		client = new MlEtaServiceClient('http://test-ml:8000', 500, {
 			volumeThreshold: 10,

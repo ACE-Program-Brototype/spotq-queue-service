@@ -16,6 +16,7 @@ interface IMlEtaPredictionResponse {
 export class MlEtaServiceClient implements IEtaService {
 	private readonly baseUrl: string;
 	private readonly timeoutMs: number;
+	private readonly requestTimeoutMs: number;
 	private readonly breaker: CircuitBreaker<
 		[
 			restaurantId: string,
@@ -40,14 +41,19 @@ export class MlEtaServiceClient implements IEtaService {
 				number
 			>
 		>,
+		requestTimeoutMs?: number,
 	) {
 		this.baseUrl = baseUrl.replace(/\/$/, '');
-		this.timeoutMs = timeoutMs;
-		const breakerTimeoutMs = breakerOptions?.timeoutMs ?? this.timeoutMs;
+		this.timeoutMs = breakerOptions?.timeoutMs ?? timeoutMs;
+		this.requestTimeoutMs =
+			requestTimeoutMs ??
+			(this.timeoutMs <= ETA_CONSTANTS.REQUEST_TIMEOUT_MS
+				? Math.max(1, Math.round(this.timeoutMs * 0.75))
+				: ETA_CONSTANTS.REQUEST_TIMEOUT_MS);
 
 		this.breaker = new CircuitBreaker(this.callPredictionApi, {
 			name: 'ml-eta-service',
-			timeoutMs: breakerTimeoutMs,
+			timeoutMs: this.timeoutMs,
 			resetTimeoutMs: config.circuitBreakers.eta.resetTimeoutMs,
 			errorThresholdPercentage: config.circuitBreakers.eta.errorThresholdPercentage,
 			volumeThreshold: config.circuitBreakers.eta.volumeThreshold,
@@ -112,7 +118,7 @@ export class MlEtaServiceClient implements IEtaService {
 					total_people_ahead: totalPeopleAhead,
 					party_size: partySize,
 				},
-				timeout: this.timeoutMs,
+				timeout: this.requestTimeoutMs,
 				headers: {
 					Accept: 'application/json',
 				},
