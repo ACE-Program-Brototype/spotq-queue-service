@@ -43,7 +43,7 @@ export class MlEtaServiceClient implements IEtaService {
 	) {
 		this.baseUrl = baseUrl.replace(/\/$/, '');
 		this.timeoutMs = timeoutMs;
-		const breakerTimeoutMs = breakerOptions?.timeoutMs ?? this.timeoutMs + 500;
+		const breakerTimeoutMs = breakerOptions?.timeoutMs ?? this.timeoutMs;
 
 		this.breaker = new CircuitBreaker(this.callPredictionApi, {
 			name: 'ml-eta-service',

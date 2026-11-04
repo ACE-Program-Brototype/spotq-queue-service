@@ -69,7 +69,7 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 		this.s2sPrivateKey = s2sPrivateKey;
 		this.targetServiceName = targetServiceName;
 		this.timeoutMs = timeoutMs;
-		const breakerTimeoutMs = breakerOptions?.timeoutMs ?? this.timeoutMs + 500;
+		const breakerTimeoutMs = breakerOptions?.timeoutMs ?? this.timeoutMs;
 
 		this.breaker = new CircuitBreaker(
 			async (operation: () => Promise<unknown>) => await operation(),
