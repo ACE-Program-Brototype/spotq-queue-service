@@ -21,7 +21,6 @@ export const config = {
 		restaurantServiceName: validatedEnv.RESTAURANT_SERVICE,
 		restaurantServiceUrl: validatedEnv.RESTAURANT_SERVICE_URL,
 		etaServiceUrl: validatedEnv.ETA_SERVICE_URL,
-		etaServiceTimeoutMs: validatedEnv.ETA_SERVICE_TIMEOUT_MS,
 		mockTableCheck: validatedEnv.MOCK_TABLE_CHECK,
 	},
 	s2s: {
@@ -57,6 +56,20 @@ export const config = {
 	rabbitmq: {
 		url: validatedEnv.RABBITMQ_URL,
 		mlEtaQueue: validatedEnv.RABBITMQ_ML_ETA_QUEUE,
+	},
+	circuitBreakers: {
+		eta: {
+			timeoutMs: validatedEnv.CIRCUIT_BREAKER_ETA_TIMEOUT_MS,
+			resetTimeoutMs: validatedEnv.CIRCUIT_BREAKER_ETA_RESET_TIMEOUT_MS,
+			errorThresholdPercentage: validatedEnv.CIRCUIT_BREAKER_ETA_ERROR_THRESHOLD,
+			volumeThreshold: validatedEnv.CIRCUIT_BREAKER_ETA_VOLUME_THRESHOLD,
+		},
+		restaurant: {
+			timeoutMs: validatedEnv.CIRCUIT_BREAKER_RESTAURANT_TIMEOUT_MS,
+			resetTimeoutMs: validatedEnv.CIRCUIT_BREAKER_RESTAURANT_RESET_TIMEOUT_MS,
+			errorThresholdPercentage: validatedEnv.CIRCUIT_BREAKER_RESTAURANT_ERROR_THRESHOLD,
+			volumeThreshold: validatedEnv.CIRCUIT_BREAKER_RESTAURANT_VOLUME_THRESHOLD,
+		},
 	},
 } as const;
 

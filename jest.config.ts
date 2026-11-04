@@ -5,6 +5,8 @@ const config: Config = {
 	setupFiles: ['<rootDir>/test/setup.ts'],
 	extensionsToTreatAsEsm: ['.ts'],
 	moduleNameMapper: {
+		'^@spotq-org/circuit-breaker$':
+			'<rootDir>/node_modules/@spotq-org/circuit-breaker/dist/index.js',
 		'^@domain/(.*)\\.(ts|js)$': '<rootDir>/src/domain/$1',
 		'^@domain/(.*)$': '<rootDir>/src/domain/$1',
 		'^@application/(.*)\\.(ts|js)$': '<rootDir>/src/application/$1',
