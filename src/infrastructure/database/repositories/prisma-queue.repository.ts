@@ -94,6 +94,36 @@ export class PrismaQueueRepository
 	}
 
 	/**
+	 * Calculates the sum of party sizes for parties ahead in the queue at the time a ticket was created.
+	 *
+	 * @param restaurantId - Restaurant UUID
+	 * @param joinedAt - The point in time when the party joined the queue
+	 * @returns Cumulative number of persons waiting ahead at the time of joining
+	 */
+	public async countPeopleAheadAtJoin(restaurantId: string, joinedAt: Date): Promise<number> {
+		return this.run(async () => {
+			const aggregate = await this.prismaClient.queueEntry.aggregate({
+				where: {
+					restaurantId,
+					joinedAt: {
+						lt: joinedAt,
+					},
+					OR: [{ seatedAt: null }, { seatedAt: { gt: joinedAt } }],
+					NOT: {
+						status: { in: [QueueStatus.CANCELLED, QueueStatus.NO_SHOW, QueueStatus.SKIPPED] },
+						updatedAt: { lte: joinedAt },
+					},
+				},
+				_sum: {
+					partySize: true,
+				},
+			});
+
+			return aggregate._sum.partySize ?? 0;
+		});
+	}
+
+	/**
 	 * Computes active queue metrics (depth and cumulative people waiting)
 	 * for a restaurant in a single database round-trip via Prisma aggregate.
 	 *

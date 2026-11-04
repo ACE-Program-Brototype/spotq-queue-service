@@ -74,4 +74,5 @@ export interface IQueueRepository extends IBaseRepository<QueueEntry, string> {
 		restaurantId: string,
 		filters: StaffQueueQueryFilters,
 	): Promise<StaffQueueSnapshotResult>;
+	countPeopleAheadAtJoin(restaurantId: string, joinedAt: Date): Promise<number>;
 }

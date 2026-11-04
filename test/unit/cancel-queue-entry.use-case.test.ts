@@ -74,6 +74,7 @@ describe('CancelQueueEntryUseCase Unit Tests', () => {
 			releaseTableAssignments: jest.fn().mockResolvedValue(undefined),
 			batchUpdatePositions: jest.fn(),
 			getStaffQueueSnapshot: jest.fn(),
+			countPeopleAheadAtJoin: jest.fn(),
 		};
 
 		mockRestaurantServiceClient = {

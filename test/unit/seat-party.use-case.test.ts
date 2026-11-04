@@ -75,6 +75,7 @@ describe('SeatPartyUseCase Unit Tests', () => {
 			releaseTableAssignments: jest.fn(),
 			batchUpdatePositions: jest.fn(),
 			getStaffQueueSnapshot: jest.fn(),
+			countPeopleAheadAtJoin: jest.fn(),
 		};
 
 		mockRestaurantServiceClient = {

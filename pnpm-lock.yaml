@@ -216,6 +216,9 @@ importers:
       '@socket.io/redis-adapter':
         specifier: ^8.3.0
         version: 8.3.0(socket.io-adapter@2.5.8(supports-color@8.1.1))(supports-color@8.1.1)
+      '@spotq-org/rabbitmq-client':
+        specifier: ^1.0.0
+        version: 1.0.0
       '@spotq-org/s2s-core':
         specifier: ^1.0.0
         version: 1.0.0(express@5.2.1(supports-color@8.1.1))
@@ -1534,6 +1537,10 @@ packages:
     peerDependencies:
       socket.io-adapter: ^2.5.4
 
+  '@spotq-org/rabbitmq-client@1.0.0':
+    resolution: {integrity: sha512-XVIGIDO8XyEcLPVbmNhYtEPme9sAIrTc4zQ054cZGZe/wwBO2ywRycl0oaOrJBRgr8hf6/+8jbPRY36jXjoWNw==}
+    engines: {node: '>=18.0.0'}
+
   '@spotq-org/s2s-core@1.0.0':
     resolution: {integrity: sha512-kDht1s0zEiRqDNo34h30CSonmD8hUsPjLcQ7M6oQ6XeloNn8HmH/tcZvZRkpPrqmfqGRr8sPWPsngbmKueGUEA==}
     engines: {node: '>=18.0.0'}
@@ -2085,6 +2092,10 @@ packages:
 
   ajv@8.20.0:
     resolution: {integrity: sha512-Thbli+OlOj+iMPYFBVBfJ3OmCAnaSyNn4M1vz9T6Gka5Jt9ba/HIR56joy65tY6kx/FCF5VXNB819Y7/GUrBGA==}
+
+  amqplib@2.2.0:
+    resolution: {integrity: sha512-VifzN9aHs/Q3zTruVHXh2yCisQyXexBN91CQ2E5iSyUKyNjH6ilYhJGte5AXZH/Bj1PaH7SwPhyuSf6Msd2udw==}
+    engines: {node: '>=18'}
 
   ansi-escapes@4.3.2:
     resolution: {integrity: sha512-gKXj5ALrKWQLsYG9jlTRmR/xKluxHV+Z9QEwNIgCfM1/uwPMCuzVVnh5mwTd+OuBZcwSIMbqssNWRm1lE51QaQ==}
@@ -5469,6 +5480,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@spotq-org/rabbitmq-client@1.0.0':
+    dependencies:
+      amqplib: 2.2.0
+
   '@spotq-org/s2s-core@1.0.0(express@5.2.1(supports-color@8.1.1))':
     dependencies:
       '@types/jsonwebtoken': 9.0.10
@@ -5951,6 +5966,8 @@ snapshots:
       fast-uri: 3.1.5
       json-schema-traverse: 1.0.0
       require-from-string: 2.0.2
+
+  amqplib@2.2.0: {}
 
   ansi-escapes@4.3.2:
     dependencies:

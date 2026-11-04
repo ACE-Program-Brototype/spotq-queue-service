@@ -48,7 +48,7 @@ const config: Config = {
 			},
 		],
 	},
-	transformIgnorePatterns: ['node_modules/(?!.*(inversify|@inversifyjs))'],
+	transformIgnorePatterns: ['node_modules/(?!.*(inversify|@inversifyjs|@spotq-org))'],
 };
 
 export default config;
