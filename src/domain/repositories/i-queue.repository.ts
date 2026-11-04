@@ -1,6 +1,6 @@
 import type { QueueEntry } from '../entities/queue-entry.entity.ts';
 import type { QueueStatus } from '../enums/queue.enums.ts';
-import type { IBaseRepository } from './base.repository.interface.ts';
+import type { IBaseRepository } from './i-base.repository.ts';
 
 export interface ActiveQueueMetrics {
 	queueDepth: number;
@@ -21,6 +21,23 @@ export interface StaffQueueSnapshotItem {
 export interface StaffQueueSnapshotResult {
 	totalWaiting: number;
 	entries: StaffQueueSnapshotItem[];
+}
+
+export interface UpdateStatusWithHistoryParams {
+	queueEntry: QueueEntry;
+	previousStatus: QueueStatus;
+	changedBy: string;
+	reason?: string | null;
+	notes?: string | null;
+}
+
+export interface ActiveTableAssignmentResult {
+	id: string;
+	queueEntryId: string;
+	tableId: string;
+	assignedBy: string;
+	assignedAt: Date;
+	releasedAt: Date | null;
 }
 
 export interface IQueueRepository extends IBaseRepository<QueueEntry, string> {
@@ -47,6 +64,12 @@ export interface IQueueRepository extends IBaseRepository<QueueEntry, string> {
 		assignedBy: string,
 		previousStatus: QueueStatus,
 	): Promise<QueueEntry>;
+	updateStatusWithHistory(params: UpdateStatusWithHistoryParams): Promise<QueueEntry>;
+	findActiveTableAssignments(queueEntryId: string): Promise<ActiveTableAssignmentResult[]>;
+	releaseTableAssignments(queueEntryId: string): Promise<void>;
+	batchUpdatePositions(
+		updates: Array<{ id: string; position: number | null; estimatedWaitMinutes?: number | null }>,
+	): Promise<void>;
 	getStaffQueueSnapshot(
 		restaurantId: string,
 		filters: StaffQueueQueryFilters,

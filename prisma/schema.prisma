@@ -39,6 +39,7 @@ model QueueEntry {
   fid                        String?          @map("fid")
   joinedAt                   DateTime         @default(now()) @map("joined_at") @db.Timestamptz(3)
   seatedAt                   DateTime?        @map("seated_at") @db.Timestamptz(3)
+  cancelledAt                DateTime?        @map("cancelled_at") @db.Timestamptz(3)
   createdAt                  DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt                  DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
 
@@ -72,6 +73,8 @@ model QueueStatusHistory {
   previousStatus QueueStatus? @map("previous_status")
   currentStatus  QueueStatus  @map("current_status")
   changedBy      String?      @map("changed_by")
+  reason         String?      @map("reason")
+  notes          String?      @map("notes")
   changedAt      DateTime     @default(now()) @map("changed_at") @db.Timestamptz(3)
 
   queueEntry QueueEntry @relation(fields: [queueEntryId], references: [id], onDelete: Cascade)

@@ -3,7 +3,7 @@ import type {
 	IBaseRepository,
 	PaginatedResult,
 	PaginationOptions,
-} from '@domain/repositories/base.repository.interface.ts';
+} from '@domain/repositories/i-base.repository.ts';
 import { PersistenceError } from '@infrastructure/errors/persistence.error.ts';
 import { Prisma } from '@prisma/client';
 import type { IEntityMapper } from '../mappers/queue-entry.mapper.ts';

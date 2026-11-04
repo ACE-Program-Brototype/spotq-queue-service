@@ -65,11 +65,17 @@ export const QUEUE_MESSAGES = {
 	TABLE_ASSIGNMENT_ERROR_PREFIX: 'Restaurant table assignment failed',
 	TABLE_ASSIGNMENT_FAILED_UPSTREAM: 'Failed to assign tables upstream',
 	ACTIVE_QUEUE_CHECK_SUCCESS: 'Active queue check completed successfully',
-
-	// CUSTOMER QUEUE STATUS
 	CUSTOMER_QUEUE_STATUS_FETCH: 'Customer queue status fetched successfully',
 
 	QUEUE_RETRIEVED_SUCCESS: 'Restaurant queue retrieved successfully',
+	SEAT_PARTY_SUCCESS: 'Party seated successfully',
+	SKIP_PARTY_SUCCESS: 'Party skipped successfully',
+	CANCEL_QUEUE_ENTRY_SUCCESS: 'Queue entry cancelled successfully',
+	NO_SHOW_QUEUE_ENTRY_SUCCESS: 'Queue entry marked as no-show successfully',
+	TABLE_RELEASE_FAILED_UPSTREAM: 'Failed to release tables upstream',
+	TABLE_RELEASE_ERROR_PREFIX: 'Restaurant table release failed',
+	QUEUE_ENTRY_NOT_ELIGIBLE: 'Queue entry is not eligible for this action',
+	INVALID_ACTION_REASON: 'Action reason is invalid or unsupported',
 } as const;
 
 /**
@@ -90,6 +96,15 @@ export const AUTH_MESSAGES = {
 export const VALIDATION_MESSAGES = {
 	INVALID_RESTAURANT_ID_UUID: 'restaurantId must be a valid UUID',
 	INVALID_USER_ID_UUID: 'userId must be a valid UUID',
+	INVALID_QUEUE_ENTRY_ID_UUID: 'queueEntryId must be a valid UUID',
+	TABLE_IDS_REQUIRED: 'tableIds array must contain at least one valid table UUID',
+	INVALID_TABLE_ID_UUID: 'tableId must be a valid UUID',
+	SKIP_REASON_REQUIRED: 'A reason for skipping is required',
+	CANCEL_REASON_REQUIRED: 'A reason for cancellation is required',
+	REASON_TOO_LONG: 'Reason cannot exceed 500 characters',
+	DUPLICATE_TABLE_ID: 'Duplicate tableId detected in assignment list',
+	INVALID_CANCEL_REASON:
+		'Invalid cancellation reason. Supported reasons: NO_SHOW, GUEST_CANCELLED, WALK_OUT, OTHER',
 } as const;
 
 /**

@@ -74,6 +74,10 @@ describe('AssignTableUseCase', () => {
 			findActiveByUserId: jest.fn(),
 			createWithHistory: jest.fn(),
 			assignTablesWithHistory: jest.fn(),
+			updateStatusWithHistory: jest.fn(),
+			findActiveTableAssignments: jest.fn(),
+			releaseTableAssignments: jest.fn(),
+			batchUpdatePositions: jest.fn(),
 			getStaffQueueSnapshot: jest.fn(),
 			countPeopleAheadAtJoin: jest.fn().mockResolvedValue(3),
 		};
@@ -82,6 +86,7 @@ describe('AssignTableUseCase', () => {
 			checkAvailability: jest.fn(),
 			getRestaurantStatus: jest.fn(),
 			assignTables: jest.fn().mockResolvedValue(undefined),
+			releaseTables: jest.fn().mockResolvedValue(undefined),
 		};
 
 		mockQueueCacheService = {
@@ -139,13 +144,11 @@ describe('AssignTableUseCase', () => {
 		expect(result.status).toBe(QueueStatus.SEATED);
 		expect(result.seatedAt).toBeDefined();
 
-		// Verify S2S call
 		expect(mockRestaurantServiceClient.assignTables).toHaveBeenCalledWith(restaurantId, [
 			{ tableId: tableId1, count: 2 },
 			{ tableId: tableId2, count: 2 },
 		]);
 
-		// Verify atomic persistence
 		expect(mockQueueRepository.assignTablesWithHistory).toHaveBeenCalledWith(
 			entry,
 			[tableId1, tableId2],
@@ -153,10 +156,8 @@ describe('AssignTableUseCase', () => {
 			QueueStatus.WAITING,
 		);
 
-		// Verify cache invalidation
 		expect(mockQueueCacheService.removeLiveEntry).toHaveBeenCalledWith(queueEntryId);
 
-		// Verify WebSocket broadcast
 		expect(mockSocketBroadcaster.broadcastToRestaurant).toHaveBeenCalledWith(
 			restaurantId,
 			WS_SERVER_EVENTS.TICKET_SEATED,

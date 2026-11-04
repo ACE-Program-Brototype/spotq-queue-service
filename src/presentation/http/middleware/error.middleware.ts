@@ -32,7 +32,6 @@ export function errorMiddleware(
 		return;
 	}
 
-	// 1. Zod schema validation errors
 	if (err instanceof ZodError) {
 		const errors = err.issues.map((issue) => ({
 			field: issue.path.join('.'),
@@ -49,7 +48,6 @@ export function errorMiddleware(
 		return;
 	}
 
-	// 2. Business domain errors (conflict, not found, forbidden, business rules)
 	if (err instanceof DomainError) {
 		const statusCode = mapDomainErrorToHttpStatus(err);
 		logger.warn(
@@ -68,7 +66,6 @@ export function errorMiddleware(
 		return;
 	}
 
-	// 3. Repository & Database persistence infrastructure errors
 	if (err instanceof PersistenceError) {
 		logger.error(
 			{ err, cause: err.cause, url: req.url, method: req.method },
@@ -84,7 +81,6 @@ export function errorMiddleware(
 		return;
 	}
 
-	// 4. Fallback for unhandled unexpected exceptions
 	logger.error({ err, method: req.method, url: req.url }, MESSAGES.UNHANDLED_ERROR);
 
 	const statusCode =

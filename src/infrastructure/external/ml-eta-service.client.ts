@@ -28,7 +28,6 @@ export class MlEtaServiceClient implements IEtaService {
 		totalPeopleAhead: number,
 		partySize: number,
 	): Promise<number> {
-		// Heuristic fallback in case ML model is cold, down, or fails:
 		const fallbackMinutes = Math.max(
 			ETA_CONSTANTS.BASE_FALLBACK_MINUTES,
 			Math.round(totalPeopleAhead * ETA_CONSTANTS.FALLBACK_MINUTES_PER_PERSON),

@@ -46,10 +46,6 @@ export function staffAuthMiddleware(req: Request, res: Response, next: NextFunct
 
 	const paramRestaurantId = getHeaderValue(req.params?.restaurantId)?.trim();
 
-	/*
-	 * Non-admin staff members must possess a valid restaurant context header
-	 * and are strictly restricted to accessing their assigned restaurant.
-	 */
 	if (!restaurantId || (paramRestaurantId && paramRestaurantId !== restaurantId)) {
 		res
 			.status(HTTP_STATUS.FORBIDDEN)

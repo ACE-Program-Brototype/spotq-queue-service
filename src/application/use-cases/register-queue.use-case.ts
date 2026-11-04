@@ -74,10 +74,6 @@ export class RegisterQueueUseCase implements IRegisterQueueUseCase {
 			throw new RestaurantNotAcceptingQueueError();
 		}
 
-		/*
-		 * If a table is already available, the guest must be seated
-		 * directly instead of adding them to the waiting queue.
-		 */
 		if (tableCheck.isTableAvailable) {
 			throw new TableAvailableError(tableCheck.availableCount);
 		}

@@ -11,5 +11,12 @@ export enum RegistrationType {
 	WALK_IN = 'WALK_IN',
 }
 
+export enum QueueCancelReason {
+	NO_SHOW = 'NO_SHOW',
+	GUEST_CANCELLED = 'GUEST_CANCELLED',
+	WALK_OUT = 'WALK_OUT',
+	OTHER = 'OTHER',
+}
+
 export const REGISTRATION_TYPE = RegistrationType;
 export type REGISTRATION_TYPE = RegistrationType;

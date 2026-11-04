@@ -4,7 +4,7 @@ import type {
 } from '@application/dtos/get-active-queue-by-user.dto.ts';
 import type { IGetActiveQueueByUserUseCase } from '@application/ports/use-cases/get-active-queue-by-user.use-case.port.ts';
 import { TYPES } from '@di/types.ts';
-import type { IQueueRepository } from '@domain/repositories/queue.repository.interface.ts';
+import type { IQueueRepository } from '@domain/repositories/i-queue.repository.ts';
 import { inject, injectable } from 'inversify';
 
 @injectable()
