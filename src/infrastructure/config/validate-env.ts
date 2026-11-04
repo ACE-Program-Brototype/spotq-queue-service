@@ -13,7 +13,6 @@ const envSchema = z.object({
 	RESTAURANT_SERVICE_URL: z.string().default('http://spotq-restaurant-service:3001'),
 	RESTAURANT_SERVICE: z.string().default('restaurant-service'),
 	ETA_SERVICE_URL: z.string().default('http://spotq-ml-eta-service:8000'),
-	ETA_SERVICE_TIMEOUT_MS: z.coerce.number().positive().default(ETA_CONSTANTS.DEFAULT_TIMEOUT_MS),
 	S2S_PRIVATE_KEY: z.string().optional(),
 	S2S_ORDER_PUBLIC: z.string().optional(),
 	S2S_RESTAURANT_PUBLIC: z.string().optional(),

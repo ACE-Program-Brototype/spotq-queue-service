@@ -122,6 +122,33 @@ describe('RestaurantServiceClient Circuit Breaker Integration', () => {
 			// Downstream calls were made each time (circuit did NOT trip OPEN)
 			expect(axiosGetSpy).toHaveBeenCalledTimes(3);
 		});
+
+		it('should not increment failure stats or trip circuit breaker on 4xx UpstreamServiceUnavailableError (e.g. 400 Bad Request)', async () => {
+			axiosGetSpy.mockRejectedValue(createAxiosError(400, 'Bad party size'));
+
+			client = new RestaurantServiceClient(
+				'http://restaurant-svc:3001',
+				false,
+				'queue-service',
+				undefined,
+				'restaurant-service',
+				500,
+				{
+					volumeThreshold: 1,
+					errorThresholdPercentage: 1,
+				},
+			);
+
+			// Repeat 400 Bad Request calls 3 times
+			for (let i = 0; i < 3; i++) {
+				await expect(client.getRestaurantStatus('rest-1')).rejects.toThrow(
+					UpstreamServiceUnavailableError,
+				);
+			}
+
+			// Downstream calls were made each time (circuit did NOT trip OPEN because 400 is a client error)
+			expect(axiosGetSpy).toHaveBeenCalledTimes(3);
+		});
 	});
 
 	describe('AC 7: Observability (Logging)', () => {
@@ -261,6 +288,33 @@ describe('RestaurantServiceClient Circuit Breaker Integration', () => {
 			expect(result.restaurantId).toBe('rest-1');
 			expect(result.isTableAvailable).toBe(false);
 			expect(axiosGetSpy).not.toHaveBeenCalled();
+		});
+	});
+
+	describe('Timeout & Request Cancellation', () => {
+		it('should abort in-flight Axios request when circuit breaker times out', async () => {
+			let capturedSignal: AbortSignal | undefined;
+			axiosGetSpy.mockImplementation((_url, config) => {
+				capturedSignal = config?.signal;
+				return new Promise((resolve) => setTimeout(resolve, 200));
+			});
+
+			client = new RestaurantServiceClient(
+				'http://restaurant-svc:3001',
+				false,
+				'queue-service',
+				undefined,
+				'restaurant-service',
+				100,
+				{
+					timeoutMs: 30,
+				},
+			);
+
+			await expect(client.getRestaurantStatus('rest-1')).rejects.toThrow(
+				UpstreamServiceUnavailableError,
+			);
+			expect(capturedSignal?.aborted).toBe(true);
 		});
 	});
 });

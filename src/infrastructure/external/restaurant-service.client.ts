@@ -68,12 +68,13 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 		this.s2sPrivateKey = s2sPrivateKey;
 		this.targetServiceName = targetServiceName;
 		this.timeoutMs = timeoutMs;
+		const breakerTimeoutMs = breakerOptions?.timeoutMs ?? this.timeoutMs + 500;
 
 		this.breaker = new CircuitBreaker(
 			async (operation: () => Promise<unknown>) => await operation(),
 			{
 				name: this.targetServiceName,
-				timeoutMs: this.timeoutMs,
+				timeoutMs: breakerTimeoutMs,
 				resetTimeoutMs: config.circuitBreakers.restaurant.resetTimeoutMs,
 				errorThresholdPercentage: config.circuitBreakers.restaurant.errorThresholdPercentage,
 				volumeThreshold: config.circuitBreakers.restaurant.volumeThreshold,
@@ -81,11 +82,29 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 					if (err instanceof RestaurantNotFoundError) {
 						return false;
 					}
-					if (axios.isAxiosError(err)) {
-						if (err.response?.status === 404) {
+					if (err instanceof UpstreamServiceUnavailableError) {
+						const statusCode = (err.details as { upstreamStatusCode?: number })?.upstreamStatusCode;
+						if (
+							statusCode &&
+							statusCode >= HTTP_STATUS.BAD_REQUEST &&
+							statusCode < HTTP_STATUS.INTERNAL_SERVER_ERROR
+						) {
 							return false;
 						}
-						if (err.response?.status && err.response.status >= 400 && err.response.status < 500) {
+						return true;
+					}
+					if (err instanceof DomainError) {
+						return false;
+					}
+					if (axios.isAxiosError(err)) {
+						if (err.response?.status === HTTP_STATUS.NOT_FOUND) {
+							return false;
+						}
+						if (
+							err.response?.status &&
+							err.response.status >= HTTP_STATUS.BAD_REQUEST &&
+							err.response.status < HTTP_STATUS.INTERNAL_SERVER_ERROR
+						) {
 							return false;
 						}
 					}
@@ -117,10 +136,12 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 	/**
 	 * Executes an upstream operation through the circuit breaker, fast-failing if OPEN.
 	 */
-	private async executeWithBreaker<T>(operation: () => Promise<T>): Promise<T> {
+	private async executeWithBreaker<T>(operation: (signal: AbortSignal) => Promise<T>): Promise<T> {
+		const controller = new AbortController();
 		try {
-			return (await this.breaker.execute(operation)) as T;
+			return (await this.breaker.execute(async () => await operation(controller.signal))) as T;
 		} catch (error) {
+			controller.abort();
 			if (error instanceof CircuitBreakerOpenError) {
 				logger.warn(
 					{ service: this.targetServiceName },
@@ -180,10 +201,11 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 	 * @returns Promise resolving to RestaurantStatusResult
 	 */
 	async getRestaurantStatus(restaurantId: string): Promise<RestaurantStatusResult> {
-		return this.executeWithBreaker(async () => {
+		return this.executeWithBreaker(async (signal) => {
 			try {
 				const url = `${this.baseUrl}${RESTAURANT_SERVICE_ROUTES.VALIDATION(restaurantId)}`;
 				const response = await axios.get<IApiResponseEnvelope<RestaurantStatusResult>>(url, {
+					signal,
 					timeout: this.timeoutMs,
 					headers: this.getInternalHeaders(),
 				});
@@ -201,7 +223,7 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 				}
 
 				if (axios.isAxiosError(error)) {
-					if (error.response?.status === 404) {
+					if (error.response?.status === HTTP_STATUS.NOT_FOUND) {
 						throw new RestaurantNotFoundError(restaurantId);
 					}
 
@@ -215,7 +237,9 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 					);
 
 					const statusCode =
-						error.response?.status && error.response.status >= 400 && error.response.status < 500
+						error.response?.status &&
+						error.response.status >= HTTP_STATUS.BAD_REQUEST &&
+						error.response.status < HTTP_STATUS.INTERNAL_SERVER_ERROR
 							? error.response.status
 							: HTTP_STATUS.SERVICE_UNAVAILABLE;
 
@@ -260,10 +284,11 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 			};
 		}
 
-		return this.executeWithBreaker(async () => {
+		return this.executeWithBreaker(async (signal) => {
 			try {
 				const url = `${this.baseUrl}${RESTAURANT_SERVICE_ROUTES.TABLE_AVAILABILITY(restaurantId)}`;
 				const response = await axios.get<IApiResponseEnvelope<TableAvailabilityResult>>(url, {
+					signal,
 					params: { partySize },
 					timeout: this.timeoutMs,
 					headers: this.getInternalHeaders(),
@@ -282,7 +307,7 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 				}
 
 				if (axios.isAxiosError(error)) {
-					if (error.response?.status === 404) {
+					if (error.response?.status === HTTP_STATUS.NOT_FOUND) {
 						throw new RestaurantNotFoundError(restaurantId);
 					}
 
@@ -296,7 +321,9 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 					);
 
 					const statusCode =
-						error.response?.status && error.response.status >= 400 && error.response.status < 500
+						error.response?.status &&
+						error.response.status >= HTTP_STATUS.BAD_REQUEST &&
+						error.response.status < HTTP_STATUS.INTERNAL_SERVER_ERROR
 							? error.response.status
 							: HTTP_STATUS.SERVICE_UNAVAILABLE;
 
@@ -317,13 +344,14 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 	}
 
 	async assignTables(restaurantId: string, tables: AssignTableItem[]): Promise<void> {
-		return this.executeWithBreaker(async () => {
+		return this.executeWithBreaker(async (signal) => {
 			try {
 				const url = `${this.baseUrl}${RESTAURANT_SERVICE_ROUTES.ASSIGN_TABLE(restaurantId)}`;
 				const response = await axios.patch<IApiResponseEnvelope<null>>(
 					url,
 					{ tables },
 					{
+						signal,
 						timeout: this.timeoutMs,
 						headers: this.getInternalHeaders(),
 					},
@@ -340,7 +368,7 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 				}
 
 				if (axios.isAxiosError(error)) {
-					if (error.response?.status === 404) {
+					if (error.response?.status === HTTP_STATUS.NOT_FOUND) {
 						throw new RestaurantNotFoundError(restaurantId);
 					}
 
@@ -354,7 +382,9 @@ export class RestaurantServiceClient implements IRestaurantServiceClient {
 					);
 
 					const statusCode =
-						error.response?.status && error.response.status >= 400 && error.response.status < 500
+						error.response?.status &&
+						error.response.status >= HTTP_STATUS.BAD_REQUEST &&
+						error.response.status < HTTP_STATUS.INTERNAL_SERVER_ERROR
 							? error.response.status
 							: HTTP_STATUS.SERVICE_UNAVAILABLE;
 

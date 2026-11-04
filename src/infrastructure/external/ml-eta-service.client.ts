@@ -2,6 +2,7 @@ import type { IEtaService } from '@application/ports/services/eta-service.port.t
 import { config } from '@infrastructure/config/index.ts';
 import { logger } from '@infrastructure/logger/index.ts';
 import { ETA_CONSTANTS } from '@shared/constants/eta.constants.ts';
+import { HTTP_STATUS } from '@shared/constants/http.constants.ts';
 import { ML_ETA_SERVICE_ROUTES } from '@shared/constants/routes.constants.ts';
 import { CircuitBreaker, type CircuitBreakerOptions } from '@spotq-org/circuit-breaker';
 import axios from 'axios';
@@ -16,31 +17,52 @@ export class MlEtaServiceClient implements IEtaService {
 	private readonly baseUrl: string;
 	private readonly timeoutMs: number;
 	private readonly breaker: CircuitBreaker<
-		[restaurantId: string, totalPeopleAhead: number, partySize: number],
+		[
+			restaurantId: string,
+			totalPeopleAhead: number,
+			partySize: number,
+			controller?: AbortController,
+		],
 		number
 	>;
 
 	constructor(
 		baseUrl: string = config.services.etaServiceUrl,
 		timeoutMs: number = config.circuitBreakers.eta.timeoutMs,
-		breakerOptions?: Partial<CircuitBreakerOptions<[string, number, number], number>>,
+		breakerOptions?: Partial<
+			CircuitBreakerOptions<
+				[
+					restaurantId: string,
+					totalPeopleAhead: number,
+					partySize: number,
+					controller?: AbortController,
+				],
+				number
+			>
+		>,
 	) {
 		this.baseUrl = baseUrl.replace(/\/$/, '');
 		this.timeoutMs = timeoutMs;
+		const breakerTimeoutMs = breakerOptions?.timeoutMs ?? this.timeoutMs + 500;
 
 		this.breaker = new CircuitBreaker(this.callPredictionApi, {
 			name: 'ml-eta-service',
-			timeoutMs: this.timeoutMs,
+			timeoutMs: breakerTimeoutMs,
 			resetTimeoutMs: config.circuitBreakers.eta.resetTimeoutMs,
 			errorThresholdPercentage: config.circuitBreakers.eta.errorThresholdPercentage,
 			volumeThreshold: config.circuitBreakers.eta.volumeThreshold,
 			checkIsFailure: (err) => {
-				if (axios.isAxiosError(err) && err.response?.status && err.response.status < 500) {
+				if (
+					axios.isAxiosError(err) &&
+					err.response?.status &&
+					err.response.status < HTTP_STATUS.INTERNAL_SERVER_ERROR
+				) {
 					return false;
 				}
 				return true;
 			},
-			fallback: (_restaurantId, totalPeopleAhead) => {
+			fallback: (_restaurantId, totalPeopleAhead, _partySize, controller) => {
+				controller?.abort();
 				return this.computeFallbackMinutes(totalPeopleAhead);
 			},
 			onOpen: () => {
@@ -79,10 +101,12 @@ export class MlEtaServiceClient implements IEtaService {
 		restaurantId: string,
 		totalPeopleAhead: number,
 		partySize: number,
+		controller?: AbortController,
 	): Promise<number> => {
 		const response = await axios.get<IMlEtaPredictionResponse>(
 			`${this.baseUrl}${ML_ETA_SERVICE_ROUTES.PREDICT}`,
 			{
+				signal: controller?.signal,
 				params: {
 					restaurant_id: restaurantId,
 					total_people_ahead: totalPeopleAhead,
@@ -99,7 +123,7 @@ export class MlEtaServiceClient implements IEtaService {
 
 		if (
 			typeof data?.estimated_wait_minutes === 'number' &&
-			!Number.isNaN(data.estimated_wait_minutes)
+			Number.isFinite(data.estimated_wait_minutes)
 		) {
 			return Math.max(0, Math.round(data.estimated_wait_minutes));
 		}
@@ -112,9 +136,11 @@ export class MlEtaServiceClient implements IEtaService {
 		totalPeopleAhead: number,
 		partySize: number,
 	): Promise<number> {
+		const controller = new AbortController();
 		try {
-			return await this.breaker.execute(restaurantId, totalPeopleAhead, partySize);
+			return await this.breaker.execute(restaurantId, totalPeopleAhead, partySize, controller);
 		} catch (error) {
+			controller.abort();
 			logger.warn(
 				{ err: error, restaurantId },
 				'ML ETA prediction failed. Returning deterministic fallback ETA.',

@@ -44,6 +44,27 @@ describe('MlEtaServiceClient Circuit Breaker Integration', () => {
 		expect(axiosGetSpy).toHaveBeenCalledTimes(1);
 	});
 
+	it('should return fallback ETA when ML prediction returns non-finite numbers (Infinity, -Infinity, NaN)', async () => {
+		client = new MlEtaServiceClient('http://test-ml:8000', 500, {
+			volumeThreshold: 10,
+		});
+
+		const totalPeopleAhead = 4;
+		const expectedFallback = Math.max(
+			ETA_CONSTANTS.BASE_FALLBACK_MINUTES,
+			Math.round(totalPeopleAhead * ETA_CONSTANTS.FALLBACK_MINUTES_PER_PERSON),
+		);
+
+		for (const nonFiniteValue of [Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN]) {
+			axiosGetSpy.mockResolvedValueOnce({
+				data: { estimated_wait_minutes: nonFiniteValue },
+			});
+
+			const eta = await client.predictEta('rest-1', totalPeopleAhead, 2);
+			expect(eta).toBe(expectedFallback);
+		}
+	});
+
 	it('AC 4: should immediately return deterministic fallback ETA when call fails', async () => {
 		axiosGetSpy.mockRejectedValue(new Error('Internal Server Error 500'));
 
@@ -69,13 +90,14 @@ describe('MlEtaServiceClient Circuit Breaker Integration', () => {
 		expect(axiosGetSpy.mock.calls.length).toBe(axiosCallCount);
 	});
 
-	it('AC 4: should invoke fallback on timeout without waiting for future calls', async () => {
-		axiosGetSpy.mockImplementation(
-			() =>
-				new Promise((resolve) =>
-					setTimeout(() => resolve({ data: { estimated_wait_minutes: 25 } }), 150),
-				),
-		);
+	it('AC 4: should invoke fallback on timeout and abort in-flight Axios request', async () => {
+		let capturedSignal: AbortSignal | undefined;
+		axiosGetSpy.mockImplementation((_url, config) => {
+			capturedSignal = config?.signal;
+			return new Promise((resolve) =>
+				setTimeout(() => resolve({ data: { estimated_wait_minutes: 25 } }), 150),
+			);
+		});
 
 		client = new MlEtaServiceClient('http://test-ml:8000', 30, {
 			volumeThreshold: 1,
@@ -91,6 +113,7 @@ describe('MlEtaServiceClient Circuit Breaker Integration', () => {
 
 		const result = await client.predictEta('rest-1', totalPeopleAhead, 2);
 		expect(result).toBe(expectedFallback);
+		expect(capturedSignal?.aborted).toBe(true);
 	});
 
 	it('AC 7: should log warning on trip to OPEN and info on recovery to CLOSED', async () => {
