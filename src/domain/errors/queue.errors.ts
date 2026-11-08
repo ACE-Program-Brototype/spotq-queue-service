@@ -111,3 +111,9 @@ export class UnauthorizedError extends DomainError {
 		super(message, 'UNAUTHORIZED');
 	}
 }
+
+export class ForbiddenTicketAccessError extends DomainError {
+	constructor(message: string = 'You are not authorized to view this queue ticket') {
+		super(message, 'FORBIDDEN');
+	}
+}

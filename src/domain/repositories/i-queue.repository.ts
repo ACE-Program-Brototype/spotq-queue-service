@@ -40,6 +40,13 @@ export interface ActiveTableAssignmentResult {
 	releasedAt: Date | null;
 }
 
+export interface CustomerQueueEntrySnapshotResult {
+	entry: QueueEntry;
+	position: number | null;
+	totalWaitingParties: number;
+	assignedTableId: string | null;
+}
+
 export interface IQueueRepository extends IBaseRepository<QueueEntry, string> {
 	findActiveByUserId(userId: string): Promise<QueueEntry | null>;
 	findActiveEntries(restaurantId: string): Promise<QueueEntry[]>;
@@ -75,4 +82,8 @@ export interface IQueueRepository extends IBaseRepository<QueueEntry, string> {
 		filters: StaffQueueQueryFilters,
 	): Promise<StaffQueueSnapshotResult>;
 	countPeopleAheadAtJoin(restaurantId: string, joinedAt: Date): Promise<number>;
+	getCustomerQueueEntrySnapshot?(
+		restaurantId: string,
+		queueEntryId: string,
+	): Promise<CustomerQueueEntrySnapshotResult | null>;
 }

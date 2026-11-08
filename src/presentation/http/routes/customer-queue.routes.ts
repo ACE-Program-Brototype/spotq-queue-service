@@ -6,6 +6,10 @@ import {
 	validateRequestQuery,
 } from '@presentation/http/middleware/index.ts';
 import {
+	getCustomerQueueStatusParamsSchema,
+	getCustomerQueueStatusQuerySchema,
+} from '@presentation/http/validators/get-customer-queue-status.validator.ts';
+import {
 	getEtaParamsSchema,
 	getEtaQuerySchema,
 } from '@presentation/http/validators/get-eta.validator.ts';
@@ -24,6 +28,14 @@ customerQueueRouter.get(
 	validateRequestParams(getEtaParamsSchema),
 	validateRequestQuery(getEtaQuerySchema),
 	customerQueueController.getEta,
+);
+
+customerQueueRouter.get(
+	ROUTES.CUSTOMER_QUEUE_STATUS,
+	customerAuthMiddleware,
+	validateRequestParams(getCustomerQueueStatusParamsSchema),
+	validateRequestQuery(getCustomerQueueStatusQuerySchema),
+	customerQueueController.getQueueStatus,
 );
 
 customerQueueRouter.post(

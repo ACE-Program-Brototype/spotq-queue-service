@@ -1,3 +1,4 @@
+import type { IGetCustomerQueueStatusSnapshotUseCase } from '@application/ports/use-cases/get-customer-queue-status-snapshot.use-case.port.ts';
 import type { IGetQueueEtaUseCase } from '@application/ports/use-cases/get-queue-eta.use-case.port.ts';
 import type { IRegisterQueueUseCase } from '@application/ports/use-cases/register-queue.use-case.port.ts';
 import { TYPES } from '@di/types.ts';
@@ -13,6 +14,10 @@ import {
 } from '@shared/index.ts';
 import type { Request, Response } from 'express';
 import { inject, injectable } from 'inversify';
+import type {
+	GetCustomerQueueStatusParams,
+	GetCustomerQueueStatusQuery,
+} from '../validators/get-customer-queue-status.validator.ts';
 import type { GetEtaParams, GetEtaQuery } from '../validators/get-eta.validator.ts';
 import type { JoinQueueBody, JoinQueueParams } from '../validators/join-queue.validator.ts';
 
@@ -23,6 +28,8 @@ export class CustomerQueueController {
 		private readonly getQueueEtaUseCase: IGetQueueEtaUseCase,
 		@inject(TYPES.UseCases.RegisterQueueUseCase)
 		private readonly registerQueueUseCase: IRegisterQueueUseCase,
+		@inject(TYPES.UseCases.GetCustomerQueueStatusSnapshotUseCase)
+		private readonly getCustomerQueueStatusSnapshotUseCase: IGetCustomerQueueStatusSnapshotUseCase,
 	) {}
 
 	getEta = async (req: Request, res: Response): Promise<void> => {
@@ -35,6 +42,18 @@ export class CustomerQueueController {
 		});
 
 		sendSuccessResponse(res, result, QUEUE_MESSAGES.ETA_RETRIEVED_SUCCESS, HTTP_STATUS.OK);
+	};
+
+	getQueueStatus = async (req: Request, res: Response): Promise<void> => {
+		const { restaurantId } = req.params as unknown as GetCustomerQueueStatusParams;
+		const { queueEntryId } = req.query as unknown as GetCustomerQueueStatusQuery;
+
+		const result = await this.getCustomerQueueStatusSnapshotUseCase.execute({
+			restaurantId,
+			queueEntryId,
+		});
+
+		sendSuccessResponse(res, result, QUEUE_MESSAGES.CUSTOMER_QUEUE_STATUS_FETCH, HTTP_STATUS.OK);
 	};
 
 	joinQueue = async (req: Request, res: Response): Promise<void> => {

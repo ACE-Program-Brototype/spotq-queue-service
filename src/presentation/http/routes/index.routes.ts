@@ -13,6 +13,7 @@ router.use(ROUTES.ROOT, metricsRouter);
 router.use(ROUTES.STAFF_BASE, staffQueueRouter);
 router.use(ROUTES.API_V1_STAFF_BASE, staffQueueRouter);
 router.use(ROUTES.CUSTOMER_BASE, customerQueueRouter);
+router.use(ROUTES.ROOT, customerQueueRouter);
 router.use(INTERNAL_ROUTES.BASE, internalQueueRouter);
 
 export { router };

@@ -3,6 +3,7 @@ import {
 	ActiveQueueEntryExistsError,
 	type ActiveTableAssignmentResult,
 	ActiveUserQueueEntryExistsError,
+	type CustomerQueueEntrySnapshotResult,
 	type IQueueRepository,
 	type QueueEntry,
 	QueueStatus,
@@ -517,6 +518,66 @@ export class PrismaQueueRepository
 			return {
 				totalWaiting,
 				entries,
+			};
+		});
+	}
+
+	public async getCustomerQueueEntrySnapshot(
+		restaurantId: string,
+		queueEntryId: string,
+	): Promise<CustomerQueueEntrySnapshotResult | null> {
+		return this.run(async () => {
+			const entryRecord = await this.prismaClient.queueEntry.findFirst({
+				where: {
+					id: queueEntryId,
+					restaurantId,
+				},
+				include: {
+					tableAssignments: {
+						where: {
+							releasedAt: null,
+						},
+						orderBy: QUEUE_QUERY_CONSTANTS.LATEST_ACTIVE_TABLE_ASSIGNMENT.ORDER_BY,
+						take: QUEUE_QUERY_CONSTANTS.LATEST_ACTIVE_TABLE_ASSIGNMENT.TAKE,
+					},
+				},
+			});
+
+			if (!entryRecord) {
+				return null;
+			}
+
+			const entry = this.mapper.toDomain(entryRecord);
+			const assignedTableId = entryRecord.tableAssignments[0]?.tableId ?? null;
+
+			const [totalWaitingParties, aheadCount] = await Promise.all([
+				this.prismaClient.queueEntry.count({
+					where: {
+						restaurantId,
+						status: QueueStatus.WAITING,
+					},
+				}),
+				entry.status === QueueStatus.WAITING
+					? this.prismaClient.queueEntry.count({
+							where: {
+								restaurantId,
+								status: QueueStatus.WAITING,
+								OR: [
+									{ joinedAt: { lt: entry.joinedAt } },
+									{ joinedAt: entry.joinedAt, id: { lt: entry.id } },
+								],
+							},
+						})
+					: Promise.resolve(null),
+			]);
+
+			const position = aheadCount !== null ? aheadCount + 1 : null;
+
+			return {
+				entry,
+				position,
+				totalWaitingParties,
+				assignedTableId,
 			};
 		});
 	}

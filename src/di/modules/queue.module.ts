@@ -8,6 +8,7 @@ import type { IRestaurantServiceClient } from '@application/ports/services/resta
 import type { IWebSocketBroadcaster } from '@application/ports/services/websocket-broadcaster.port.ts';
 import type { IAssignTableUseCase } from '@application/ports/use-cases/assign-table.use-case.port.ts';
 import type { IGetActiveQueueByUserUseCase } from '@application/ports/use-cases/get-active-queue-by-user.use-case.port.ts';
+import type { IGetCustomerQueueStatusSnapshotUseCase } from '@application/ports/use-cases/get-customer-queue-status-snapshot.use-case.port.ts';
 import type { IGetQueueEtaUseCase } from '@application/ports/use-cases/get-queue-eta.use-case.port.ts';
 import type { IGetStaffQueueUseCase } from '@application/ports/use-cases/get-staff-queue.use-case.port.ts';
 import type { ICancelQueueEntryUseCase } from '@application/ports/use-cases/queue/cancel-queue-entry.use-case.port.ts';
@@ -17,6 +18,7 @@ import type { IRegisterQueueUseCase } from '@application/ports/use-cases/registe
 import type { IRingCustomerUseCase } from '@application/ports/use-cases/ring-customer.use-case.port.ts';
 import { AssignTableUseCase } from '@application/use-cases/assign-table.use-case.ts';
 import { GetActiveQueueByUserUseCase } from '@application/use-cases/get-active-queue-by-user.use-case.ts';
+import { GetCustomerQueueStatusSnapshotUseCase } from '@application/use-cases/get-customer-queue-status-snapshot.use-case.ts';
 import { GetQueueEtaUseCase } from '@application/use-cases/get-queue-eta.use-case.ts';
 import { GetStaffQueueUseCase } from '@application/use-cases/get-staff-queue.use-case.ts';
 import { CancelQueueEntryUseCase } from '@application/use-cases/queue/cancel-queue-entry.use-case.ts';
@@ -121,6 +123,10 @@ export const queueModule = new ContainerModule(({ bind }) => {
 
 	bind<IGetActiveQueueByUserUseCase>(TYPES.UseCases.GetActiveQueueByUserUseCase)
 		.to(GetActiveQueueByUserUseCase)
+		.inSingletonScope();
+
+	bind<IGetCustomerQueueStatusSnapshotUseCase>(TYPES.UseCases.GetCustomerQueueStatusSnapshotUseCase)
+		.to(GetCustomerQueueStatusSnapshotUseCase)
 		.inSingletonScope();
 
 	bind<IGetQueueEtaUseCase>(TYPES.UseCases.GetQueueEtaUseCase)
