@@ -142,6 +142,46 @@ describe('Customer Queue Status Snapshot API Integration Tests', () => {
 			expect(res.body.code).toBe('QUEUE_ENTRY_NOT_FOUND');
 		});
 
+		it('should return 403 Forbidden when ticket has WALK_IN registration type', async () => {
+			const entry = QueueEntry.reconstitute({
+				id: validQueueEntryId,
+				restaurantId: validRestaurantId,
+				userId: null,
+				guestName: 'Walk-in Guest',
+				phone: '+15559876543',
+				queueNumber: 'W-002',
+				partySize: 2,
+				specialNotes: null,
+				registrationType: RegistrationType.WALK_IN,
+				position: 1,
+				estimatedWaitMinutes: 5,
+				estimatedWaitMinutesAtJoin: 5,
+				status: QueueStatus.WAITING,
+				ringCount: 0,
+				lastRingedAt: null,
+				fid: null,
+				joinedAt: new Date('2026-11-08T10:00:00.000Z'),
+				seatedAt: null,
+				createdAt: new Date('2026-11-08T10:00:00.000Z'),
+				updatedAt: new Date('2026-11-08T10:00:00.000Z'),
+			});
+			jest.spyOn(queueRepository, 'getCustomerQueueEntrySnapshot').mockResolvedValueOnce({
+				entry,
+				position: 1,
+				totalWaitingParties: 2,
+				assignedTableId: null,
+			});
+
+			const res = await request(app)
+				.get(customerEndpoint)
+				.set('x-user-id', validUserId)
+				.query({ queueEntryId: validQueueEntryId });
+
+			expect(res.status).toBe(HTTP_STATUS.FORBIDDEN);
+			expect(res.body.success).toBe(false);
+			expect(res.body.code).toBe('WALK_IN_TICKET_NOT_ACCESSIBLE');
+		});
+
 		it('should return 200 with queue status snapshot on valid request', async () => {
 			const entry = createMockEntry(QueueStatus.WAITING, validUserId);
 			jest.spyOn(queueRepository, 'getCustomerQueueEntrySnapshot').mockResolvedValueOnce({

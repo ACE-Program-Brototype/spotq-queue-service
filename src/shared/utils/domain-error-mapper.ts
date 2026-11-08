@@ -29,6 +29,7 @@ export function mapDomainErrorToHttpStatus(
 		case 'FORBIDDEN':
 		case 'RESTAURANT_BLOCKED':
 		case 'SUBSCRIPTION_REQUIRED':
+		case 'WALK_IN_TICKET_NOT_ACCESSIBLE':
 			return HTTP_STATUS.FORBIDDEN;
 
 		case 'INVALID_PARTY_SIZE':

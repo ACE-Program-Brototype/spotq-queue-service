@@ -60,6 +60,8 @@ export const QUEUE_MESSAGES = {
 	INSUFFICIENT_TABLE_CAPACITY: 'Assigned table capacity is less than party size',
 	CANNOT_RING_WALK_IN_CUSTOMER:
 		'Walk-in customer cannot be rung as they do not have a registered device',
+	WALK_IN_NOT_ACCESSIBLE:
+		'Walk-in queue entries cannot be accessed via the customer queue status API',
 	UPSTREAM_SERVICE_UNAVAILABLE:
 		'Upstream service is currently unavailable. Please try again later.',
 	TABLE_ASSIGNMENT_ERROR_PREFIX: 'Restaurant table assignment failed',

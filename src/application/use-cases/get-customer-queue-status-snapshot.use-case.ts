@@ -6,7 +6,13 @@ import type { IQueueCacheService } from '@application/ports/cache/queue-cache.po
 import type { IRestaurantServiceClient } from '@application/ports/services/restaurant-service.port.ts';
 import type { IGetCustomerQueueStatusSnapshotUseCase } from '@application/ports/use-cases/get-customer-queue-status-snapshot.use-case.port.ts';
 import { TYPES } from '@di/types.ts';
-import { type IQueueRepository, QueueEntryNotFoundError, QueueStatus } from '@domain/index.ts';
+import {
+	type IQueueRepository,
+	QueueEntryNotFoundError,
+	QueueStatus,
+	RegistrationType,
+	WalkInTicketNotAccessibleError,
+} from '@domain/index.ts';
 import { logger } from '@infrastructure/logger/index.ts';
 import { inject, injectable } from 'inversify';
 
@@ -38,6 +44,10 @@ export class GetCustomerQueueStatusSnapshotUseCase
 		}
 
 		const { entry, totalWaitingParties, assignedTableId } = snapshot;
+
+		if (entry.registrationType === RegistrationType.WALK_IN) {
+			throw new WalkInTicketNotAccessibleError(queueEntryId);
+		}
 
 		let restaurantName = '';
 		try {

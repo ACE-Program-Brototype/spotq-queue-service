@@ -117,3 +117,11 @@ export class ForbiddenTicketAccessError extends DomainError {
 		super(message, 'FORBIDDEN');
 	}
 }
+
+export class WalkInTicketNotAccessibleError extends DomainError {
+	constructor(queueEntryId?: string) {
+		super(QUEUE_MESSAGES.WALK_IN_NOT_ACCESSIBLE, 'WALK_IN_TICKET_NOT_ACCESSIBLE', {
+			queueEntryId,
+		});
+	}
+}

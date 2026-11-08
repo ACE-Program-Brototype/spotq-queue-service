@@ -7,6 +7,7 @@ import {
 	QueueEntryNotFoundError,
 	QueueStatus,
 	RegistrationType,
+	WalkInTicketNotAccessibleError,
 } from '@domain/index.ts';
 
 describe('GetCustomerQueueStatusSnapshotUseCase Unit Tests', () => {
@@ -127,6 +128,28 @@ describe('GetCustomerQueueStatusSnapshotUseCase Unit Tests', () => {
 			restaurantId,
 			queueEntryId,
 		);
+	});
+
+	it('should throw WalkInTicketNotAccessibleError when entry has WALK_IN registration type', async () => {
+		const entry = createMockQueueEntry({
+			registrationType: RegistrationType.WALK_IN,
+			userId: null,
+		});
+		mockQueueRepository.getCustomerQueueEntrySnapshot.mockResolvedValueOnce({
+			entry,
+			position: 1,
+			totalWaitingParties: 2,
+			assignedTableId: null,
+		});
+
+		await expect(
+			useCase.execute({
+				restaurantId,
+				queueEntryId,
+			}),
+		).rejects.toThrow(WalkInTicketNotAccessibleError);
+
+		expect(mockQueueCacheService.cachePosition).not.toHaveBeenCalled();
 	});
 
 	it('should successfully return status snapshot for waiting queue entry', async () => {
