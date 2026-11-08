@@ -5,6 +5,7 @@ import type {
 import { AssignTableMapper } from '@application/mappers/assign-table.mapper.ts';
 import type { IQueueCacheService } from '@application/ports/cache/queue-cache.port.ts';
 import type { ILogger } from '@application/ports/services/logger-service.port.ts';
+import type { IQueuePositionRecalculator } from '@application/ports/services/queue-position-recalculator.port.ts';
 import type { IRabbitMQService } from '@application/ports/services/rabbitmq-service.port.ts';
 import type { IRestaurantServiceClient } from '@application/ports/services/restaurant-service.port.ts';
 import type { IWebSocketBroadcaster } from '@application/ports/services/websocket-broadcaster.port.ts';
@@ -29,6 +30,8 @@ export class AssignTableUseCase implements IAssignTableUseCase {
 		private readonly queueCacheService: IQueueCacheService,
 		@inject(TYPES.Services.WebSocketBroadcaster)
 		private readonly socketBroadcaster: IWebSocketBroadcaster,
+		@inject(TYPES.Services.QueuePositionRecalculator)
+		private readonly queuePositionRecalculator: IQueuePositionRecalculator,
 		@inject(TYPES.Services.RabbitMQService)
 		private readonly rabbitmqService: IRabbitMQService,
 		@inject(TYPES.Logger.PinoClient)
@@ -80,6 +83,15 @@ export class AssignTableUseCase implements IAssignTableUseCase {
 			this.logger.error(
 				{ err: error, queueEntryId },
 				'Non-blocking: Failed to remove seated entry from live Redis cache',
+			);
+		}
+
+		try {
+			await this.queuePositionRecalculator.recalculate(restaurantId);
+		} catch (error) {
+			this.logger.error(
+				{ err: error, restaurantId, queueEntryId },
+				'Non-blocking: Failed to recalculate queue positions after table assignment',
 			);
 		}
 
