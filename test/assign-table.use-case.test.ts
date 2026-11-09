@@ -1,5 +1,6 @@
 import type { IQueueCacheService } from '@application/ports/cache/queue-cache.port.ts';
 import type { ILogger } from '@application/ports/services/logger-service.port.ts';
+import type { IQueuePositionRecalculator } from '@application/ports/services/queue-position-recalculator.port.ts';
 import type { IRabbitMQService } from '@application/ports/services/rabbitmq-service.port';
 import type { IRestaurantServiceClient } from '@application/ports/services/restaurant-service.port.ts';
 import type { IWebSocketBroadcaster } from '@application/ports/services/websocket-broadcaster.port.ts';
@@ -21,6 +22,7 @@ describe('AssignTableUseCase', () => {
 	let mockRestaurantServiceClient: jest.Mocked<IRestaurantServiceClient>;
 	let mockQueueCacheService: jest.Mocked<IQueueCacheService>;
 	let mockSocketBroadcaster: jest.Mocked<IWebSocketBroadcaster>;
+	let mockQueuePositionRecalculator: jest.Mocked<IQueuePositionRecalculator>;
 	let mockRabbitMQService: jest.Mocked<IRabbitMQService>;
 	let mockLogger: jest.Mocked<ILogger>;
 
@@ -80,6 +82,7 @@ describe('AssignTableUseCase', () => {
 			batchUpdatePositions: jest.fn(),
 			getStaffQueueSnapshot: jest.fn(),
 			countPeopleAheadAtJoin: jest.fn().mockResolvedValue(3),
+			getCustomerQueueEntrySnapshot: jest.fn(),
 		};
 
 		mockRestaurantServiceClient = {
@@ -101,6 +104,10 @@ describe('AssignTableUseCase', () => {
 			sendToTicket: jest.fn(),
 		};
 
+		mockQueuePositionRecalculator = {
+			recalculate: jest.fn().mockResolvedValue({ affectedCount: 0, updatedEntryIds: [] }),
+		};
+
 		mockRabbitMQService = {
 			publishToMlEta: jest.fn().mockResolvedValue(true),
 		};
@@ -117,6 +124,7 @@ describe('AssignTableUseCase', () => {
 			mockRestaurantServiceClient,
 			mockQueueCacheService,
 			mockSocketBroadcaster,
+			mockQueuePositionRecalculator,
 			mockRabbitMQService,
 			mockLogger,
 		);
@@ -157,6 +165,7 @@ describe('AssignTableUseCase', () => {
 		);
 
 		expect(mockQueueCacheService.removeLiveEntry).toHaveBeenCalledWith(queueEntryId);
+		expect(mockQueuePositionRecalculator.recalculate).toHaveBeenCalledWith(restaurantId);
 
 		expect(mockSocketBroadcaster.broadcastToRestaurant).toHaveBeenCalledWith(
 			restaurantId,
@@ -369,6 +378,27 @@ describe('AssignTableUseCase', () => {
 		expect(mockLogger.warn).toHaveBeenCalledWith(
 			expect.objectContaining({ queueEntryId }),
 			expect.stringContaining('skipping ML ETA training event'),
+		);
+	});
+
+	it('should complete table assignment even if queuePositionRecalculator throws (non-blocking)', async () => {
+		const entry = createMockQueueEntry(QueueStatus.WAITING, 4);
+		mockQueueRepository.findById.mockResolvedValue(entry);
+		mockQueueRepository.assignTablesWithHistory.mockImplementation(async (e) => e);
+		mockQueuePositionRecalculator.recalculate.mockRejectedValue(new Error('Recalculation error'));
+
+		const result = await useCase.execute({
+			restaurantId,
+			queueEntryId,
+			staffUserId,
+			tables: [{ tableId: tableId1, count: 4 }],
+		});
+
+		expect(result).toBeDefined();
+		expect(result.status).toBe(QueueStatus.SEATED);
+		expect(mockLogger.error).toHaveBeenCalledWith(
+			expect.objectContaining({ restaurantId, queueEntryId }),
+			expect.stringContaining('Failed to recalculate queue positions after table assignment'),
 		);
 	});
 });

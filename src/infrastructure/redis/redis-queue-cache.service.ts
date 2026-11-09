@@ -6,11 +6,7 @@ import { TYPES } from '@di/types.ts';
 import { logger } from '@infrastructure/logger/index.ts';
 import { inject, injectable } from 'inversify';
 import type Redis from 'ioredis';
-
-export const REDIS_QUEUE_CACHE = {
-	KEY_PREFIX: 'queue:live:',
-	TTL_SECONDS: 86400,
-} as const;
+import { REDIS_QUEUE_CACHE } from './redis.constants.ts';
 
 @injectable()
 export class RedisQueueCacheService implements IQueueCacheService {

@@ -14,6 +14,8 @@ export const ROUTES = {
 	CUSTOMER_BASE: '/customer',
 	GET_ETA: '/:restaurantId/eta',
 	JOIN_QUEUE: '/restaurants/:restaurantId/queue/join',
+	CUSTOMER_QUEUE_STATUS: '/restaurants/:restaurantId/queue/status',
+	CUSTOMER_LEAVE_QUEUE: '/restaurants/:restaurantId/queue/leave',
 } as const;
 
 export const RESTAURANT_SERVICE_ROUTES = {

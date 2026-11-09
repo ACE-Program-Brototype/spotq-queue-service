@@ -67,6 +67,7 @@ describe('GetQueueEtaUseCase Unit Tests', () => {
 			batchUpdatePositions: jest.fn(),
 			getStaffQueueSnapshot: jest.fn(),
 			countPeopleAheadAtJoin: jest.fn().mockResolvedValue(0),
+			getCustomerQueueEntrySnapshot: jest.fn(),
 		};
 
 		mockRestaurantServiceClient = {

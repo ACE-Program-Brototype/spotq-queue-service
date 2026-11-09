@@ -80,8 +80,16 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 			mockGetQueueEtaUseCase = {
 				execute: jest.fn(),
 			};
+			const mockGetCustomerQueueStatusSnapshotUseCase = {
+				execute: jest.fn(),
+			};
 
-			controller = new CustomerQueueController(mockGetQueueEtaUseCase, mockRegisterQueueUseCase);
+			controller = new CustomerQueueController(
+				mockGetQueueEtaUseCase,
+				mockRegisterQueueUseCase,
+				mockGetCustomerQueueStatusSnapshotUseCase as never,
+				{} as never,
+			);
 
 			mockRes = {
 				status: jest.fn().mockReturnThis(),
@@ -178,6 +186,7 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 				batchUpdatePositions: jest.fn(),
 				getStaffQueueSnapshot: jest.fn(),
 				countPeopleAheadAtJoin: jest.fn().mockResolvedValue(0),
+				getCustomerQueueEntrySnapshot: jest.fn(),
 			};
 
 			mockRestaurantServiceClient = {

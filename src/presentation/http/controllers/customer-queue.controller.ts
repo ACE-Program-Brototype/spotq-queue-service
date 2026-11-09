@@ -1,9 +1,12 @@
+import type { IGetCustomerQueueStatusSnapshotUseCase } from '@application/ports/use-cases/get-customer-queue-status-snapshot.use-case.port.ts';
 import type { IGetQueueEtaUseCase } from '@application/ports/use-cases/get-queue-eta.use-case.port.ts';
+import type { ILeaveQueueUseCase } from '@application/ports/use-cases/leave-queue.use-case.port.ts';
 import type { IRegisterQueueUseCase } from '@application/ports/use-cases/register-queue.use-case.port.ts';
 import { TYPES } from '@di/types.ts';
-import { RegistrationType } from '@domain/index.ts';
+import { RegistrationType, UnauthorizedError } from '@domain/index.ts';
 import {
 	HTTP_STATUS,
+	messages,
 	QUEUE_MESSAGES,
 	sendSuccessResponse,
 	WEBSOCKET_PATHS,
@@ -13,8 +16,13 @@ import {
 } from '@shared/index.ts';
 import type { Request, Response } from 'express';
 import { inject, injectable } from 'inversify';
+import type {
+	GetCustomerQueueStatusParams,
+	GetCustomerQueueStatusQuery,
+} from '../validators/get-customer-queue-status.validator.ts';
 import type { GetEtaParams, GetEtaQuery } from '../validators/get-eta.validator.ts';
 import type { JoinQueueBody, JoinQueueParams } from '../validators/join-queue.validator.ts';
+import type { LeaveQueueBody, LeaveQueueParams } from '../validators/leave-queue.validator.ts';
 
 @injectable()
 export class CustomerQueueController {
@@ -23,6 +31,10 @@ export class CustomerQueueController {
 		private readonly getQueueEtaUseCase: IGetQueueEtaUseCase,
 		@inject(TYPES.UseCases.RegisterQueueUseCase)
 		private readonly registerQueueUseCase: IRegisterQueueUseCase,
+		@inject(TYPES.UseCases.GetCustomerQueueStatusSnapshotUseCase)
+		private readonly getCustomerQueueStatusSnapshotUseCase: IGetCustomerQueueStatusSnapshotUseCase,
+		@inject(TYPES.UseCases.LeaveQueueUseCase)
+		private readonly leaveQueueUseCase: ILeaveQueueUseCase,
 	) {}
 
 	getEta = async (req: Request, res: Response): Promise<void> => {
@@ -35,6 +47,20 @@ export class CustomerQueueController {
 		});
 
 		sendSuccessResponse(res, result, QUEUE_MESSAGES.ETA_RETRIEVED_SUCCESS, HTTP_STATUS.OK);
+	};
+
+	getQueueStatus = async (req: Request, res: Response): Promise<void> => {
+		const { restaurantId } = req.params as unknown as GetCustomerQueueStatusParams;
+		const { queueEntryId } = req.query as unknown as GetCustomerQueueStatusQuery;
+		const userId = req.user?.userId ?? req.userId;
+
+		const result = await this.getCustomerQueueStatusSnapshotUseCase.execute({
+			restaurantId,
+			queueEntryId,
+			userId: userId as string,
+		});
+
+		sendSuccessResponse(res, result, QUEUE_MESSAGES.CUSTOMER_QUEUE_STATUS_FETCH, HTTP_STATUS.OK);
 	};
 
 	joinQueue = async (req: Request, res: Response): Promise<void> => {
@@ -70,5 +96,23 @@ export class CustomerQueueController {
 			QUEUE_MESSAGES.JOIN_QUEUE_SUCCESS,
 			HTTP_STATUS.CREATED,
 		);
+	};
+
+	leaveQueue = async (req: Request, res: Response): Promise<void> => {
+		const { restaurantId } = req.params as unknown as LeaveQueueParams;
+		const { queueEntryId } = req.body as LeaveQueueBody;
+		const userId = req.user?.userId ?? req.userId;
+
+		if (!userId) {
+			throw new UnauthorizedError(messages.GATEWAY_UNAUTHORIZED);
+		}
+
+		const result = await this.leaveQueueUseCase.execute({
+			restaurantId,
+			queueEntryId,
+			userId,
+		});
+
+		sendSuccessResponse(res, result, QUEUE_MESSAGES.CUSTOMER_LEAVE_QUEUE_SUCCESS, HTTP_STATUS.OK);
 	};
 }

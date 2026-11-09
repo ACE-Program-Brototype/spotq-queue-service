@@ -1,0 +1,99 @@
+import type {
+	GetCustomerQueueStatusSnapshotInputDTO,
+	GetCustomerQueueStatusSnapshotOutputDTO,
+} from '@application/dtos/get-customer-queue-status-snapshot.dto.ts';
+import type { IQueueCacheService } from '@application/ports/cache/queue-cache.port.ts';
+import type { ILogger } from '@application/ports/services/logger-service.port.ts';
+import type { IRestaurantServiceClient } from '@application/ports/services/restaurant-service.port.ts';
+import type { IGetCustomerQueueStatusSnapshotUseCase } from '@application/ports/use-cases/get-customer-queue-status-snapshot.use-case.port.ts';
+import { TYPES } from '@di/types.ts';
+import { type IQueueRepository, QueueEntryNotFoundError, QueueStatus } from '@domain/index.ts';
+import { inject, injectable } from 'inversify';
+
+@injectable()
+export class GetCustomerQueueStatusSnapshotUseCase
+	implements IGetCustomerQueueStatusSnapshotUseCase
+{
+	constructor(
+		@inject(TYPES.Repositories.QueueRepository)
+		private readonly queueRepository: IQueueRepository,
+		@inject(TYPES.Services.RestaurantServiceClient)
+		private readonly restaurantServiceClient: IRestaurantServiceClient,
+		@inject(TYPES.Services.QueueCacheService)
+		private readonly queueCacheService: IQueueCacheService,
+		@inject(TYPES.Logger.PinoClient)
+		private readonly logger: ILogger,
+	) {}
+
+	async execute(
+		input: GetCustomerQueueStatusSnapshotInputDTO,
+	): Promise<GetCustomerQueueStatusSnapshotOutputDTO> {
+		const { restaurantId, queueEntryId } = input;
+
+		const snapshot = await this.queueRepository.getCustomerQueueEntrySnapshot(
+			restaurantId,
+			queueEntryId,
+		);
+
+		if (!snapshot) {
+			throw new QueueEntryNotFoundError(queueEntryId);
+		}
+
+		const { entry, totalWaitingParties, assignedTableId } = snapshot;
+
+		entry.ensureCustomerAccessible(input.userId);
+
+		let restaurantName = '';
+		try {
+			const restaurantStatus = await this.restaurantServiceClient.getRestaurantStatus(restaurantId);
+			restaurantName = restaurantStatus.restaurantName;
+		} catch (error) {
+			this.logger.warn(
+				{ err: error, restaurantId },
+				'Non-blocking: Failed to retrieve restaurant name from restaurant service for status snapshot',
+			);
+		}
+
+		let resolvedPosition: number | null = null;
+		let resolvedEstimatedWaitMinutes: number | null = null;
+
+		if (entry.status === QueueStatus.WAITING) {
+			resolvedPosition = snapshot.position;
+			resolvedEstimatedWaitMinutes = entry.estimatedWaitMinutes ?? 0;
+
+			try {
+				const cachedLiveEntry = await this.queueCacheService.getLiveEntry(entry.id);
+				if (cachedLiveEntry) {
+					resolvedPosition = cachedLiveEntry.position;
+					resolvedEstimatedWaitMinutes = cachedLiveEntry.currentEta;
+				}
+			} catch (err) {
+				this.logger.warn(
+					{ err, queueEntryId: entry.id },
+					'Non-blocking: Failed to read live queue entry state from Redis cache',
+				);
+			}
+		}
+
+		const responseDeadline = entry.calculateResponseDeadline()?.toISOString() ?? null;
+
+		return {
+			queueEntryId: entry.id,
+			restaurantId: entry.restaurantId,
+			restaurantName,
+			queueNumber: entry.queueNumber,
+			guestName: entry.guestName,
+			partySize: entry.partySize,
+			position: resolvedPosition,
+			totalWaitingParties,
+			estimatedWaitMinutes: resolvedEstimatedWaitMinutes,
+			status: entry.status,
+			registrationType: entry.registrationType,
+			joinedAt: entry.joinedAt.toISOString(),
+			updatedAt: entry.updatedAt.toISOString(),
+			lastRingAt: entry.lastRingedAt ? entry.lastRingedAt.toISOString() : null,
+			responseDeadline,
+			assignedTableId,
+		};
+	}
+}
