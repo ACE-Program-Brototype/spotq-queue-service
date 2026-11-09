@@ -93,6 +93,7 @@ export class GetCustomerQueueStatusSnapshotUseCase
 			queueEntryId: entry.id,
 			restaurantId: entry.restaurantId,
 			restaurantName,
+			queueNumber: entry.queueNumber,
 			guestName: entry.guestName,
 			partySize: entry.partySize,
 			position: resolvedPosition,

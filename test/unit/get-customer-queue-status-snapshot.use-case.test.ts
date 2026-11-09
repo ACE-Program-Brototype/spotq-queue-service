@@ -170,6 +170,7 @@ describe('GetCustomerQueueStatusSnapshotUseCase Unit Tests', () => {
 			queueEntryId,
 			restaurantId,
 			restaurantName: 'The Gourmet Kitchen',
+			queueNumber: 'Q-001',
 			guestName: 'Jane Doe',
 			partySize: 2,
 			position: 3,

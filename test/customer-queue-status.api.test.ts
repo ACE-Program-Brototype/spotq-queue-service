@@ -203,6 +203,7 @@ describe('Customer Queue Status Snapshot API Integration Tests', () => {
 				queueEntryId: validQueueEntryId,
 				restaurantId: validRestaurantId,
 				restaurantName: 'The Rustic Fork',
+				queueNumber: 'Q-042',
 				guestName: 'Alex Mercer',
 				partySize: 2,
 				position: 4,

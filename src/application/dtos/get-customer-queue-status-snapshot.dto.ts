@@ -9,6 +9,7 @@ export interface GetCustomerQueueStatusSnapshotOutputDTO {
 	queueEntryId: string;
 	restaurantId: string;
 	restaurantName: string;
+	queueNumber: string;
 	guestName: string;
 	partySize: number;
 	position: number | null;
