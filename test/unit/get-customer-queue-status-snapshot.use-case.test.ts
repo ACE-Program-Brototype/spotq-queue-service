@@ -1,4 +1,5 @@
 import type { IQueueCacheService } from '@application/ports/cache/queue-cache.port.ts';
+import type { ILogger } from '@application/ports/services/logger-service.port.ts';
 import type { IRestaurantServiceClient } from '@application/ports/services/restaurant-service.port.ts';
 import { GetCustomerQueueStatusSnapshotUseCase } from '@application/use-cases/get-customer-queue-status-snapshot.use-case.ts';
 import {
@@ -18,6 +19,7 @@ describe('GetCustomerQueueStatusSnapshotUseCase Unit Tests', () => {
 	};
 	let mockRestaurantServiceClient: jest.Mocked<IRestaurantServiceClient>;
 	let mockQueueCacheService: jest.Mocked<IQueueCacheService>;
+	let mockLogger: jest.Mocked<ILogger>;
 
 	const restaurantId = '11111111-1111-4111-8111-111111111111';
 	const queueEntryId = '22222222-2222-4222-8222-222222222222';
@@ -101,10 +103,18 @@ describe('GetCustomerQueueStatusSnapshotUseCase Unit Tests', () => {
 			removeLiveEntry: jest.fn(),
 		};
 
+		mockLogger = {
+			info: jest.fn(),
+			error: jest.fn(),
+			warn: jest.fn(),
+			debug: jest.fn(),
+		};
+
 		useCase = new GetCustomerQueueStatusSnapshotUseCase(
 			mockQueueRepository,
 			mockRestaurantServiceClient,
 			mockQueueCacheService,
+			mockLogger,
 		);
 	});
 

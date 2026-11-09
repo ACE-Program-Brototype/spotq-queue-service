@@ -3,11 +3,11 @@ import type {
 	GetCustomerQueueStatusSnapshotOutputDTO,
 } from '@application/dtos/get-customer-queue-status-snapshot.dto.ts';
 import type { IQueueCacheService } from '@application/ports/cache/queue-cache.port.ts';
+import type { ILogger } from '@application/ports/services/logger-service.port.ts';
 import type { IRestaurantServiceClient } from '@application/ports/services/restaurant-service.port.ts';
 import type { IGetCustomerQueueStatusSnapshotUseCase } from '@application/ports/use-cases/get-customer-queue-status-snapshot.use-case.port.ts';
 import { TYPES } from '@di/types.ts';
 import { type IQueueRepository, QueueEntryNotFoundError, QueueStatus } from '@domain/index.ts';
-import { logger } from '@infrastructure/logger/index.ts';
 import { inject, injectable } from 'inversify';
 
 @injectable()
@@ -21,6 +21,8 @@ export class GetCustomerQueueStatusSnapshotUseCase
 		private readonly restaurantServiceClient: IRestaurantServiceClient,
 		@inject(TYPES.Services.QueueCacheService)
 		private readonly queueCacheService: IQueueCacheService,
+		@inject(TYPES.Logger.PinoClient)
+		private readonly logger: ILogger,
 	) {}
 
 	async execute(
@@ -46,7 +48,7 @@ export class GetCustomerQueueStatusSnapshotUseCase
 			const restaurantStatus = await this.restaurantServiceClient.getRestaurantStatus(restaurantId);
 			restaurantName = restaurantStatus.restaurantName;
 		} catch (error) {
-			logger.warn(
+			this.logger.warn(
 				{ err: error, restaurantId },
 				'Non-blocking: Failed to retrieve restaurant name from restaurant service for status snapshot',
 			);
@@ -66,7 +68,7 @@ export class GetCustomerQueueStatusSnapshotUseCase
 					resolvedEstimatedWaitMinutes = cachedLiveEntry.currentEta;
 				}
 			} catch (err) {
-				logger.warn(
+				this.logger.warn(
 					{ err, queueEntryId: entry.id },
 					'Non-blocking: Failed to read live queue entry state from Redis cache',
 				);
