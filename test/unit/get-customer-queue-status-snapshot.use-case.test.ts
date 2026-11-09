@@ -2,6 +2,7 @@ import type { IQueueCacheService } from '@application/ports/cache/queue-cache.po
 import type { IRestaurantServiceClient } from '@application/ports/services/restaurant-service.port.ts';
 import { GetCustomerQueueStatusSnapshotUseCase } from '@application/use-cases/get-customer-queue-status-snapshot.use-case.ts';
 import {
+	ForbiddenTicketAccessError,
 	type IQueueRepository,
 	QueueEntry,
 	QueueEntryNotFoundError,
@@ -16,11 +17,7 @@ describe('GetCustomerQueueStatusSnapshotUseCase Unit Tests', () => {
 		getCustomerQueueEntrySnapshot: jest.Mock;
 	};
 	let mockRestaurantServiceClient: jest.Mocked<IRestaurantServiceClient>;
-	let mockQueueCacheService: jest.Mocked<IQueueCacheService> & {
-		cachePosition: jest.Mock;
-		invalidatePosition: jest.Mock;
-		getCachedPosition: jest.Mock;
-	};
+	let mockQueueCacheService: jest.Mocked<IQueueCacheService>;
 
 	const restaurantId = '11111111-1111-4111-8111-111111111111';
 	const queueEntryId = '22222222-2222-4222-8222-222222222222';
@@ -100,11 +97,8 @@ describe('GetCustomerQueueStatusSnapshotUseCase Unit Tests', () => {
 
 		mockQueueCacheService = {
 			saveLiveEntry: jest.fn(),
-			getLiveEntry: jest.fn(),
+			getLiveEntry: jest.fn().mockResolvedValue(null),
 			removeLiveEntry: jest.fn(),
-			cachePosition: jest.fn().mockResolvedValue(undefined),
-			getCachedPosition: jest.fn().mockResolvedValue(null),
-			invalidatePosition: jest.fn().mockResolvedValue(undefined),
 		};
 
 		useCase = new GetCustomerQueueStatusSnapshotUseCase(
@@ -121,6 +115,7 @@ describe('GetCustomerQueueStatusSnapshotUseCase Unit Tests', () => {
 			useCase.execute({
 				restaurantId,
 				queueEntryId,
+				userId,
 			}),
 		).rejects.toThrow(QueueEntryNotFoundError);
 
@@ -146,10 +141,29 @@ describe('GetCustomerQueueStatusSnapshotUseCase Unit Tests', () => {
 			useCase.execute({
 				restaurantId,
 				queueEntryId,
+				userId,
 			}),
 		).rejects.toThrow(WalkInTicketNotAccessibleError);
+	});
 
-		expect(mockQueueCacheService.cachePosition).not.toHaveBeenCalled();
+	it('should throw ForbiddenTicketAccessError when entry does not belong to requesting customer', async () => {
+		const entry = createMockQueueEntry({
+			userId: 'different-customer-uuid',
+		});
+		mockQueueRepository.getCustomerQueueEntrySnapshot.mockResolvedValueOnce({
+			entry,
+			position: 2,
+			totalWaitingParties: 5,
+			assignedTableId: null,
+		});
+
+		await expect(
+			useCase.execute({
+				restaurantId,
+				queueEntryId,
+				userId,
+			}),
+		).rejects.toThrow(ForbiddenTicketAccessError);
 	});
 
 	it('should successfully return status snapshot for waiting queue entry', async () => {
@@ -164,6 +178,7 @@ describe('GetCustomerQueueStatusSnapshotUseCase Unit Tests', () => {
 		const result = await useCase.execute({
 			restaurantId,
 			queueEntryId,
+			userId,
 		});
 
 		expect(result).toEqual({
@@ -185,10 +200,36 @@ describe('GetCustomerQueueStatusSnapshotUseCase Unit Tests', () => {
 			assignedTableId: null,
 		});
 
-		expect(mockQueueCacheService.cachePosition).toHaveBeenCalledWith(queueEntryId, 3);
+		expect(mockQueueCacheService.getLiveEntry).toHaveBeenCalledWith(queueEntryId);
 	});
 
-	it('should handle non-waiting entry: null position and estimated wait, invalidating cache', async () => {
+	it('should use live position and eta from redis cache when available', async () => {
+		const entry = createMockQueueEntry();
+		mockQueueRepository.getCustomerQueueEntrySnapshot.mockResolvedValueOnce({
+			entry,
+			position: 5,
+			totalWaitingParties: 7,
+			assignedTableId: null,
+		});
+		mockQueueCacheService.getLiveEntry.mockResolvedValueOnce({
+			queueEntryId,
+			restaurantId,
+			position: 2,
+			currentEta: 10,
+			updatedAt: new Date().toISOString(),
+		});
+
+		const result = await useCase.execute({
+			restaurantId,
+			queueEntryId,
+			userId,
+		});
+
+		expect(result.position).toBe(2);
+		expect(result.estimatedWaitMinutes).toBe(10);
+	});
+
+	it('should handle non-waiting entry: null position and estimated wait without querying live entry cache', async () => {
 		const entry = createMockQueueEntry({
 			status: QueueStatus.SEATED,
 			seatedAt: new Date('2026-11-08T10:30:00.000Z'),
@@ -203,14 +244,14 @@ describe('GetCustomerQueueStatusSnapshotUseCase Unit Tests', () => {
 		const result = await useCase.execute({
 			restaurantId,
 			queueEntryId,
+			userId,
 		});
 
 		expect(result.position).toBeNull();
 		expect(result.estimatedWaitMinutes).toBeNull();
 		expect(result.status).toBe(QueueStatus.SEATED);
 		expect(result.assignedTableId).toBe('table-uuid-1');
-		expect(mockQueueCacheService.invalidatePosition).toHaveBeenCalledWith(queueEntryId);
-		expect(mockQueueCacheService.cachePosition).not.toHaveBeenCalled();
+		expect(mockQueueCacheService.getLiveEntry).not.toHaveBeenCalled();
 	});
 
 	it('should return responseDeadline when entry was rung', async () => {
@@ -233,6 +274,7 @@ describe('GetCustomerQueueStatusSnapshotUseCase Unit Tests', () => {
 		const result = await useCase.execute({
 			restaurantId,
 			queueEntryId,
+			userId,
 		});
 
 		expect(result.lastRingAt).toBe(ringTime.toISOString());
@@ -256,14 +298,15 @@ describe('GetCustomerQueueStatusSnapshotUseCase Unit Tests', () => {
 		const result = await useCase.execute({
 			restaurantId,
 			queueEntryId,
+			userId,
 		});
 
 		expect(result.restaurantName).toBe('');
 		expect(result.queueEntryId).toBe(queueEntryId);
 	});
 
-	it('should not throw if redis caching fails for waiting entry', async () => {
-		mockQueueCacheService.cachePosition.mockRejectedValueOnce(new Error('Redis connection lost'));
+	it('should not throw if redis read fails for waiting entry', async () => {
+		mockQueueCacheService.getLiveEntry.mockRejectedValueOnce(new Error('Redis connection lost'));
 
 		const entry = createMockQueueEntry();
 		mockQueueRepository.getCustomerQueueEntrySnapshot.mockResolvedValueOnce({
@@ -276,27 +319,9 @@ describe('GetCustomerQueueStatusSnapshotUseCase Unit Tests', () => {
 		const result = await useCase.execute({
 			restaurantId,
 			queueEntryId,
+			userId,
 		});
 
 		expect(result.position).toBe(1);
-	});
-
-	it('should not throw if redis invalidation fails for non-waiting entry', async () => {
-		mockQueueCacheService.invalidatePosition.mockRejectedValueOnce(new Error('Redis error'));
-
-		const entry = createMockQueueEntry({ status: QueueStatus.CANCELLED });
-		mockQueueRepository.getCustomerQueueEntrySnapshot.mockResolvedValueOnce({
-			entry,
-			position: null,
-			totalWaitingParties: 2,
-			assignedTableId: null,
-		});
-
-		const result = await useCase.execute({
-			restaurantId,
-			queueEntryId,
-		});
-
-		expect(result.status).toBe(QueueStatus.CANCELLED);
 	});
 });

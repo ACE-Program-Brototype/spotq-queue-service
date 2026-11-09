@@ -62,6 +62,7 @@ export const QUEUE_MESSAGES = {
 		'Walk-in customer cannot be rung as they do not have a registered device',
 	WALK_IN_NOT_ACCESSIBLE:
 		'Walk-in queue entries cannot be accessed via the customer queue status API',
+	FORBIDDEN_TICKET_ACCESS: 'You are not authorized to access this queue ticket',
 	UPSTREAM_SERVICE_UNAVAILABLE:
 		'Upstream service is currently unavailable. Please try again later.',
 	TABLE_ASSIGNMENT_ERROR_PREFIX: 'Restaurant table assignment failed',

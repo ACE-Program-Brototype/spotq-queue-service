@@ -21,7 +21,7 @@ import { QueueEntry, QueueStatus, RegistrationType } from '../src/domain/index.t
 import type { IQueueRepository } from '../src/domain/repositories/i-queue.repository.ts';
 import { RestaurantServiceClient } from '../src/infrastructure/external/restaurant-service.client.ts';
 import type { CustomerQueueController } from '../src/presentation/http/controllers/customer-queue.controller.ts';
-import { HTTP_STATUS, QUEUE_MESSAGES } from '../src/shared/index.ts';
+import { HTTP_STATUS, QUEUE_MESSAGES, VALIDATION_MESSAGES } from '../src/shared/index.ts';
 
 describe('Customer Queue Status Snapshot API Integration Tests', () => {
 	const validRestaurantId = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
@@ -110,6 +110,14 @@ describe('Customer Queue Status Snapshot API Integration Tests', () => {
 
 			expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST);
 			expect(res.body.success).toBe(false);
+			expect(res.body.details).toEqual(
+				expect.arrayContaining([
+					expect.objectContaining({
+						field: 'restaurantId',
+						message: VALIDATION_MESSAGES.INVALID_RESTAURANT_ID_UUID,
+					}),
+				]),
+			);
 		});
 
 		it('should return 400 when queueEntryId is missing from query', async () => {
@@ -124,6 +132,24 @@ describe('Customer Queue Status Snapshot API Integration Tests', () => {
 				.get(customerEndpoint)
 				.set('x-user-id', validUserId)
 				.query({ queueEntryId: 'invalid-id' });
+
+			expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST);
+			expect(res.body.success).toBe(false);
+			expect(res.body.details).toEqual(
+				expect.arrayContaining([
+					expect.objectContaining({
+						field: 'queueEntryId',
+						message: VALIDATION_MESSAGES.INVALID_QUEUE_ENTRY_ID_UUID,
+					}),
+				]),
+			);
+		});
+
+		it('should return 400 when unknown query parameter is provided due to strict schema', async () => {
+			const res = await request(app).get(customerEndpoint).set('x-user-id', validUserId).query({
+				queueEntryId: validQueueEntryId,
+				unexpectedParam: 'forbidden',
+			});
 
 			expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST);
 			expect(res.body.success).toBe(false);
@@ -182,6 +208,25 @@ describe('Customer Queue Status Snapshot API Integration Tests', () => {
 			expect(res.body.code).toBe('WALK_IN_TICKET_NOT_ACCESSIBLE');
 		});
 
+		it('should return 403 Forbidden when ticket does not belong to requesting customer', async () => {
+			const entry = createMockEntry(QueueStatus.WAITING, 'different-user-uuid');
+			jest.spyOn(queueRepository, 'getCustomerQueueEntrySnapshot').mockResolvedValueOnce({
+				entry,
+				position: 1,
+				totalWaitingParties: 2,
+				assignedTableId: null,
+			});
+
+			const res = await request(app)
+				.get(customerEndpoint)
+				.set('x-user-id', validUserId)
+				.query({ queueEntryId: validQueueEntryId });
+
+			expect(res.status).toBe(HTTP_STATUS.FORBIDDEN);
+			expect(res.body.success).toBe(false);
+			expect(res.body.code).toBe('FORBIDDEN');
+		});
+
 		it('should return 200 with queue status snapshot on valid request', async () => {
 			const entry = createMockEntry(QueueStatus.WAITING, validUserId);
 			jest.spyOn(queueRepository, 'getCustomerQueueEntrySnapshot').mockResolvedValueOnce({
@@ -219,24 +264,13 @@ describe('Customer Queue Status Snapshot API Integration Tests', () => {
 			});
 		});
 
-		it('should also work on direct /restaurants/:restaurantId/queue/status path', async () => {
-			const entry = createMockEntry(QueueStatus.WAITING, validUserId);
-			jest.spyOn(queueRepository, 'getCustomerQueueEntrySnapshot').mockResolvedValueOnce({
-				entry,
-				position: 2,
-				totalWaitingParties: 3,
-				assignedTableId: null,
-			});
-
+		it('should return 404 on direct /restaurants/:restaurantId/queue/status path without customer prefix', async () => {
 			const res = await request(app)
 				.get(directEndpoint)
 				.set('x-user-id', validUserId)
 				.query({ queueEntryId: validQueueEntryId });
 
-			expect(res.status).toBe(HTTP_STATUS.OK);
-			expect(res.body.success).toBe(true);
-			expect(res.body.data.position).toBe(2);
-			expect(res.body.data.totalWaitingParties).toBe(3);
+			expect(res.status).toBe(HTTP_STATUS.NOT_FOUND);
 		});
 	});
 });

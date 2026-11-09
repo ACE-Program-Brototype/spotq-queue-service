@@ -3,6 +3,7 @@ import type { QueueStatus, RegistrationType } from '@domain/index.ts';
 export interface GetCustomerQueueStatusSnapshotInputDTO {
 	restaurantId: string;
 	queueEntryId: string;
+	userId: string;
 }
 
 export interface GetCustomerQueueStatusSnapshotOutputDTO {

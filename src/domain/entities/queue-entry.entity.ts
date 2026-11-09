@@ -258,16 +258,20 @@ export class QueueEntry {
 		this.props.updatedAt = new Date();
 	}
 
-	public leave(userId: string): void {
-		if (this.props.status !== QueueStatus.WAITING) {
-			throw new QueueEntryNotWaitingError(this.props.id, this.props.status);
-		}
+	public ensureCustomerAccessible(userId: string): void {
 		if (this.props.registrationType === RegistrationType.WALK_IN) {
 			throw new WalkInTicketNotAccessibleError(this.props.id);
 		}
 		if (!this.props.userId || this.props.userId !== userId) {
 			throw new ForbiddenTicketAccessError();
 		}
+	}
+
+	public leave(userId: string): void {
+		if (this.props.status !== QueueStatus.WAITING) {
+			throw new QueueEntryNotWaitingError(this.props.id, this.props.status);
+		}
+		this.ensureCustomerAccessible(userId);
 		this.cancel(QueueStatus.CANCELLED);
 	}
 

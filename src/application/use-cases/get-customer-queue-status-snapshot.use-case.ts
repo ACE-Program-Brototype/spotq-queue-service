@@ -6,13 +6,7 @@ import type { IQueueCacheService } from '@application/ports/cache/queue-cache.po
 import type { IRestaurantServiceClient } from '@application/ports/services/restaurant-service.port.ts';
 import type { IGetCustomerQueueStatusSnapshotUseCase } from '@application/ports/use-cases/get-customer-queue-status-snapshot.use-case.port.ts';
 import { TYPES } from '@di/types.ts';
-import {
-	type IQueueRepository,
-	QueueEntryNotFoundError,
-	QueueStatus,
-	RegistrationType,
-	WalkInTicketNotAccessibleError,
-} from '@domain/index.ts';
+import { type IQueueRepository, QueueEntryNotFoundError, QueueStatus } from '@domain/index.ts';
 import { logger } from '@infrastructure/logger/index.ts';
 import { inject, injectable } from 'inversify';
 
@@ -34,7 +28,7 @@ export class GetCustomerQueueStatusSnapshotUseCase
 	): Promise<GetCustomerQueueStatusSnapshotOutputDTO> {
 		const { restaurantId, queueEntryId } = input;
 
-		const snapshot = await this.queueRepository.getCustomerQueueEntrySnapshot?.(
+		const snapshot = await this.queueRepository.getCustomerQueueEntrySnapshot(
 			restaurantId,
 			queueEntryId,
 		);
@@ -45,9 +39,7 @@ export class GetCustomerQueueStatusSnapshotUseCase
 
 		const { entry, totalWaitingParties, assignedTableId } = snapshot;
 
-		if (entry.registrationType === RegistrationType.WALK_IN) {
-			throw new WalkInTicketNotAccessibleError(queueEntryId);
-		}
+		entry.ensureCustomerAccessible(input.userId);
 
 		let restaurantName = '';
 		try {
@@ -61,31 +53,25 @@ export class GetCustomerQueueStatusSnapshotUseCase
 		}
 
 		let resolvedPosition: number | null = null;
+		let resolvedEstimatedWaitMinutes: number | null = null;
 
 		if (entry.status === QueueStatus.WAITING) {
 			resolvedPosition = snapshot.position;
+			resolvedEstimatedWaitMinutes = entry.estimatedWaitMinutes ?? 0;
 
-			if (resolvedPosition !== null) {
-				try {
-					await this.queueCacheService.cachePosition?.(entry.id, resolvedPosition);
-				} catch (err) {
-					logger.warn({ err, queueEntryId: entry.id }, 'Failed to cache position in Redis');
-				}
-			}
-		} else {
-			resolvedPosition = null;
 			try {
-				await this.queueCacheService.invalidatePosition?.(entry.id);
+				const cachedLiveEntry = await this.queueCacheService.getLiveEntry(entry.id);
+				if (cachedLiveEntry) {
+					resolvedPosition = cachedLiveEntry.position;
+					resolvedEstimatedWaitMinutes = cachedLiveEntry.currentEta;
+				}
 			} catch (err) {
 				logger.warn(
 					{ err, queueEntryId: entry.id },
-					'Failed to invalidate position cache for non-waiting entry',
+					'Non-blocking: Failed to read live queue entry state from Redis cache',
 				);
 			}
 		}
-
-		const estimatedWaitMinutes =
-			entry.status === QueueStatus.WAITING ? (entry.estimatedWaitMinutes ?? 0) : null;
 
 		const responseDeadline = entry.calculateResponseDeadline()?.toISOString() ?? null;
 
@@ -98,7 +84,7 @@ export class GetCustomerQueueStatusSnapshotUseCase
 			partySize: entry.partySize,
 			position: resolvedPosition,
 			totalWaitingParties,
-			estimatedWaitMinutes,
+			estimatedWaitMinutes: resolvedEstimatedWaitMinutes,
 			status: entry.status,
 			registrationType: entry.registrationType,
 			joinedAt: entry.joinedAt.toISOString(),

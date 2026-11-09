@@ -52,10 +52,12 @@ export class CustomerQueueController {
 	getQueueStatus = async (req: Request, res: Response): Promise<void> => {
 		const { restaurantId } = req.params as unknown as GetCustomerQueueStatusParams;
 		const { queueEntryId } = req.query as unknown as GetCustomerQueueStatusQuery;
+		const userId = req.user?.userId ?? req.userId;
 
 		const result = await this.getCustomerQueueStatusSnapshotUseCase.execute({
 			restaurantId,
 			queueEntryId,
+			userId: userId as string,
 		});
 
 		sendSuccessResponse(res, result, QUEUE_MESSAGES.CUSTOMER_QUEUE_STATUS_FETCH, HTTP_STATUS.OK);

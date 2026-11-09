@@ -16,7 +16,7 @@ describe('QueueEntry Entity Unit Tests', () => {
 		return QueueEntry.reconstitute({
 			id: 'entry-123',
 			restaurantId: 'rest-123',
-			userId: 'user-123',
+			userId: overrides.userId !== undefined ? overrides.userId : 'user-123',
 			guestName: 'Jane Doe',
 			phone: '+15559876543',
 			queueNumber: 'Q-005',
@@ -148,6 +148,38 @@ describe('QueueEntry Entity Unit Tests', () => {
 			const cancelledEntry = createTestEntry({ status: QueueStatus.CANCELLED });
 			cancelledEntry.updatePosition(4, 25);
 			expect(cancelledEntry.position).toBe(2);
+		});
+	});
+
+	describe('ensureCustomerAccessible', () => {
+		it('should pass without error when user is owner and registration is ONLINE', () => {
+			const entry = createTestEntry({
+				userId: 'user-123',
+				registrationType: RegistrationType.ONLINE,
+			});
+			expect(() => entry.ensureCustomerAccessible('user-123')).not.toThrow();
+		});
+
+		it('should throw WalkInTicketNotAccessibleError when entry is WALK_IN', () => {
+			const entry = createTestEntry({
+				userId: 'user-123',
+				registrationType: RegistrationType.WALK_IN,
+			});
+			expect(() => entry.ensureCustomerAccessible('user-123')).toThrow(
+				WalkInTicketNotAccessibleError,
+			);
+		});
+
+		it('should throw ForbiddenTicketAccessError when userId does not match', () => {
+			const entry = createTestEntry({ userId: 'owner-user' });
+			expect(() => entry.ensureCustomerAccessible('different-user')).toThrow(
+				ForbiddenTicketAccessError,
+			);
+		});
+
+		it('should throw ForbiddenTicketAccessError when entry has no userId', () => {
+			const entry = createTestEntry({ userId: null });
+			expect(() => entry.ensureCustomerAccessible('user-123')).toThrow(ForbiddenTicketAccessError);
 		});
 	});
 

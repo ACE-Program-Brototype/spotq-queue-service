@@ -74,6 +74,7 @@ describe('SkipPartyUseCase Unit Tests', () => {
 			batchUpdatePositions: jest.fn(),
 			getStaffQueueSnapshot: jest.fn(),
 			countPeopleAheadAtJoin: jest.fn(),
+			getCustomerQueueEntrySnapshot: jest.fn(),
 		};
 
 		mockQueueCacheService = {

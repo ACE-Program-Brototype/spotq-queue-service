@@ -82,6 +82,7 @@ describe('AssignTableUseCase', () => {
 			batchUpdatePositions: jest.fn(),
 			getStaffQueueSnapshot: jest.fn(),
 			countPeopleAheadAtJoin: jest.fn().mockResolvedValue(3),
+			getCustomerQueueEntrySnapshot: jest.fn(),
 		};
 
 		mockRestaurantServiceClient = {

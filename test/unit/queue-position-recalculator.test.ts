@@ -64,6 +64,7 @@ describe('QueuePositionRecalculator Unit Tests', () => {
 			batchUpdatePositions: jest.fn().mockResolvedValue(undefined),
 			getStaffQueueSnapshot: jest.fn(),
 			countPeopleAheadAtJoin: jest.fn(),
+			getCustomerQueueEntrySnapshot: jest.fn(),
 		};
 
 		mockEtaService = {

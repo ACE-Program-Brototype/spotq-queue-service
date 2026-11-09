@@ -550,28 +550,28 @@ export class PrismaQueueRepository
 			const entry = this.mapper.toDomain(entryRecord);
 			const assignedTableId = entryRecord.tableAssignments[0]?.tableId ?? null;
 
-			const [totalWaitingParties, aheadCount] = await Promise.all([
-				this.prismaClient.queueEntry.count({
-					where: {
-						restaurantId,
-						status: QueueStatus.WAITING,
-					},
-				}),
-				entry.status === QueueStatus.WAITING
-					? this.prismaClient.queueEntry.count({
-							where: {
-								restaurantId,
-								status: QueueStatus.WAITING,
-								OR: [
-									{ joinedAt: { lt: entry.joinedAt } },
-									{ joinedAt: entry.joinedAt, id: { lt: entry.id } },
-								],
-							},
-						})
-					: Promise.resolve(null),
-			]);
+			const totalWaitingParties = await this.prismaClient.queueEntry.count({
+				where: {
+					restaurantId,
+					status: QueueStatus.WAITING,
+				},
+			});
 
-			const position = aheadCount !== null ? aheadCount + 1 : null;
+			let position: number | null = null;
+			if (entry.status === QueueStatus.WAITING) {
+				if (entry.position !== null && entry.position !== undefined) {
+					position = entry.position;
+				} else {
+					const aheadCount = await this.prismaClient.queueEntry.count({
+						where: {
+							restaurantId,
+							status: QueueStatus.WAITING,
+							joinedAt: { lt: entry.joinedAt },
+						},
+					});
+					position = aheadCount + 1;
+				}
+			}
 
 			return {
 				entry,

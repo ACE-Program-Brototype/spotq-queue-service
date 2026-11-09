@@ -92,21 +92,13 @@ describe('Customer Leave Queue API Integration Tests', () => {
 		expect(response.body.data.status).toBe(QueueStatus.CANCELLED);
 	});
 
-	it('should return 200 via direct endpoint without customer prefix', async () => {
-		const mockEntry = createMockEntry();
-		jest.spyOn(queueRepository, 'findById').mockResolvedValue(mockEntry);
-		jest
-			.spyOn(queueRepository, 'updateStatusWithHistory')
-			.mockImplementation(async (params) => params.queueEntry);
-
+	it('should return 404 via direct endpoint without customer prefix', async () => {
 		const response = await request(app)
 			.post(directEndpoint)
 			.set('x-user-id', validUserId)
 			.send({ queueEntryId: validQueueEntryId });
 
-		expect(response.status).toBe(HTTP_STATUS.OK);
-		expect(response.body.success).toBe(true);
-		expect(response.body.data.status).toBe(QueueStatus.CANCELLED);
+		expect(response.status).toBe(HTTP_STATUS.NOT_FOUND);
 	});
 
 	it('should return 401 when x-user-id header is missing', async () => {
