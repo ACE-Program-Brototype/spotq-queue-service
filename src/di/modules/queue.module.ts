@@ -11,6 +11,7 @@ import type { IGetActiveQueueByUserUseCase } from '@application/ports/use-cases/
 import type { IGetCustomerQueueStatusSnapshotUseCase } from '@application/ports/use-cases/get-customer-queue-status-snapshot.use-case.port.ts';
 import type { IGetQueueEtaUseCase } from '@application/ports/use-cases/get-queue-eta.use-case.port.ts';
 import type { IGetStaffQueueUseCase } from '@application/ports/use-cases/get-staff-queue.use-case.port.ts';
+import type { ILeaveQueueUseCase } from '@application/ports/use-cases/leave-queue.use-case.port.ts';
 import type { ICancelQueueEntryUseCase } from '@application/ports/use-cases/queue/cancel-queue-entry.use-case.port.ts';
 import type { ISeatPartyUseCase } from '@application/ports/use-cases/queue/seat-party.use-case.port.ts';
 import type { ISkipPartyUseCase } from '@application/ports/use-cases/queue/skip-party.use-case.port.ts';
@@ -21,6 +22,7 @@ import { GetActiveQueueByUserUseCase } from '@application/use-cases/get-active-q
 import { GetCustomerQueueStatusSnapshotUseCase } from '@application/use-cases/get-customer-queue-status-snapshot.use-case.ts';
 import { GetQueueEtaUseCase } from '@application/use-cases/get-queue-eta.use-case.ts';
 import { GetStaffQueueUseCase } from '@application/use-cases/get-staff-queue.use-case.ts';
+import { LeaveQueueUseCase } from '@application/use-cases/leave-queue.use-case.ts';
 import { CancelQueueEntryUseCase } from '@application/use-cases/queue/cancel-queue-entry.use-case.ts';
 import { SeatPartyUseCase } from '@application/use-cases/queue/seat-party.use-case.ts';
 import { SkipPartyUseCase } from '@application/use-cases/queue/skip-party.use-case.ts';
@@ -127,6 +129,10 @@ export const queueModule = new ContainerModule(({ bind }) => {
 
 	bind<IGetCustomerQueueStatusSnapshotUseCase>(TYPES.UseCases.GetCustomerQueueStatusSnapshotUseCase)
 		.to(GetCustomerQueueStatusSnapshotUseCase)
+		.inSingletonScope();
+
+	bind<ILeaveQueueUseCase>(TYPES.UseCases.LeaveQueueUseCase)
+		.to(LeaveQueueUseCase)
 		.inSingletonScope();
 
 	bind<IGetQueueEtaUseCase>(TYPES.UseCases.GetQueueEtaUseCase)

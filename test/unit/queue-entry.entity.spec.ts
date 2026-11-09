@@ -1,4 +1,11 @@
-import { QueueEntry, QueueStatus, RegistrationType } from '@domain/index.ts';
+import {
+	ForbiddenTicketAccessError,
+	QueueEntry,
+	QueueEntryNotWaitingError,
+	QueueStatus,
+	RegistrationType,
+	WalkInTicketNotAccessibleError,
+} from '@domain/index.ts';
 import { QUEUE_CONSTANTS } from '@shared/constants/queue.constants.ts';
 
 describe('QueueEntry Entity Unit Tests', () => {
@@ -15,7 +22,7 @@ describe('QueueEntry Entity Unit Tests', () => {
 			queueNumber: 'Q-005',
 			partySize: 3,
 			specialNotes: null,
-			registrationType: RegistrationType.ONLINE,
+			registrationType: overrides.registrationType ?? RegistrationType.ONLINE,
 			position: 2,
 			estimatedWaitMinutes: 15,
 			estimatedWaitMinutesAtJoin: 15,
@@ -141,6 +148,45 @@ describe('QueueEntry Entity Unit Tests', () => {
 			const cancelledEntry = createTestEntry({ status: QueueStatus.CANCELLED });
 			cancelledEntry.updatePosition(4, 25);
 			expect(cancelledEntry.position).toBe(2);
+		});
+	});
+
+	describe('leave', () => {
+		it('should cancel entry and set position to null when valid waiting online entry leaves', () => {
+			const entry = createTestEntry({ status: QueueStatus.WAITING, userId: 'user-123' });
+			entry.leave('user-123');
+
+			expect(entry.status).toBe(QueueStatus.CANCELLED);
+			expect(entry.position).toBeNull();
+			expect(entry.cancelledAt).toBeInstanceOf(Date);
+		});
+
+		it('should throw QueueEntryNotWaitingError if entry is not WAITING', () => {
+			const entry = createTestEntry({ status: QueueStatus.SEATED, userId: 'user-123' });
+
+			expect(() => entry.leave('user-123')).toThrow(QueueEntryNotWaitingError);
+		});
+
+		it('should throw WalkInTicketNotAccessibleError if entry is WALK_IN', () => {
+			const entry = createTestEntry({
+				status: QueueStatus.WAITING,
+				registrationType: RegistrationType.WALK_IN,
+				userId: 'user-123',
+			});
+
+			expect(() => entry.leave('user-123')).toThrow(WalkInTicketNotAccessibleError);
+		});
+
+		it('should throw ForbiddenTicketAccessError if userId does not match', () => {
+			const entry = createTestEntry({ status: QueueStatus.WAITING, userId: 'owner-user' });
+
+			expect(() => entry.leave('different-user')).toThrow(ForbiddenTicketAccessError);
+		});
+
+		it('should throw ForbiddenTicketAccessError if entry has no userId', () => {
+			const entry = createTestEntry({ status: QueueStatus.WAITING, userId: null });
+
+			expect(() => entry.leave('any-user')).toThrow(ForbiddenTicketAccessError);
 		});
 	});
 });

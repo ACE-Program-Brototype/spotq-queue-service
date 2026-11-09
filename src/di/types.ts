@@ -40,6 +40,7 @@ export const TYPES = {
 		SkipPartyUseCase: Symbol.for('SkipPartyUseCase'),
 		CancelQueueEntryUseCase: Symbol.for('CancelQueueEntryUseCase'),
 		GetCustomerQueueStatusSnapshotUseCase: Symbol.for('GetCustomerQueueStatusSnapshotUseCase'),
+		LeaveQueueUseCase: Symbol.for('LeaveQueueUseCase'),
 		Internal: {
 			GetCustomerQueueStatusUseCase: Symbol.for('GetCustomerQueueStatusUseCase'),
 		},

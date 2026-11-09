@@ -2,7 +2,9 @@ import { QUEUE_CONSTANTS, QUEUE_PREFIX } from '@shared/constants/queue.constants
 import { QueueStatus, REGISTRATION_TYPE, RegistrationType } from '../enums/queue.enums.ts';
 import {
 	CannotRingWalkInCustomerError,
+	ForbiddenTicketAccessError,
 	QueueEntryNotWaitingError,
+	WalkInTicketNotAccessibleError,
 } from '../errors/queue.errors.ts';
 
 /**
@@ -254,6 +256,19 @@ export class QueueEntry {
 		this.props.cancelledAt = new Date();
 		this.props.position = null;
 		this.props.updatedAt = new Date();
+	}
+
+	public leave(userId: string): void {
+		if (this.props.status !== QueueStatus.WAITING) {
+			throw new QueueEntryNotWaitingError(this.props.id, this.props.status);
+		}
+		if (this.props.registrationType === RegistrationType.WALK_IN) {
+			throw new WalkInTicketNotAccessibleError(this.props.id);
+		}
+		if (!this.props.userId || this.props.userId !== userId) {
+			throw new ForbiddenTicketAccessError();
+		}
+		this.cancel(QueueStatus.CANCELLED);
 	}
 
 	public updatePosition(newPosition: number, newEta?: number | null): void {

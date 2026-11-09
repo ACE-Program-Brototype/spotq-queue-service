@@ -17,6 +17,10 @@ import {
 	joinQueueBodySchema,
 	joinQueueParamsSchema,
 } from '@presentation/http/validators/join-queue.validator.ts';
+import {
+	leaveQueueBodySchema,
+	leaveQueueParamsSchema,
+} from '@presentation/http/validators/leave-queue.validator.ts';
 import { ROUTES } from '@shared/constants/routes.constants.ts';
 import { Router } from 'express';
 
@@ -44,6 +48,14 @@ customerQueueRouter.post(
 	validateRequestParams(joinQueueParamsSchema),
 	validateRequestBody(joinQueueBodySchema),
 	customerQueueController.joinQueue,
+);
+
+customerQueueRouter.post(
+	ROUTES.CUSTOMER_LEAVE_QUEUE,
+	customerAuthMiddleware,
+	validateRequestParams(leaveQueueParamsSchema),
+	validateRequestBody(leaveQueueBodySchema),
+	customerQueueController.leaveQueue,
 );
 
 export { customerQueueRouter };

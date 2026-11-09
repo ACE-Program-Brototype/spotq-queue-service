@@ -68,6 +68,7 @@ export const QUEUE_MESSAGES = {
 	TABLE_ASSIGNMENT_FAILED_UPSTREAM: 'Failed to assign tables upstream',
 	ACTIVE_QUEUE_CHECK_SUCCESS: 'Active queue check completed successfully',
 	CUSTOMER_QUEUE_STATUS_FETCH: 'Customer queue status fetched successfully',
+	CUSTOMER_LEAVE_QUEUE_SUCCESS: 'Left restaurant queue successfully',
 
 	QUEUE_RETRIEVED_SUCCESS: 'Restaurant queue retrieved successfully',
 	SEAT_PARTY_SUCCESS: 'Party seated successfully',
