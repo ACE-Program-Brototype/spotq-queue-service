@@ -13,19 +13,21 @@ export class GetCustomerQueueStatusUseCase implements IGetCustomerQueueStatusUse
 		@inject(TYPES.Repositories.QueueRepository)
 		private readonly queueRepository: IQueueRepository,
 	) {}
+
 	async execute(
 		input: GetCustomerQueueStatusInputDTO,
 	): Promise<GetCustomerQueueStatusOutputDTO | null> {
 		const queueEntry = await this.queueRepository.findActiveByUserId(input.userId);
 
-		if (!queueEntry) {
+		if (!queueEntry || queueEntry.status !== QueueStatus.WAITING) {
 			return null;
 		}
 
-		if (queueEntry.status !== QueueStatus.WAITING) {
-			return null;
-		}
-
-		return { restaurantId: queueEntry.restaurantId, queueEntryId: queueEntry.id };
+		return {
+			restaurantId: queueEntry.restaurantId,
+			queueEntryId: queueEntry.id,
+			queueNumber: queueEntry.queueNumber,
+			status: queueEntry.status,
+		};
 	}
 }

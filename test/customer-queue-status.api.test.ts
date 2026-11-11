@@ -83,12 +83,68 @@ describe('Customer Queue Status Snapshot API Integration Tests', () => {
 	});
 
 	describe('DI Container Resolution', () => {
-		it('should resolve CustomerQueueController with getQueueStatus method', () => {
+		it('should resolve CustomerQueueController with getQueueStatus and getActiveQueue methods', () => {
 			const controller = container.get<CustomerQueueController>(
 				TYPES.Controllers.CustomerQueueController,
 			);
 			expect(controller).toBeDefined();
 			expect(typeof controller.getQueueStatus).toBe('function');
+			expect(typeof controller.getActiveQueue).toBe('function');
+		});
+	});
+
+	describe('GET /customer/active', () => {
+		const activeEndpoint = '/customer/active';
+
+		it('should return 401 when x-user-id header is missing', async () => {
+			const res = await request(app).get(activeEndpoint);
+
+			expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED);
+			expect(res.body.success).toBe(false);
+		});
+
+		it('should return 200 with null when customer has no active waiting queue entry', async () => {
+			const findSpy = jest.spyOn(queueRepository, 'findActiveByUserId').mockResolvedValueOnce(null);
+
+			const res = await request(app).get(activeEndpoint).set('x-user-id', validUserId);
+
+			expect(res.status).toBe(HTTP_STATUS.OK);
+			expect(res.body.success).toBe(true);
+			expect(res.body.message).toBe(QUEUE_MESSAGES.ACTIVE_QUEUE_CHECK_SUCCESS);
+			expect(res.body.data).toBeNull();
+			expect(findSpy).toHaveBeenCalledWith(validUserId);
+		});
+
+		it('should return 200 with null when customer latest entry is not waiting', async () => {
+			const seatedEntry = createMockEntry(QueueStatus.SEATED, validUserId);
+			jest.spyOn(queueRepository, 'findActiveByUserId').mockResolvedValueOnce(seatedEntry);
+
+			const res = await request(app).get(activeEndpoint).set('x-user-id', validUserId);
+
+			expect(res.status).toBe(HTTP_STATUS.OK);
+			expect(res.body.success).toBe(true);
+			expect(res.body.data).toBeNull();
+		});
+
+		it('should return 200 with lightweight active ticket metadata when customer is waiting', async () => {
+			const waitingEntry = createMockEntry(QueueStatus.WAITING, validUserId);
+			const findSpy = jest
+				.spyOn(queueRepository, 'findActiveByUserId')
+				.mockResolvedValueOnce(waitingEntry);
+
+			const res = await request(app).get(activeEndpoint).set('x-user-id', validUserId);
+
+			expect(res.status).toBe(HTTP_STATUS.OK);
+			expect(res.body.success).toBe(true);
+			expect(res.body.message).toBe(QUEUE_MESSAGES.ACTIVE_QUEUE_CHECK_SUCCESS);
+			expect(res.body.data).toEqual({
+				queueEntryId: validQueueEntryId,
+				restaurantId: validRestaurantId,
+				queueNumber: 'Q-042',
+				status: QueueStatus.WAITING,
+			});
+			expect(findSpy).toHaveBeenCalledWith(validUserId);
+			expect(RestaurantServiceClient.prototype.getRestaurantStatus).not.toHaveBeenCalled();
 		});
 	});
 

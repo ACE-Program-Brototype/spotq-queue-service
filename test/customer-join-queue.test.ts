@@ -89,6 +89,7 @@ describe('Customer Join Queue - SCRUM-975 Test Suite', () => {
 				mockRegisterQueueUseCase,
 				mockGetCustomerQueueStatusSnapshotUseCase as never,
 				{} as never,
+				{} as never,
 			);
 
 			mockRes = {

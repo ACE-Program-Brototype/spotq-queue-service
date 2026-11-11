@@ -27,6 +27,12 @@ import { Router } from 'express';
 const customerQueueRouter = Router();
 
 customerQueueRouter.get(
+	ROUTES.CUSTOMER_ACTIVE_QUEUE,
+	customerAuthMiddleware,
+	customerQueueController.getActiveQueue,
+);
+
+customerQueueRouter.get(
 	ROUTES.GET_ETA,
 	customerAuthMiddleware,
 	validateRequestParams(getEtaParamsSchema),

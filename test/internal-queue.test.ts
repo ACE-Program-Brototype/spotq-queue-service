@@ -132,6 +132,8 @@ describe('Internal Queue API - GET /api/internal/v1/queue-entries/:userId/status
 		expect(res.body.data).toEqual({
 			restaurantId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
 			queueEntryId: '33333333-3333-3333-3333-333333333333',
+			queueNumber: 'W-002',
+			status: QueueStatus.WAITING,
 		});
 		expect(findSpy).toHaveBeenCalledWith(userId);
 	});

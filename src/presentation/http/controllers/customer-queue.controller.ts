@@ -1,5 +1,6 @@
 import type { IGetCustomerQueueStatusSnapshotUseCase } from '@application/ports/use-cases/get-customer-queue-status-snapshot.use-case.port.ts';
 import type { IGetQueueEtaUseCase } from '@application/ports/use-cases/get-queue-eta.use-case.port.ts';
+import type { IGetCustomerQueueStatusUseCase } from '@application/ports/use-cases/internal/get-customer-queue-status.use-case.port.ts';
 import type { ILeaveQueueUseCase } from '@application/ports/use-cases/leave-queue.use-case.port.ts';
 import type { IRegisterQueueUseCase } from '@application/ports/use-cases/register-queue.use-case.port.ts';
 import { TYPES } from '@di/types.ts';
@@ -35,7 +36,26 @@ export class CustomerQueueController {
 		private readonly getCustomerQueueStatusSnapshotUseCase: IGetCustomerQueueStatusSnapshotUseCase,
 		@inject(TYPES.UseCases.LeaveQueueUseCase)
 		private readonly leaveQueueUseCase: ILeaveQueueUseCase,
+		@inject(TYPES.UseCases.Internal.GetCustomerQueueStatusUseCase)
+		private readonly getCustomerQueueStatusUseCase: IGetCustomerQueueStatusUseCase,
 	) {}
+
+	private requireCustomerUserId(req: Request): string {
+		const userId = req.user?.userId ?? req.userId;
+
+		if (!userId) {
+			throw new UnauthorizedError(messages.GATEWAY_UNAUTHORIZED);
+		}
+
+		return userId;
+	}
+
+	getActiveQueue = async (req: Request, res: Response): Promise<void> => {
+		const userId = this.requireCustomerUserId(req);
+		const result = await this.getCustomerQueueStatusUseCase.execute({ userId });
+
+		sendSuccessResponse(res, result, QUEUE_MESSAGES.ACTIVE_QUEUE_CHECK_SUCCESS, HTTP_STATUS.OK);
+	};
 
 	getEta = async (req: Request, res: Response): Promise<void> => {
 		const { restaurantId } = req.params as unknown as GetEtaParams;
@@ -101,11 +121,7 @@ export class CustomerQueueController {
 	leaveQueue = async (req: Request, res: Response): Promise<void> => {
 		const { restaurantId } = req.params as unknown as LeaveQueueParams;
 		const { queueEntryId } = req.body as LeaveQueueBody;
-		const userId = req.user?.userId ?? req.userId;
-
-		if (!userId) {
-			throw new UnauthorizedError(messages.GATEWAY_UNAUTHORIZED);
-		}
+		const userId = this.requireCustomerUserId(req);
 
 		const result = await this.leaveQueueUseCase.execute({
 			restaurantId,
