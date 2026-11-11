@@ -12,6 +12,7 @@ export const ROUTES = {
 	SKIP_PARTY: '/restaurants/:restaurantId/queue/:queueEntryId/skip',
 	CANCEL_QUEUE_ENTRY: '/restaurants/:restaurantId/queue/:queueEntryId/cancel',
 	CUSTOMER_BASE: '/customer',
+	CUSTOMER_ACTIVE_QUEUE: '/active',
 	GET_ETA: '/:restaurantId/eta',
 	JOIN_QUEUE: '/restaurants/:restaurantId/queue/join',
 	CUSTOMER_QUEUE_STATUS: '/restaurants/:restaurantId/queue/status',
