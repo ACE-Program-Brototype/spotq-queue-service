@@ -34,7 +34,12 @@ describe('GetCustomerQueueStatusUseCase', () => {
 	it('returns the active waiting queue entry details for the user', async () => {
 		queueRepository.findActiveByUserId.mockResolvedValue(createQueueEntry());
 
-		await expect(useCase.execute({ userId })).resolves.toEqual({ restaurantId, queueEntryId });
+		await expect(useCase.execute({ userId })).resolves.toEqual({
+			restaurantId,
+			queueEntryId,
+			queueNumber: 'W-001',
+			status: QueueStatus.WAITING,
+		});
 		expect(queueRepository.findActiveByUserId).toHaveBeenCalledWith(userId);
 	});
 
