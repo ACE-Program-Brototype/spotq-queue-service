@@ -74,7 +74,7 @@ export class RegisterQueueUseCase implements IRegisterQueueUseCase {
 			throw new RestaurantNotAcceptingQueueError();
 		}
 
-		if (tableCheck.isTableAvailable) {
+		if (registrationType === RegistrationType.ONLINE && tableCheck.isTableAvailable) {
 			throw new TableAvailableError(tableCheck.availableCount);
 		}
 
