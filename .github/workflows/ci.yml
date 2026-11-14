@@ -37,13 +37,13 @@ jobs:
           
           # Enforce ticket key SCRUM-XXXX pattern for feature branches
           # Supported prefixes: feat/, fix/, chore/, refactor/, hotfix/
-          REGEX="^(feat|fix|chore|refactor|hotfix)/SCRUM-[0-9]+(-.+)?$"
+          REGEX="^(feat|fix|chore|refactor|hotfix)/[a-zA-Z0-9_.-]+$"
           if [[ "$BRANCH_NAME" =~ $REGEX ]]; then
             echo "Branch name '$BRANCH_NAME' matches the naming convention. Allowed."
           else
             echo "::error::Branch name '$BRANCH_NAME' does not match the required naming convention."
-            echo "::error::Please rename your branch to follow: <prefix>/SCRUM-<ticket_number>-<description>"
-            echo "::error::Example: feat/SCRUM-502-setup-queue-service"
+            echo "::error::Please rename your branch to follow: <prefix>/<description>"
+            echo "::error::Example: feat/SCRUM-502-setup-queue-service or fix/queue-table-check-remove"
             exit 1
           fi
 

@@ -171,7 +171,7 @@ describe('RegisterQueueUseCase Unit Tests', () => {
 		expect(mockQueueRepository.createWithHistory).not.toHaveBeenCalled();
 	});
 
-	it('should throw TableAvailableError (409) if a suitable table is available (no queue needed)', async () => {
+	it('should allow walk-in queue registration even if a table is available', async () => {
 		mockRestaurantServiceClient.checkAvailability.mockResolvedValueOnce({
 			restaurantId: 'rest-1234',
 			isOpen: true,
@@ -180,7 +180,34 @@ describe('RegisterQueueUseCase Unit Tests', () => {
 			availableCount: 2,
 		});
 
-		await expect(useCase.execute(defaultInput)).rejects.toThrow(TableAvailableError);
+		const result = await useCase.execute(defaultInput);
+
+		expect(result).toBeDefined();
+		expect(result.queueNumber).toBe('W-013');
+		expect(mockQueueRepository.createWithHistory).toHaveBeenCalled();
+		expect(mockWebSocketBroadcaster.broadcastToRestaurant).toHaveBeenCalled();
+	});
+
+	it('should throw TableAvailableError (409) if a suitable table is available for ONLINE customer', async () => {
+		mockRestaurantServiceClient.checkAvailability.mockResolvedValueOnce({
+			restaurantId: 'rest-1234',
+			isOpen: true,
+			acceptsQueue: true,
+			isTableAvailable: true,
+			availableCount: 2,
+		});
+
+		await expect(
+			useCase.execute({
+				restaurantId: 'rest-1234',
+				userId: 'user-1234',
+				guestName: 'Alex Mercer',
+				guestPhone: '+15551234567',
+				partySize: 2,
+				registrationType: RegistrationType.ONLINE,
+			}),
+		).rejects.toThrow(TableAvailableError);
+
 		expect(mockQueueRepository.createWithHistory).not.toHaveBeenCalled();
 		expect(mockWebSocketBroadcaster.broadcastToRestaurant).not.toHaveBeenCalled();
 	});

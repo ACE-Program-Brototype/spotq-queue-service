@@ -35,8 +35,7 @@ export const QUEUE_MESSAGES = {
 	WALK_IN_REGISTER_SUCCESS: 'Walk-in guest registered to queue successfully',
 	JOIN_QUEUE_SUCCESS: 'Joined restaurant queue successfully',
 	ETA_RETRIEVED_SUCCESS: 'Estimated wait time retrieved successfully',
-	TABLES_AVAILABLE:
-		'Tables are currently available. Seat the guest directly without joining the queue.',
+	TABLES_AVAILABLE: 'Tables are currently available. Seat directly without joining the queue.',
 	RESTAURANT_NOT_ACCEPTING: 'Restaurant is currently closed or not accepting queue registrations.',
 	ACTIVE_ENTRY_EXISTS:
 		'A guest with this phone number is already waiting in this restaurant queue.',
