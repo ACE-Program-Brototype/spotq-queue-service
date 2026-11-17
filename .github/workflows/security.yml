@@ -1,0 +1,67 @@
+name: Queue Service Security
+
+on:
+  push:
+    branches:
+      - development
+      - main
+
+  pull_request:
+    branches:
+      - development
+      - main
+
+  schedule:
+    - cron: "0 2 * * 1"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: queue-security-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dependency-audit:
+    name: Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+    container:
+      image: node:22-bookworm-slim
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Activate pnpm
+        run: corepack prepare pnpm@11.18.0 --activate
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run pnpm Audit
+        run: pnpm audit --audit-level high
+
+  filesystem-scan:
+    name: Filesystem and Secret Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run Trivy Filesystem Scan
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: 1

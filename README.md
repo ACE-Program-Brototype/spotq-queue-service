@@ -1,4 +1,4 @@
-#  SpotQ Queue Service
+# SpotQ Queue Service
 
 Queue Service is one of the core backend microservices of the SpotQ platform. It provides the foundational infrastructure required for implementing queue and waitlist-related business features while following the SpotQ engineering standards for scalability, security, observability, and maintainability.
 
@@ -57,25 +57,24 @@ Not yet implemented:
 - gRPC
 - Domain Models
 
-
 ---
 
 # Technology Stack
 
-| Technology | Purpose |
-|------------|----------|
-| Node.js 22 | Runtime |
-| Express.js 5 | HTTP Server |
-| TypeScript 7 | Language |
-| Prisma 7 | ORM |
-| PostgreSQL | Database |
-| Redis | Cache & Event Store |
-| Pino | Structured Logging |
-| Prometheus | Metrics |
-| Biome | Linting & Formatting |
-| pnpm | Package Manager |
-| Docker | Containerization |
-| Infisical | Secrets Management |
+| Technology     | Purpose                |
+| -------------- | ---------------------- |
+| Node.js 22     | Runtime                |
+| Express.js 5   | HTTP Server            |
+| TypeScript 7   | Language               |
+| Prisma 7       | ORM                    |
+| PostgreSQL     | Database               |
+| Redis          | Cache & Event Store    |
+| Pino           | Structured Logging     |
+| Prometheus     | Metrics                |
+| Biome          | Linting & Formatting   |
+| pnpm           | Package Manager        |
+| Docker         | Containerization       |
+| Infisical      | Secrets Management     |
 | GitHub Actions | Continuous Integration |
 
 ---
@@ -225,7 +224,7 @@ Start development server
 pnpm dev:infisical
 ```
 
-*(Alternatively, run `pnpm dev` to fall back to the local `.env` configuration file, or run `infisical run --env=dev -- pnpm dev` manually).*
+_(Alternatively, run `pnpm dev` to fall back to the local `.env` configuration file, or run `infisical run --env=dev -- pnpm dev` manually)._
 
 Build project
 
@@ -263,14 +262,14 @@ pnpm dev:infisical
 
 Required secrets
 
-| Variable | Description |
-|-----------|-------------|
-| PORT | Application Port |
-| NODE_ENV | Run Environment |
-| SERVICE_NAME | Name of microservice |
-| LOG_LEVEL | Logging granularity level |
+| Variable     | Description                      |
+| ------------ | -------------------------------- |
+| PORT         | Application Port                 |
+| NODE_ENV     | Run Environment                  |
+| SERVICE_NAME | Name of microservice             |
+| LOG_LEVEL    | Logging granularity level        |
 | DATABASE_URL | PostgreSQL connection string URL |
-| REDIS_URL | Redis URL |
+| REDIS_URL    | Redis URL                        |
 
 ---
 
@@ -376,7 +375,20 @@ Structured logs are written to stdout.
 Example
 
 ```json
-{"level":"INFO","time":"2026-08-05T19:04:58.653Z","pid":72748,"hostname":"Ajexs-MacBook-Air.local","serviceName":"spotq-queue-service","requestId":"59913a69-8bac-45bd-a8b2-5d8e751ce9ea","correlationId":"0b33d0ea-8355-4789-a5f6-d7bb9850cb76","traceId":"0b33d0ea-8355-4789-a5f6-d7bb9850cb76","msg":"Incoming request","method":"GET","url":"/health","ip":"::ffff:127.0.0.1"}
+{
+	"level": "INFO",
+	"time": "2026-08-05T19:04:58.653Z",
+	"pid": 72748,
+	"hostname": "Ajexs-MacBook-Air.local",
+	"serviceName": "spotq-queue-service",
+	"requestId": "59913a69-8bac-45bd-a8b2-5d8e751ce9ea",
+	"correlationId": "0b33d0ea-8355-4789-a5f6-d7bb9850cb76",
+	"traceId": "0b33d0ea-8355-4789-a5f6-d7bb9850cb76",
+	"msg": "Incoming request",
+	"method": "GET",
+	"url": "/health",
+	"ip": "::ffff:127.0.0.1"
+}
 ```
 
 ---
