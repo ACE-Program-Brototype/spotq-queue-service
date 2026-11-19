@@ -5,6 +5,7 @@ const envSchema = z.object({
 	NODE_ENV: z.enum(['development', 'testing', 'production', 'test']).default('development'),
 	PORT: z.coerce.number().positive().default(3004),
 	SERVICE_NAME: z.string().min(1).default('queue-service'),
+	SERVICE_VERSION: z.string().default('1.0.0'),
 	LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
 	DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
 	DIRECT_DATABASE_URL: z.string().optional(),

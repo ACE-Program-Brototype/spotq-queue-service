@@ -23,6 +23,11 @@ export interface PushNotificationPayload {
 	 * Deep link navigation metadata (e.g., `/queue/:queueEntryId` or `spotq://ticket/:id`).
 	 */
 	deepLink?: string;
+
+	/**
+	 * Distributed correlation ID for end-to-end tracing across background jobs.
+	 */
+	correlationId?: string;
 }
 
 export interface PushNotificationResult {

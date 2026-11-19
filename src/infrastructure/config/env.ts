@@ -9,7 +9,13 @@ export const config = {
 	nodeEnv: validatedEnv.NODE_ENV,
 	port: validatedEnv.PORT,
 	serviceName: validatedEnv.SERVICE_NAME,
+	serviceVersion: validatedEnv.SERVICE_VERSION,
 	logLevel: validatedEnv.LOG_LEVEL,
+	service: {
+		name: validatedEnv.SERVICE_NAME,
+		version: validatedEnv.SERVICE_VERSION,
+		logLevel: validatedEnv.LOG_LEVEL,
+	},
 	database: {
 		url: validatedEnv.DATABASE_URL,
 		caCert: validatedEnv.DATABASE_CA_CERT,
