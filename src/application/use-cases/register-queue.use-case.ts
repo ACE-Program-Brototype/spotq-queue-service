@@ -62,7 +62,7 @@ export class RegisterQueueUseCase implements IRegisterQueueUseCase {
 		} = input;
 
 		const restaurantStatus = await this.restaurantServiceClient.getRestaurantStatus(restaurantId);
-		console.log(restaurantStatus, '------------');
+
 		validateRestaurantActiveSubscription(restaurantStatus);
 
 		const tableCheck = await this.restaurantServiceClient.checkAvailability(
