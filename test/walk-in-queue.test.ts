@@ -188,30 +188,6 @@ describe('RegisterQueueUseCase Unit Tests', () => {
 		expect(mockWebSocketBroadcaster.broadcastToRestaurant).toHaveBeenCalled();
 	});
 
-	it('should throw TableAvailableError (409) if a suitable table is available for ONLINE customer', async () => {
-		mockRestaurantServiceClient.checkAvailability.mockResolvedValueOnce({
-			restaurantId: 'rest-1234',
-			isOpen: true,
-			acceptsQueue: true,
-			isTableAvailable: true,
-			availableCount: 2,
-		});
-
-		await expect(
-			useCase.execute({
-				restaurantId: 'rest-1234',
-				userId: 'user-1234',
-				guestName: 'Alex Mercer',
-				guestPhone: '+15551234567',
-				partySize: 2,
-				registrationType: RegistrationType.ONLINE,
-			}),
-		).rejects.toThrow(TableAvailableError);
-
-		expect(mockQueueRepository.createWithHistory).not.toHaveBeenCalled();
-		expect(mockWebSocketBroadcaster.broadcastToRestaurant).not.toHaveBeenCalled();
-	});
-
 	it('should throw RestaurantNotAcceptingQueueError if restaurant is closed or queueing disabled', async () => {
 		mockRestaurantServiceClient.checkAvailability.mockResolvedValueOnce({
 			restaurantId: 'rest-1234',

@@ -62,7 +62,7 @@ export class RegisterQueueUseCase implements IRegisterQueueUseCase {
 		} = input;
 
 		const restaurantStatus = await this.restaurantServiceClient.getRestaurantStatus(restaurantId);
-
+		console.log(restaurantStatus, '------------');
 		validateRestaurantActiveSubscription(restaurantStatus);
 
 		const tableCheck = await this.restaurantServiceClient.checkAvailability(
@@ -72,10 +72,6 @@ export class RegisterQueueUseCase implements IRegisterQueueUseCase {
 
 		if (!tableCheck.isOpen || !tableCheck.acceptsQueue) {
 			throw new RestaurantNotAcceptingQueueError();
-		}
-
-		if (registrationType === RegistrationType.ONLINE && tableCheck.isTableAvailable) {
-			throw new TableAvailableError(tableCheck.availableCount);
 		}
 
 		const [existingActivePhone, existingActiveUser] = await Promise.all([
