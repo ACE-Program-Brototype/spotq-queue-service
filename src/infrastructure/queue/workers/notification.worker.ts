@@ -1,9 +1,10 @@
+import { randomUUID } from 'node:crypto';
 import type {
 	IPushNotificationService,
 	PushNotificationPayload,
 } from '@application/ports/services/push-notification.port.ts';
 import { config } from '@infrastructure/config/index.ts';
-import { logger } from '@infrastructure/logger/index.ts';
+import { logger, loggerLocalStorage } from '@infrastructure/logger/index.ts';
 import { type Job, Worker } from 'bullmq';
 import IORedis from 'ioredis';
 import { QUEUE_EVENTS, QUEUE_NAMES } from '../queue.constants.ts';
@@ -24,26 +25,67 @@ export function createNotificationWorker(
 	const worker = new Worker<PushNotificationPayload>(
 		QUEUE_NAMES.PUSH_NOTIFICATIONS,
 		async (job: Job<PushNotificationPayload>) => {
-			logger.info(
-				{ jobId: job.id, fidSuffix: job.data.fid?.slice(-6) },
-				'Notification worker processing job',
-			);
+			const correlationId =
+				job.data?.correlationId || job.data?.data?.correlationId || randomUUID();
+			const startTime = process.hrtime.bigint();
 
-			const result = await pushNotificationService.send(job.data);
-
-			if (!result.success && !result.isTokenInvalid) {
-				logger.warn(
-					{ jobId: job.id, error: result.error },
-					'Push notification dispatch failed in worker, retrying via BullMQ',
+			return await loggerLocalStorage.run({ correlationId, requestId: correlationId }, async () => {
+				logger.debug(
+					{
+						job: {
+							queue: QUEUE_NAMES.PUSH_NOTIFICATIONS,
+							routing_key: job.name,
+							job_id: job.id,
+							status: 'PROCESSING',
+						},
+						context: {
+							fid_suffix: job.data.fid?.slice(-6),
+						},
+					},
+					`Processing queue message '${job.name}'`,
 				);
-				throw new Error(result.error || 'Push notification dispatch failed');
-			}
 
-			logger.info(
-				{ jobId: job.id, messageId: result.messageId },
-				'Push notification job completed successfully',
-			);
-			return result;
+				const result = await pushNotificationService.send(job.data);
+
+				if (!result.success && !result.isTokenInvalid) {
+					logger.warn(
+						{
+							job: {
+								queue: QUEUE_NAMES.PUSH_NOTIFICATIONS,
+								routing_key: job.name,
+								job_id: job.id,
+								status: 'FAILED',
+							},
+							error: {
+								name: 'PushNotificationDispatchError',
+								message: result.error || 'Push notification dispatch failed',
+							},
+						},
+						'Push notification dispatch failed in worker, retrying via BullMQ',
+					);
+					throw new Error(result.error || 'Push notification dispatch failed');
+				}
+
+				const endTime = process.hrtime.bigint();
+				const durationMs = Math.round((Number(endTime - startTime) / 1_000_000) * 10) / 10;
+
+				logger.info(
+					{
+						job: {
+							queue: QUEUE_NAMES.PUSH_NOTIFICATIONS,
+							routing_key: job.name,
+							job_id: job.id,
+							duration_ms: durationMs,
+							status: 'SUCCESS',
+						},
+						context: {
+							message_id: result.messageId,
+						},
+					},
+					`Processed queue message '${job.name}'`,
+				);
+				return result;
+			});
 		},
 		{
 			connection,
@@ -52,7 +94,22 @@ export function createNotificationWorker(
 	);
 
 	worker.on(QUEUE_EVENTS.FAILED, (job, err) => {
-		logger.error({ jobId: job?.id, err }, 'Notification worker job failed permanently');
+		const correlationId =
+			job?.data?.correlationId || job?.data?.data?.correlationId || randomUUID();
+		loggerLocalStorage.run({ correlationId, requestId: correlationId }, () => {
+			logger.error(
+				{
+					err,
+					job: {
+						queue: QUEUE_NAMES.PUSH_NOTIFICATIONS,
+						routing_key: job?.name || 'push-notification',
+						job_id: job?.id,
+						status: 'FAILED',
+					},
+				},
+				`Queue message '${job?.name}' failed`,
+			);
+		});
 	});
 
 	worker.on(QUEUE_EVENTS.ERROR, (err) => {

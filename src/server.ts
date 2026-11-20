@@ -25,12 +25,14 @@ async function bootstrap() {
 	server.listen(config.port, () => {
 		logger.info(
 			{
-				port: config.port,
-				nodeEnv: config.nodeEnv,
-				serviceName: config.serviceName,
-				wsPath: config.websocket.path,
+				context: {
+					port: config.port,
+					node_env: config.nodeEnv,
+					service_name: config.serviceName,
+					ws_path: config.websocket.path,
+				},
 			},
-			`Queue Service running on port ${config.port}`,
+			'Server started successfully',
 		);
 	});
 
@@ -38,12 +40,15 @@ async function bootstrap() {
 
 	const handleShutdown = async (signal: string) => {
 		if (isShuttingDown) {
-			logger.warn(MESSAGES.SHUTDOWN_IN_PROGRESS);
+			logger.warn({ context: { signal } }, MESSAGES.SHUTDOWN_IN_PROGRESS);
 			return;
 		}
 
 		isShuttingDown = true;
-		logger.info(signal === 'SIGINT' ? MESSAGES.SHUTDOWN_SIGINT : MESSAGES.SHUTDOWN_SIGTERM);
+		logger.info(
+			{ context: { signal } },
+			signal === 'SIGINT' ? MESSAGES.SHUTDOWN_SIGINT : MESSAGES.SHUTDOWN_SIGTERM,
+		);
 
 		const forceExitTimeout = setTimeout(() => {
 			logger.error(MESSAGES.SHUTDOWN_TIMEOUT);

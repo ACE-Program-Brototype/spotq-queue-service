@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import type {
 	RingCustomerInputDTO,
 	RingCustomerOutputDTO,
@@ -8,7 +9,7 @@ import { TYPES } from '@di/types.ts';
 import type { IQueueRepository, IQueueService } from '@domain/index.ts';
 import { QueueEntryNotFoundError } from '@domain/index.ts';
 import { config } from '@infrastructure/config/index.ts';
-import { logger } from '@infrastructure/logger/index.ts';
+import { logger, loggerLocalStorage } from '@infrastructure/logger/index.ts';
 import {
 	JOB_NAMES,
 	PUSH_NOTIFICATION_JOB_OPTIONS,
@@ -49,6 +50,8 @@ export class RingCustomerUseCase implements IRingCustomerUseCase {
 
 		let notificationDispatched = false;
 		if (entry.fid) {
+			const store = loggerLocalStorage.getStore();
+			const correlationId = store?.correlationId || randomUUID();
 			try {
 				await this.queueService.addJob(
 					QUEUE_NAMES.PUSH_NOTIFICATIONS,
@@ -58,9 +61,11 @@ export class RingCustomerUseCase implements IRingCustomerUseCase {
 						title: NOTIFICATION_MESSAGES.TABLE_READY_TITLE,
 						body: NOTIFICATION_MESSAGES.TABLE_READY_BODY(entry.guestName),
 						deepLink,
+						correlationId,
 						data: {
 							queueEntryId: entry.id,
 							restaurantId: entry.restaurantId,
+							correlationId,
 							...(deepLink && { click_action: deepLink, deepLink }),
 						},
 					},
