@@ -1,6 +1,6 @@
 import type { IEtaService } from '@application/ports/services/eta-service.port.ts';
 import { config } from '@infrastructure/config/index.ts';
-import { logger } from '@infrastructure/logger/index.ts';
+import { logger, loggerLocalStorage } from '@infrastructure/logger/index.ts';
 import { ETA_CONSTANTS } from '@shared/constants/eta.constants.ts';
 import { HTTP_STATUS } from '@shared/constants/http.constants.ts';
 import { ML_ETA_SERVICE_ROUTES } from '@shared/constants/routes.constants.ts';
@@ -105,6 +105,24 @@ export class MlEtaServiceClient implements IEtaService {
 		partySize: number,
 		controller?: AbortController,
 	): Promise<number> => {
+		const headers: Record<string, string> = {
+			Accept: 'application/json',
+		};
+
+		const store = loggerLocalStorage.getStore();
+		if (store?.correlationId) {
+			headers['x-correlation-id'] = store.correlationId;
+		}
+		if (store?.requestId) {
+			headers['x-request-id'] = store.requestId;
+		}
+		if (store?.traceId) {
+			headers['x-trace-id'] = store.traceId;
+			if (store?.spanId) {
+				headers.traceparent = `00-${store.traceId}-${store.spanId}-01`;
+			}
+		}
+
 		const response = await axios.get<IMlEtaPredictionResponse>(
 			`${this.baseUrl}${ML_ETA_SERVICE_ROUTES.PREDICT}`,
 			{
@@ -115,9 +133,7 @@ export class MlEtaServiceClient implements IEtaService {
 					party_size: partySize,
 				},
 				timeout: this.requestTimeoutMs,
-				headers: {
-					Accept: 'application/json',
-				},
+				headers,
 			},
 		);
 

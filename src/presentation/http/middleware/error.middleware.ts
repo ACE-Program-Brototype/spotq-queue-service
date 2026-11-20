@@ -32,7 +32,22 @@ export function errorMiddleware(
 		return;
 	}
 
+	const path = req.originalUrl || req.url;
+
+	// 1. Zod validation error
 	if (err instanceof ZodError) {
+		logger.warn(
+			{
+				err,
+				http: {
+					method: req.method,
+					path,
+					status_code: HTTP_STATUS.BAD_REQUEST,
+				},
+			},
+			'Validation error occurred',
+		);
+
 		const errors = err.issues.map((issue) => ({
 			field: issue.path.join('.'),
 			message: issue.message,
@@ -48,28 +63,39 @@ export function errorMiddleware(
 		return;
 	}
 
+	// 2. Domain business error
 	if (err instanceof DomainError) {
 		const statusCode = mapDomainErrorToHttpStatus(err);
 		logger.warn(
 			{
-				errName: err.name,
-				code: err.code,
-				statusCode,
-				details: err.details,
-				url: req.url,
-				method: req.method,
+				err,
+				http: {
+					method: req.method,
+					path,
+					status_code: statusCode,
+				},
+				...(err.details && typeof err.details === 'object' ? { context: err.details } : {}),
 			},
-			`Domain rule violation: ${err.message}`,
+			'Domain rule violation occurred',
 		);
 
 		sendErrorResponse(res, err.code, err.message, statusCode, err.details);
 		return;
 	}
 
+	// 3. Database persistence error
 	if (err instanceof PersistenceError) {
 		logger.error(
-			{ err, cause: err.cause, url: req.url, method: req.method },
-			`Database persistence error: ${err.message}`,
+			{
+				err,
+				http: {
+					method: req.method,
+					path,
+					status_code: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+				},
+				...(err.cause ? { context: { cause: String(err.cause) } } : {}),
+			},
+			'Database persistence error occurred',
 		);
 
 		sendErrorResponse(
@@ -81,12 +107,37 @@ export function errorMiddleware(
 		return;
 	}
 
-	logger.error({ err, method: req.method, url: req.url }, MESSAGES.UNHANDLED_ERROR);
-
+	// 4. Application / Unknown / Server error
 	const statusCode =
 		res.statusCode >= 400 && res.statusCode < 600
 			? res.statusCode
 			: HTTP_STATUS.INTERNAL_SERVER_ERROR;
+
+	if (statusCode >= HTTP_STATUS.INTERNAL_SERVER_ERROR) {
+		logger.error(
+			{
+				err,
+				http: {
+					method: req.method,
+					path,
+					status_code: statusCode,
+				},
+			},
+			'Unhandled server error occurred',
+		);
+	} else {
+		logger.warn(
+			{
+				err,
+				http: {
+					method: req.method,
+					path,
+					status_code: statusCode,
+				},
+			},
+			'Client error occurred',
+		);
+	}
 
 	const message = config.nodeEnv === 'production' ? MESSAGES.UNEXPECTED_ERROR : err.message;
 

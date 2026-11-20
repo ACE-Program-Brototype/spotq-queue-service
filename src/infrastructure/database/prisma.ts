@@ -16,7 +16,10 @@ if (caCert) {
 			rejectUnauthorized: true,
 		};
 	} catch (error) {
-		logger.error({ err: error }, `Failed to read database CA cert from path: ${caCert}`);
+		logger.error(
+			{ err: error, context: { path: caCert } },
+			'Failed to read database CA cert from path',
+		);
 		sslConfig = {
 			rejectUnauthorized: false,
 		};
@@ -57,13 +60,44 @@ if (
 const pool = new pg.Pool({
 	connectionString,
 	ssl: sslConfig,
-	max: 10,
-	idleTimeoutMillis: 30000,
+	max: config.database.poolMax,
+	idleTimeoutMillis: config.database.poolIdleTimeoutMs,
+	connectionTimeoutMillis: config.database.poolConnectionTimeoutMs,
 });
 
 const adapter = new PrismaPg(pool);
 
 export const prisma = new PrismaClient({
 	adapter,
-	log: config.nodeEnv === 'development' ? ['query', 'error', 'warn'] : ['error'],
+	log: [
+		{ emit: 'event', level: 'error' },
+		{ emit: 'event', level: 'warn' },
+	],
+});
+
+prisma.$on('error' as never, (e: { message: string; target?: string }) => {
+	logger.error(
+		{
+			error: {
+				name: 'PrismaClientError',
+				message: e.message,
+			},
+			context: {
+				target: e.target,
+			},
+		},
+		'Prisma database error',
+	);
+});
+
+prisma.$on('warn' as never, (e: { message: string }) => {
+	logger.warn(
+		{
+			error: {
+				name: 'PrismaClientWarning',
+				message: e.message,
+			},
+		},
+		'Prisma database warning',
+	);
 });
