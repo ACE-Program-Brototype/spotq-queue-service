@@ -14,7 +14,6 @@ import {
 	RegistrationType,
 	RestaurantBlockedError,
 	RestaurantNotAcceptingQueueError,
-	TableAvailableError,
 } from '../src/domain/index.ts';
 import type { IQueueRepository } from '../src/domain/repositories/i-queue.repository.ts';
 

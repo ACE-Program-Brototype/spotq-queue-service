@@ -17,7 +17,6 @@ import {
 	QueueEntry,
 	RegistrationType,
 	RestaurantNotAcceptingQueueError,
-	TableAvailableError,
 } from '@domain/index.ts';
 import { logger } from '@infrastructure/logger/index.ts';
 import { AUDIT_CONSTANTS, WS_SERVER_EVENTS } from '@shared/index.ts';

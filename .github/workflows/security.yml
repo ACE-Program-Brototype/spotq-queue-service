@@ -44,7 +44,6 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-
   filesystem-scan:
     name: Filesystem and Secret Scan
     runs-on: ubuntu-latest
