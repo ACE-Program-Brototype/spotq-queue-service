@@ -17,7 +17,6 @@ import {
 	QueueEntry,
 	RegistrationType,
 	RestaurantNotAcceptingQueueError,
-	TableAvailableError,
 } from '@domain/index.ts';
 import { logger } from '@infrastructure/logger/index.ts';
 import { AUDIT_CONSTANTS, WS_SERVER_EVENTS } from '@shared/index.ts';
@@ -72,10 +71,6 @@ export class RegisterQueueUseCase implements IRegisterQueueUseCase {
 
 		if (!tableCheck.isOpen || !tableCheck.acceptsQueue) {
 			throw new RestaurantNotAcceptingQueueError();
-		}
-
-		if (registrationType === RegistrationType.ONLINE && tableCheck.isTableAvailable) {
-			throw new TableAvailableError(tableCheck.availableCount);
 		}
 
 		const [existingActivePhone, existingActiveUser] = await Promise.all([
