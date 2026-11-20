@@ -1,0 +1,90 @@
+import 'reflect-metadata';
+import http from 'node:http';
+import { bullmqQueueService, databaseService, initWorkers, redisService } from '@di/index.ts';
+import { config } from '@infrastructure/config/index.ts';
+import { logger } from '@infrastructure/logger/index.ts';
+import { rabbitmqClient } from '@infrastructure/rabbitmq/index.ts';
+import { initSocketServer } from '@infrastructure/websocket/index.ts';
+import { MESSAGES } from '@shared/constants/index.ts';
+import app from './app.ts';
+
+async function bootstrap() {
+	await databaseService.connect();
+	await redisService.connect();
+	try {
+		await rabbitmqClient.connect();
+	} catch (error) {
+		logger.error({ err: error }, 'Failed to connect to RabbitMQ broker on bootstrap');
+	}
+
+	const workers = initWorkers();
+
+	const server = http.createServer(app);
+	const { close: closeSocketServer } = await initSocketServer(server);
+
+	server.listen(config.port, () => {
+		logger.info(
+			{
+				port: config.port,
+				nodeEnv: config.nodeEnv,
+				serviceName: config.serviceName,
+				wsPath: config.websocket.path,
+			},
+			`Queue Service running on port ${config.port}`,
+		);
+	});
+
+	let isShuttingDown = false;
+
+	const handleShutdown = async (signal: string) => {
+		if (isShuttingDown) {
+			logger.warn(MESSAGES.SHUTDOWN_IN_PROGRESS);
+			return;
+		}
+
+		isShuttingDown = true;
+		logger.info(signal === 'SIGINT' ? MESSAGES.SHUTDOWN_SIGINT : MESSAGES.SHUTDOWN_SIGTERM);
+
+		const forceExitTimeout = setTimeout(() => {
+			logger.error(MESSAGES.SHUTDOWN_TIMEOUT);
+			process.exit(1);
+		}, 10000);
+
+		try {
+			await closeSocketServer();
+
+			await new Promise<void>((resolve, reject) => {
+				server.close((err) => {
+					if (err) {
+						reject(err);
+					} else {
+						logger.info(MESSAGES.HTTP_SERVER_CLOSED);
+						resolve();
+					}
+				});
+			});
+
+			await workers.closeAll();
+			await bullmqQueueService.close();
+			await rabbitmqClient.close();
+			await redisService.disconnect();
+			await databaseService.disconnect();
+
+			clearTimeout(forceExitTimeout);
+			logger.info(MESSAGES.SHUTDOWN_COMPLETED);
+			process.exit(0);
+		} catch (error) {
+			clearTimeout(forceExitTimeout);
+			logger.error({ err: error }, MESSAGES.SHUTDOWN_ERROR);
+			process.exit(1);
+		}
+	};
+
+	process.on('SIGTERM', () => handleShutdown('SIGTERM'));
+	process.on('SIGINT', () => handleShutdown('SIGINT'));
+}
+
+bootstrap().catch((error) => {
+	logger.fatal({ err: error }, MESSAGES.SERVER_BOOTSTRAP_FAILED);
+	process.exit(1);
+});

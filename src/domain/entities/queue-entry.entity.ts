@@ -1,0 +1,348 @@
+import { QUEUE_CONSTANTS, QUEUE_PREFIX } from '@shared/constants/queue.constants.ts';
+import { QueueStatus, REGISTRATION_TYPE, RegistrationType } from '../enums/queue.enums.ts';
+import {
+	CannotRingWalkInCustomerError,
+	ForbiddenTicketAccessError,
+	QueueEntryNotWaitingError,
+	WalkInTicketNotAccessibleError,
+} from '../errors/queue.errors.ts';
+
+/**
+ * Immutable properties representing a QueueEntry record in the domain model.
+ */
+export interface QueueEntryProps {
+	id: string;
+	restaurantId: string;
+	userId?: string | null;
+	guestName: string;
+	phone: string;
+	queueNumber: string;
+	partySize: number;
+	specialNotes?: string | null;
+	registrationType: RegistrationType;
+	position: number | null;
+	estimatedWaitMinutes: number | null;
+	estimatedWaitMinutesAtJoin: number | null;
+	status: QueueStatus;
+	ringCount: number;
+	lastRingedAt?: Date | null;
+	fid?: string | null;
+	joinedAt: Date;
+	seatedAt?: Date | null;
+	cancelledAt?: Date | null;
+	createdAt: Date;
+	updatedAt: Date;
+}
+
+/**
+ * Parameters required to create a new queue entry (walk-in or online).
+ */
+export interface CreateQueueEntryProps {
+	id?: string;
+	restaurantId: string;
+	userId?: string | null;
+	guestName: string;
+	phone: string;
+	queueNumber: string;
+	partySize: number;
+	specialNotes?: string | null;
+	registrationType?: RegistrationType;
+	position: number;
+	estimatedWaitMinutes: number;
+	fid?: string | null;
+}
+
+/**
+ * Parameters required to create a new walk-in queue entry.
+ */
+export interface CreateWalkInQueueEntryProps {
+	id?: string;
+	restaurantId: string;
+	guestName: string;
+	phone: string;
+	queueNumber: string;
+	partySize: number;
+	specialNotes?: string | null;
+	position: number;
+	estimatedWaitMinutes: number;
+}
+
+/**
+ * QueueEntry Domain Entity.
+ *
+ * Encapsulates the state and lifecycle of a party waiting in a restaurant queue.
+ * Supports both online and walk-in registrations while enforcing registrationType invariants.
+ */
+export class QueueEntry {
+	private constructor(private readonly props: QueueEntryProps) {}
+
+	/**
+	 * Generates a domain-compliant queue display number based on registration channel and sequence.
+	 * Online: 'Q-001', Walk-in: 'W-001'
+	 */
+	public static generateQueueNumber(
+		registrationType: RegistrationType,
+		sequenceNumber: number,
+	): string {
+		const prefix =
+			registrationType === REGISTRATION_TYPE.ONLINE ? QUEUE_PREFIX.ONLINE : QUEUE_PREFIX.WALK_IN;
+		return `${prefix}${String(sequenceNumber).padStart(3, '0')}`;
+	}
+
+	/**
+	 * Factory method to instantiate a new queue entry (online or walk-in).
+	 *
+	 * @param props - Queue initialization properties
+	 * @returns New QueueEntry instance
+	 */
+	public static create(props: CreateQueueEntryProps): QueueEntry {
+		const now = new Date();
+		return new QueueEntry({
+			id: props.id ?? crypto.randomUUID(),
+			restaurantId: props.restaurantId,
+			userId: props.userId ?? null,
+			guestName: props.guestName.trim(),
+			phone: props.phone.trim(),
+			queueNumber: props.queueNumber,
+			partySize: props.partySize,
+			specialNotes: props.specialNotes?.trim() || null,
+			registrationType: props.registrationType ?? RegistrationType.WALK_IN,
+			position: props.position,
+			estimatedWaitMinutes: props.estimatedWaitMinutes,
+			estimatedWaitMinutesAtJoin: props.estimatedWaitMinutes,
+			status: QueueStatus.WAITING,
+			ringCount: 0,
+			lastRingedAt: null,
+			fid: props.fid ?? null,
+			joinedAt: now,
+			seatedAt: null,
+			cancelledAt: null,
+			createdAt: now,
+			updatedAt: now,
+		});
+	}
+
+	/**
+	 * Factory method to instantiate a new walk-in queue entry.
+	 *
+	 * @param props - Walk-in initialization properties
+	 * @returns New QueueEntry instance
+	 */
+	public static createWalkIn(props: CreateWalkInQueueEntryProps): QueueEntry {
+		return QueueEntry.create({
+			...props,
+			registrationType: RegistrationType.WALK_IN,
+		});
+	}
+
+	/**
+	 * Reconstitutes an existing QueueEntry from persistent storage.
+	 *
+	 * @param props - Stored entity properties
+	 * @returns QueueEntry instance
+	 */
+	public static reconstitute(props: QueueEntryProps): QueueEntry {
+		return new QueueEntry(props);
+	}
+
+	public get id(): string {
+		return this.props.id;
+	}
+
+	public get restaurantId(): string {
+		return this.props.restaurantId;
+	}
+
+	public get userId(): string | null | undefined {
+		return this.props.userId;
+	}
+
+	public get guestName(): string {
+		return this.props.guestName;
+	}
+
+	public get phone(): string {
+		return this.props.phone;
+	}
+
+	public get queueNumber(): string {
+		return this.props.queueNumber;
+	}
+
+	public get partySize(): number {
+		return this.props.partySize;
+	}
+
+	public get specialNotes(): string | null | undefined {
+		return this.props.specialNotes;
+	}
+
+	public get registrationType(): RegistrationType {
+		return this.props.registrationType;
+	}
+
+	public get position(): number | null {
+		return this.props.position;
+	}
+
+	public get estimatedWaitMinutes(): number | null {
+		return this.props.estimatedWaitMinutes;
+	}
+
+	public get estimatedWaitMinutesAtJoin(): number | null {
+		return this.props.estimatedWaitMinutesAtJoin;
+	}
+
+	public get status(): QueueStatus {
+		return this.props.status;
+	}
+
+	public get ringCount(): number {
+		return this.props.ringCount;
+	}
+
+	public get lastRingedAt(): Date | null | undefined {
+		return this.props.lastRingedAt;
+	}
+
+	public get fid(): string | null | undefined {
+		return this.props.fid;
+	}
+
+	public get joinedAt(): Date {
+		return this.props.joinedAt;
+	}
+
+	public get seatedAt(): Date | null | undefined {
+		return this.props.seatedAt;
+	}
+
+	public get cancelledAt(): Date | null | undefined {
+		return this.props.cancelledAt;
+	}
+
+	public get createdAt(): Date {
+		return this.props.createdAt;
+	}
+
+	public get updatedAt(): Date {
+		return this.props.updatedAt;
+	}
+
+	public seat(): void {
+		if (this.props.status !== QueueStatus.WAITING) {
+			throw new QueueEntryNotWaitingError(this.props.id, this.props.status);
+		}
+		this.props.status = QueueStatus.SEATED;
+		this.props.seatedAt = new Date();
+		this.props.position = null;
+		this.props.updatedAt = new Date();
+	}
+
+	public skip(): void {
+		if (this.props.status !== QueueStatus.WAITING) {
+			throw new QueueEntryNotWaitingError(this.props.id, this.props.status);
+		}
+		this.props.status = QueueStatus.SKIPPED;
+		this.props.position = null;
+		this.props.updatedAt = new Date();
+	}
+
+	public cancel(status: QueueStatus.CANCELLED | QueueStatus.NO_SHOW = QueueStatus.CANCELLED): void {
+		if (this.props.status !== QueueStatus.WAITING) {
+			throw new QueueEntryNotWaitingError(this.props.id, this.props.status);
+		}
+		this.props.status = status;
+		this.props.cancelledAt = new Date();
+		this.props.position = null;
+		this.props.updatedAt = new Date();
+	}
+
+	public ensureCustomerAccessible(userId: string): void {
+		if (this.props.registrationType === RegistrationType.WALK_IN) {
+			throw new WalkInTicketNotAccessibleError(this.props.id);
+		}
+		if (!this.props.userId || this.props.userId !== userId) {
+			throw new ForbiddenTicketAccessError();
+		}
+	}
+
+	public leave(userId: string): void {
+		if (this.props.status !== QueueStatus.WAITING) {
+			throw new QueueEntryNotWaitingError(this.props.id, this.props.status);
+		}
+		this.ensureCustomerAccessible(userId);
+		this.cancel(QueueStatus.CANCELLED);
+	}
+
+	public updatePosition(newPosition: number, newEta?: number | null): void {
+		if (this.props.status !== QueueStatus.WAITING) {
+			return;
+		}
+		this.props.position = newPosition;
+		if (newEta !== undefined) {
+			this.props.estimatedWaitMinutes = newEta;
+		}
+		this.props.updatedAt = new Date();
+	}
+
+	public ring(): void {
+		if (this.props.status !== QueueStatus.WAITING) {
+			throw new QueueEntryNotWaitingError(this.props.id, this.props.status);
+		}
+		if (this.props.registrationType === RegistrationType.WALK_IN) {
+			throw new CannotRingWalkInCustomerError(this.props.id);
+		}
+		this.props.ringCount += 1;
+		this.props.lastRingedAt = new Date();
+		this.props.updatedAt = new Date();
+	}
+
+	/**
+	 * Computes dynamic waiting duration in minutes.
+	 * If the party is seated, calculates elapsed time from join to seat.
+	 * If the party is in a terminal state (cancelled, skipped, no-show), calculates elapsed time from join to updatedAt.
+	 * Otherwise, calculates elapsed time from join until referenceTime (defaults to now).
+	 *
+	 * @param referenceTime - Date to measure wait duration against (defaults to current time)
+	 * @returns Non-negative wait duration in whole minutes
+	 */
+	public calculateWaitDurationMinutes(referenceTime: Date = new Date()): number {
+		let endTime: Date;
+
+		if (this.props.status === QueueStatus.SEATED) {
+			endTime = this.props.seatedAt ?? this.props.updatedAt;
+		} else if (this.props.status !== QueueStatus.WAITING) {
+			endTime = this.props.updatedAt;
+		} else {
+			endTime = referenceTime;
+		}
+
+		return Math.max(
+			0,
+			Math.floor(
+				(endTime.getTime() - this.props.joinedAt.getTime()) / QUEUE_CONSTANTS.MS_PER_MINUTE,
+			),
+		);
+	}
+
+	/**
+	 * Computes the response deadline Date if this entry has been rung.
+	 *
+	 * @param timeoutMs - Allowed response timeout in ms (defaults to DEFAULT_RESPONSE_TIMEOUT_MS)
+	 * @returns Response deadline Date or null if not rung
+	 */
+	public calculateResponseDeadline(
+		timeoutMs: number = QUEUE_CONSTANTS.DEFAULT_RESPONSE_TIMEOUT_MS,
+	): Date | null {
+		if (!this.props.lastRingedAt) {
+			return null;
+		}
+
+		return new Date(this.props.lastRingedAt.getTime() + timeoutMs);
+	}
+
+	public toJSON(): QueueEntryProps {
+		return { ...this.props };
+	}
+}

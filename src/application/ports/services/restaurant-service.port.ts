@@ -1,0 +1,36 @@
+export interface TableAvailabilityResult {
+	restaurantId: string;
+	isOpen: boolean;
+	acceptsQueue: boolean;
+	isTableAvailable: boolean;
+	availableCount: number;
+}
+
+export interface RestaurantStatusResult {
+	restaurantId: string;
+	restaurantName: string;
+	verificationStatus: string;
+	isBlocked: boolean;
+	blockReason: string | null;
+	isSubscriptionActive: boolean;
+	subscriptionPlanCode: string | null;
+	subscriptionEndsAt: string | null;
+	canAccessQueueService?: boolean;
+}
+
+export interface AssignTableItem {
+	tableId: string;
+	count: number;
+}
+
+export interface ReleaseTableItem {
+	tableId: string;
+	occupancyToRelease: number;
+}
+
+export interface IRestaurantServiceClient {
+	checkAvailability(restaurantId: string, partySize: number): Promise<TableAvailabilityResult>;
+	getRestaurantStatus(restaurantId: string): Promise<RestaurantStatusResult>;
+	assignTables(restaurantId: string, tables: AssignTableItem[]): Promise<void>;
+	releaseTables(restaurantId: string, tables: ReleaseTableItem[]): Promise<void>;
+}

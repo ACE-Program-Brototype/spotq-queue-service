@@ -1,0 +1,13 @@
+allowBuilds:
+  "@firebase/util": true
+  "@parcel/watcher": false
+  "@prisma/client": true
+  "@prisma/engines": true
+  "@swc/core": true
+  esbuild: true
+  msgpackr-extract: true
+  prisma: true
+  protobufjs: true
+  unrs-resolver: true
+minimumReleaseAgeExclude:
+  - "@spotq-org/s2s-core@1.0.0"
