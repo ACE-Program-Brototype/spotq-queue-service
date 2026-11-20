@@ -60,8 +60,9 @@ if (
 const pool = new pg.Pool({
 	connectionString,
 	ssl: sslConfig,
-	max: 10,
-	idleTimeoutMillis: 30000,
+	max: config.database.poolMax,
+	idleTimeoutMillis: config.database.poolIdleTimeoutMs,
+	connectionTimeoutMillis: config.database.poolConnectionTimeoutMs,
 });
 
 const adapter = new PrismaPg(pool);

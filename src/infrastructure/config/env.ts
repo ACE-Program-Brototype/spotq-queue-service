@@ -19,6 +19,9 @@ export const config = {
 	database: {
 		url: validatedEnv.DATABASE_URL,
 		caCert: validatedEnv.DATABASE_CA_CERT,
+		poolMax: validatedEnv.DATABASE_POOL_MAX,
+		poolIdleTimeoutMs: validatedEnv.DATABASE_POOL_IDLE_TIMEOUT_MS,
+		poolConnectionTimeoutMs: validatedEnv.DATABASE_POOL_CONNECTION_TIMEOUT_MS,
 	},
 	redis: {
 		url: validatedEnv.REDIS_URL,
